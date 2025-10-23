@@ -82,6 +82,7 @@ class PowerShellSecurityAnalyzer {
             EnableParallelAnalysis = $true
             MaxFileSize = 10MB
             TimeoutSeconds = 30
+            ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*')
         }
         $this.InitializeDefaultRules()
     }
@@ -342,14 +343,56 @@ class PowerShellSecurityAnalyzer {
         }
     }
 
+    [bool] IsPathExcluded([string]$FilePath, [string]$WorkspacePath) {
+        # Normalize paths for comparison
+        $normalizedFilePath = $FilePath.Replace('\', '/').TrimStart('./')
+        $normalizedWorkspacePath = $WorkspacePath.Replace('\', '/').TrimEnd('/')
+        
+        # Get relative path from workspace
+        if ($normalizedFilePath.StartsWith($normalizedWorkspacePath)) {
+            $relativePath = $normalizedFilePath.Substring($normalizedWorkspacePath.Length).TrimStart('/')
+        } else {
+            $relativePath = $normalizedFilePath
+        }
+        
+        # Check against exclusion patterns
+        foreach ($pattern in $this.Configuration.ExcludedPaths) {
+            $normalizedPattern = $pattern.Replace('\', '/')
+            
+            # Simple wildcard matching
+            if ($normalizedPattern.Contains('*')) {
+                # Convert pattern to regex
+                $regexPattern = '^' + [regex]::Escape($normalizedPattern).Replace('\*', '.*') + '.*'
+                if ($relativePath -match $regexPattern) {
+                    return $true
+                }
+            } else {
+                # Exact match or starts with pattern
+                if ($relativePath -eq $normalizedPattern -or $relativePath.StartsWith($normalizedPattern + '/')) {
+                    return $true
+                }
+            }
+        }
+        
+        return $false
+    }
+
     [PSCustomObject] AnalyzeWorkspace([string]$WorkspacePath) {
         $scriptFiles = Get-ChildItem -Path $WorkspacePath -Recurse -Include "*.ps1", "*.psm1", "*.psd1" -ErrorAction SilentlyContinue | 
                       Where-Object { $_.Length -le $this.Configuration.MaxFileSize }
         
         $allResults = @()
         $totalViolations = 0
+        $excludedCount = 0
         
         foreach ($file in $scriptFiles) {
+            # Check if file should be excluded
+            if ($this.IsPathExcluded($file.FullName, $WorkspacePath)) {
+                $excludedCount++
+                Write-Verbose "Excluding file from analysis: $($file.FullName)"
+                continue
+            }
+            
             try {
                 $result = $this.AnalyzeScript($file.FullName)
                 $allResults += $result
@@ -362,10 +405,15 @@ class PowerShellSecurityAnalyzer {
         }
         
         Write-Progress -Activity "Analyzing PowerShell Files" -Completed
+        
+        if ($excludedCount -gt 0) {
+            Write-Host "Excluded $excludedCount files from analysis based on configuration"
+        }
 
         return [PSCustomObject]@{
             WorkspacePath = $WorkspacePath
             FilesAnalyzed = $allResults.Count
+            FilesExcluded = $excludedCount
             TotalViolations = $totalViolations
             Results = $allResults
             Summary = $this.GenerateSummary($allResults)
