@@ -51,107 +51,198 @@ jobs:
     - name: Run Security Analysis
       id: analyze
       shell: pwsh
+      env:
+        SEVERITY_THRESHOLD: ${{ github.event.inputs.severity_threshold || 'Medium' }}
       run: |
         # Import the analyzer module
         Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
-        
-        # Run analysis on the workspace
-        Write-Host "Starting PSTS security analysis..."
-        $result = Invoke-WorkspaceAnalysis -WorkspacePath "."
-        
-        Write-Host "Analysis completed. Files analyzed: $($result.FilesAnalyzed)"
-        Write-Host "Total violations: $($result.TotalViolations)"
-        
-        # Filter by severity if specified
-        $severityThreshold = '${{ github.event.inputs.severity_threshold || 'Medium' }}'
-        Write-Host "Severity threshold: $severityThreshold"
-        
-# Build flat list of violations safely
-$allViolations = @()
-foreach ($fileResult in $result.Results) {
-  if ($null -ne $fileResult -and $null -ne $fileResult.Violations) {
-    $allViolations += $fileResult.Violations
-  }
-}
 
-# Remove any null entries (prevents $_ being $null inside Where-Object)
-$allViolations = $allViolations | Where-Object { $_ -ne $null }
+        try {
+          Write-Host "Starting PSTS security analysis..."
+          $result = Invoke-WorkspaceAnalysis -WorkspacePath "."
 
-# Map severities to numeric values safely
-$severityMap = @{ 'Low' = 1; 'Medium' = 2; 'High' = 3; 'Critical' = 4 }
-$thresholdValue = $severityMap[$severityThreshold]
-if (-not $thresholdValue) { $thresholdValue = 2 }  # default to Medium
-
-# Filter with null-safety (do not call .ToString() on a null)
-$filteredViolations = $allViolations | Where-Object {
-  if ($_ -eq $null) { return $false }
-  $sev = $_.Severity
-  if ($sev -eq $null) { return $false }
-
-  # Accept either string or object; only call ToString when $sev is not null
-  if ($sev -is [string]) {
-    $sevKey = $sev
-  } else {
-    try { $sevKey = $sev.ToString() } catch { return $false }
-  }
-
-  $sevVal = $severityMap[$sevKey]
-  if (-not $sevVal) { return $false }
-  return ($sevVal -ge $thresholdValue)
-}
-        
-        $criticalCount = @($filteredViolations | Where-Object { $_.Severity -eq 'Critical' }).Count
-        $totalCount = $filteredViolations.Count
-        
-        Write-Host "Violations after filtering: $totalCount"
-        Write-Host "Critical violations: $criticalCount"
-        
-        # Prepare export data
-        $exportData = @{
-          metadata = @{
-            version = '${{ env.PSTS_VERSION }}'
-            timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'
-            repository = '${{ github.repository }}'
-            ref = '${{ github.ref }}'
-            sha = '${{ github.sha }}'
+          if ($null -eq $result -or $null -eq $result.Results) {
+            Write-Warning "Analysis returned no results. Creating empty result structure."
+            $result = [pscustomobject]@{
+              FilesAnalyzed = 0
+              TotalViolations = 0
+              Results = @()
+              Summary = @{}
+            }
           }
-          summary = $result.Summary
-          violations = $filteredViolations
-        }
-        
-        # Export results
-        $exportData | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
-        Write-Host "Results exported to psts-results.json"
-        
-        # Generate SARIF
-        . ./scripts/Convert-ToSARIF.ps1
-        Convert-ToSARIF -InputFile 'psts-results.json' -OutputFile 'psts-results.sarif'
-        
-        # Generate human-readable report
-        . ./scripts/Generate-SecurityReport.ps1
-        Generate-SecurityReport -InputFile 'psts-results.json' -OutputFile 'security-report.md'
-        
-        # Set outputs
-        "violations-count=$totalCount" >> $env:GITHUB_OUTPUT
-        "critical-count=$criticalCount" >> $env:GITHUB_OUTPUT
-        
-        # Display summary
-        Write-Host ""
-        Write-Host "=== PSTS Analysis Summary ==="
-        Write-Host "Total Violations: $totalCount"
-        Write-Host "Critical: $criticalCount"
-        Write-Host "High: $(@($filteredViolations | Where-Object { $_.Severity -eq 'High' }).Count)"
-        Write-Host "Medium: $(@($filteredViolations | Where-Object { $_.Severity -eq 'Medium' }).Count)"
-        Write-Host "Low: $(@($filteredViolations | Where-Object { $_.Severity -eq 'Low' }).Count)"
-        
-        # Exit with error if critical issues found
-        if ($criticalCount -gt 0) {
-          Write-Error "❌ Found $criticalCount critical security violations"
+
+          Write-Host "Analysis completed. Files analyzed: $($result.FilesAnalyzed)"
+          Write-Host "Total violations: $($result.TotalViolations)"
+
+          # Severity threshold from env
+          $severityThreshold = $env:SEVERITY_THRESHOLD
+          if (-not $severityThreshold) { $severityThreshold = 'Medium' }
+          Write-Host "Severity threshold: $severityThreshold"
+
+          # Build flat list of violations safely
+          $allViolations = @()
+          foreach ($fileResult in $result.Results) {
+            if ($null -ne $fileResult -and $null -ne $fileResult.Violations) {
+              $allViolations += $fileResult.Violations
+            }
+          }
+
+          # Ensure no null entries
+          $allViolations = @($allViolations | Where-Object { $_ -ne $null })
+
+          # Map severities to numeric values safely
+          $severityMap = @{ 'Low' = 1; 'Medium' = 2; 'High' = 3; 'Critical' = 4 }
+          $thresholdValue = $severityMap[$severityThreshold]
+          if (-not $thresholdValue) { $thresholdValue = 2 }  # default to Medium
+
+          # Filter with null-safety (do not call .ToString() on a null)
+          $filteredViolations = $allViolations | Where-Object {
+            if ($_ -eq $null) { return $false }
+            $sev = $_.Severity
+            if ($sev -eq $null) { return $false }
+
+            # Accept either string or object; only call ToString when $sev is not null
+            if ($sev -is [string]) {
+              $sevKey = $sev
+            } else {
+              try { $sevKey = $sev.ToString() } catch { return $false }
+            }
+
+            $sevVal = $severityMap[$sevKey]
+            if (-not $sevVal) { return $false }
+            return ($sevVal -ge $thresholdValue)
+          }
+
+          $criticalCount = @($filteredViolations | Where-Object { $_.Severity -eq 'Critical' }).Count
+          $totalCount = $filteredViolations.Count
+
+          Write-Host "Violations after filtering: $totalCount"
+          Write-Host "Critical violations: $criticalCount"
+
+          # Prepare export data (use env vars for GitHub context)
+          $exportData = @{
+            metadata = @{
+              version = $env:PSTS_VERSION
+              timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+              repository = $env:GITHUB_REPOSITORY
+              ref = $env:GITHUB_REF
+              sha = $env:GITHUB_SHA
+            }
+            summary = $result.Summary
+            violations = $filteredViolations
+          }
+
+          # Export results
+          $exportData | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+          Write-Host "Results exported to psts-results.json"
+
+          # Generate SARIF using converter if present; fallback to minimal SARIF if conversion fails
+          if (Test-Path ./scripts/Convert-ToSARIF.ps1) {
+            . ./scripts/Convert-ToSARIF.ps1
+            try {
+              Convert-ToSARIF -InputFile 'psts-results.json' -OutputFile 'psts-results.sarif' -ErrorAction Stop
+            } catch {
+              Write-Warning "Convert-ToSARIF failed: $_. Creating minimal SARIF."
+              @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+            }
+          } else {
+            Write-Warning "Convert-ToSARIF.ps1 not found. Creating minimal SARIF."
+            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+          }
+
+          # Generate human-readable report; fallback if generator missing/fails
+          if (Test-Path ./scripts/Generate-SecurityReport.ps1) {
+            . ./scripts/Generate-SecurityReport.ps1
+            try {
+              Generate-SecurityReport -InputFile 'psts-results.json' -OutputFile 'security-report.md' -ErrorAction Stop
+            } catch {
+              Write-Warning "Generate-SecurityReport failed: $_. Creating fallback report."
+              "## PSTS Security Analysis`n`nReport generation failed or no data." | Out-File security-report.md -Encoding UTF8
+            }
+          } else {
+            "## PSTS Security Analysis`n`nNo report generator found." | Out-File security-report.md -Encoding UTF8
+          }
+
+          # Ensure SARIF/JSON/report exist (extra safety)
+          if (-not (Test-Path 'psts-results.sarif')) {
+            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+          }
+          if (-not (Test-Path 'psts-results.json')) {
+            @{ metadata = @{ version = $env:PSTS_VERSION }; summary = @{}; violations = @() } |
+              ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+          }
+          if (-not (Test-Path 'security-report.md')) {
+            "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
+          }
+
+          # Set outputs for the step
+          "violations-count=$totalCount" >> $env:GITHUB_OUTPUT
+          "critical-count=$criticalCount" >> $env:GITHUB_OUTPUT
+
+          # Display summary
+          Write-Host ""
+          Write-Host "=== PSTS Analysis Summary ==="
+          Write-Host "Total Violations: $totalCount"
+          Write-Host "Critical: $criticalCount"
+          Write-Host "High: $(@($filteredViolations | Where-Object { $_.Severity -eq 'High' }).Count)"
+          Write-Host "Medium: $(@($filteredViolations | Where-Object { $_.Severity -eq 'Medium' }).Count)"
+          Write-Host "Low: $(@($filteredViolations | Where-Object { $_.Severity -eq 'Low' }).Count)"
+
+          # Exit with error if critical issues found
+          if ($criticalCount -gt 0) {
+            Write-Error "❌ Found $criticalCount critical security violations"
+            exit 1
+          } elseif ($totalCount -gt 0) {
+            Write-Warning "⚠️ Found $totalCount security violations"
+          } else {
+            Write-Host "✅ No security violations found!"
+          }
+
+        } catch {
+          Write-Error "Analysis failed with exception: $_"
+
+          # Create fallback outputs so upload steps have files to work with
+          $fallback = @{
+            metadata = @{
+              version = $env:PSTS_VERSION
+              timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+              repository = $env:GITHUB_REPOSITORY
+              ref = $env:GITHUB_REF
+              sha = $env:GITHUB_SHA
+            }
+            summary = @{}
+            violations = @()
+          }
+          $fallback | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+
+          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+
+          "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File security-report.md -Encoding UTF8
+
+          "violations-count=0" >> $env:GITHUB_OUTPUT
+          "critical-count=0" >> $env:GITHUB_OUTPUT
+
+          # Fail the step to signal error while preserving artifacts for diagnostics
           exit 1
-        } elseif ($totalCount -gt 0) {
-          Write-Warning "⚠️ Found $totalCount security violations"
-        } else {
-          Write-Host "✅ No security violations found!"
+        }
+
+    - name: Ensure Analysis Artifacts Exist
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "Ensuring analysis artifacts exist..."
+        if (-not (Test-Path 'psts-results.json')) {
+          Write-Host "psts-results.json missing — creating fallback."
+          @{ metadata = @{ version = $env:PSTS_VERSION; timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }; summary = @{}; violations = @() } |
+            ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+        }
+        if (-not (Test-Path 'psts-results.sarif')) {
+          Write-Host "psts-results.sarif missing — creating minimal SARIF."
+          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.sarif' -Encoding UTF8
+        }
+        if (-not (Test-Path 'security-report.md')) {
+          Write-Host "security-report.md missing — creating fallback report."
+          "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
         }
 
     - name: Upload SARIF Results
