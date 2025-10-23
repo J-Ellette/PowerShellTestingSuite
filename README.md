@@ -170,6 +170,36 @@ PSTS generates SARIF (Static Analysis Results Interchange Format) output that in
 3. Track security trends over time
 4. Filter by severity, rule, and file
 
+## ⚙️ Configuration
+
+PSTS includes configurable options for customizing analysis behavior.
+
+### Excluded Paths
+
+By default, PSTS excludes test scripts from workspace analysis to avoid flagging intentional violations used for testing:
+
+```powershell
+# Default exclusions
+$analyzer.Configuration.ExcludedPaths = @(
+    'tests/TestScripts',
+    '*/TestScripts',
+    'test/*',
+    'tests/*'
+)
+```
+
+Test scripts are still analyzed individually in the `test-analyzer` workflow job to verify the scanner is working correctly.
+
+### Custom Configuration
+
+```powershell
+# Create analyzer with custom configuration
+$analyzer = New-SecurityAnalyzer
+$analyzer.Configuration.MaxFileSize = 20MB
+$analyzer.Configuration.TimeoutSeconds = 60
+$analyzer.Configuration.ExcludedPaths += 'vendor/*'
+```
+
 ## 🛠️ Development
 
 ### Project Structure
