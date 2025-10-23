@@ -1,0 +1,27 @@
+# Generated files
+psts-results.json
+psts-results.sarif
+security-report.md
+test-*.json
+test-*.sarif
+test-*.md
+
+# Node
+node_modules/
+dist/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PowerShell
+*.psm1.bak
+*.ps1.bak
