@@ -52,20 +52,26 @@ function Convert-ToSARIF {
     # Build rules dictionary
     $rulesMap = @{}
     foreach ($violation in $results.violations) {
-        if (-not $rulesMap.ContainsKey($violation.RuleId)) {
+        if ($violation -and $violation.RuleId -and -not $rulesMap.ContainsKey($violation.RuleId)) {
+            $severityLevel = if ($violation.Severity) {
+                switch ($violation.Severity) {
+                    'Critical' { 'error' }
+                    'High' { 'error' }
+                    'Medium' { 'warning' }
+                    'Low' { 'note' }
+                    default { 'warning' }
+                }
+            } else {
+                'warning'
+            }
+            
             $rulesMap[$violation.RuleId] = @{
                 id = $violation.RuleId
-                name = $violation.Name
-                shortDescription = @{ text = $violation.Message }
-                fullDescription = @{ text = $violation.Message }
+                name = if ($violation.Name) { $violation.Name } else { $violation.RuleId }
+                shortDescription = @{ text = if ($violation.Message) { $violation.Message } else { "Security violation" } }
+                fullDescription = @{ text = if ($violation.Message) { $violation.Message } else { "Security violation detected" } }
                 defaultConfiguration = @{
-                    level = switch ($violation.Severity) {
-                        'Critical' { 'error' }
-                        'High' { 'error' }
-                        'Medium' { 'warning' }
-                        'Low' { 'note' }
-                        default { 'warning' }
-                    }
+                    level = $severityLevel
                 }
                 properties = @{
                     category = 'security'
@@ -79,27 +85,37 @@ function Convert-ToSARIF {
 
     # Build results
     foreach ($violation in $results.violations) {
-        $result = @{
-            ruleId = $violation.RuleId
-            ruleIndex = [array]::IndexOf(@($rulesMap.Keys), $violation.RuleId)
-            message = @{ text = $violation.Message }
-            level = switch ($violation.Severity) {
+        if (-not $violation -or -not $violation.RuleId -or -not $violation.LineNumber) {
+            continue
+        }
+        
+        $severityLevel = if ($violation.Severity) {
+            switch ($violation.Severity) {
                 'Critical' { 'error' }
                 'High' { 'error' }
                 'Medium' { 'warning' }
                 'Low' { 'note' }
                 default { 'warning' }
             }
+        } else {
+            'warning'
+        }
+        
+        $result = @{
+            ruleId = $violation.RuleId
+            ruleIndex = [array]::IndexOf(@($rulesMap.Keys), $violation.RuleId)
+            message = @{ text = if ($violation.Message) { $violation.Message } else { "Security violation" } }
+            level = $severityLevel
             locations = @(@{
                 physicalLocation = @{
                     artifactLocation = @{ 
-                        uri = $violation.FilePath.Replace('\', '/').TrimStart('./')
+                        uri = if ($violation.FilePath) { $violation.FilePath.Replace('\', '/').TrimStart('./') } else { 'unknown' }
                         uriBaseId = 'SRCROOT'
                     }
                     region = @{
                         startLine = $violation.LineNumber
                         startColumn = 1
-                        snippet = @{ text = $violation.Code }
+                        snippet = @{ text = if ($violation.Code) { $violation.Code } else { '' } }
                     }
                 }
             })

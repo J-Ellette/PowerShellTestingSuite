@@ -252,21 +252,43 @@ class PowerShellSecurityAnalyzer {
                 param($Ast, $FilePath)
                 $violations = @()
                 
-                # Check for certificate validation bypass
-                $certValidation = $Ast.FindAll({
-                    $args[0].Extent.Text -match 'ServerCertificateValidationCallback|CheckCertRevocationStatus'
+                # Look for specific certificate validation bypasses
+                # Pattern 1: ServerCertificateValidationCallback = { $true }
+                $assignments = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst]
                 }, $true)
                 
-                foreach ($validation in $certValidation) {
-                    $text = $validation.Extent.Text
-                    if ($text -match 'return\s+\$true' -or $text -match '=\s*\{\s*\$true\s*\}') {
-                        $violations += [SecurityViolation]::new(
-                            "CertificateValidation",
-                            "Certificate validation bypass detected",
-                            [SecuritySeverity]::High,
-                            $validation.Extent.StartLineNumber,
-                            $text
-                        )
+                foreach ($assignment in $assignments) {
+                    $leftSide = $assignment.Left.Extent.Text
+                    if ($leftSide -match 'ServerCertificateValidationCallback') {
+                        $rightSide = $assignment.Right.Extent.Text
+                        # Check if it's setting to { $true } or similar
+                        if ($rightSide -match '^\s*\{\s*\$true\s*\}\s*$' -or $rightSide -match '^\s*\{\s*return\s+\$true\s*\}\s*$') {
+                            $violations += [SecurityViolation]::new(
+                                "CertificateValidation",
+                                "Certificate validation callback set to always return true - bypasses certificate security",
+                                [SecuritySeverity]::High,
+                                $assignment.Extent.StartLineNumber,
+                                $assignment.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 2: CheckCertRevocationStatus = $false
+                foreach ($assignment in $assignments) {
+                    $leftSide = $assignment.Left.Extent.Text
+                    if ($leftSide -match 'CheckCertRevocationStatus|CheckCertificateRevocationList') {
+                        $rightSide = $assignment.Right.Extent.Text
+                        if ($rightSide -match '\$false') {
+                            $violations += [SecurityViolation]::new(
+                                "CertificateValidation",
+                                "Certificate revocation checking disabled - security risk",
+                                [SecuritySeverity]::High,
+                                $assignment.Extent.StartLineNumber,
+                                $assignment.Extent.Text
+                            )
+                        }
                     }
                 }
                 
@@ -366,14 +388,22 @@ class PowerShellSecurityAnalyzer {
         }
 
         foreach ($result in $Results) {
-            foreach ($violation in $result.Violations) {
-                $summary.TotalViolations++
-                $summary.BySeverity[$violation.Severity.ToString()]++
-                
-                if (-not $summary.ByCategory.ContainsKey($violation.Name)) {
-                    $summary.ByCategory[$violation.Name] = 0
+            if ($result.Violations) {
+                foreach ($violation in $result.Violations) {
+                    if ($violation) {
+                        $summary.TotalViolations++
+                        $severityStr = if ($violation.Severity) { $violation.Severity.ToString() } else { 'Low' }
+                        if ($summary.BySeverity.ContainsKey($severityStr)) {
+                            $summary.BySeverity[$severityStr]++
+                        }
+                        
+                        $violationName = if ($violation.Name) { $violation.Name } else { 'Unknown' }
+                        if (-not $summary.ByCategory.ContainsKey($violationName)) {
+                            $summary.ByCategory[$violationName] = 0
+                        }
+                        $summary.ByCategory[$violationName]++
+                    }
                 }
-                $summary.ByCategory[$violation.Name]++
             }
         }
 

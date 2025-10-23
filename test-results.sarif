@@ -1,0 +1,1085 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "originalUriBaseIds": {
+        "SRCROOT": {
+          "uri": "file:///"
+        }
+      },
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/J-Ellette/PowerShellTestingSuite",
+          "rules": [
+            {
+              "fullDescription": {
+                "text": "Insecure hash algorithm 'MD5' detected. Use SHA-256 or higher."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "shortDescription": {
+                "text": "Insecure hash algorithm 'MD5' detected. Use SHA-256 or higher."
+              },
+              "id": "InsecureHashAlgorithms",
+              "properties": {
+                "tags": [
+                  "security",
+                  "powershell"
+                ],
+                "category": "security"
+              },
+              "name": "InsecureHashAlgorithms"
+            },
+            {
+              "fullDescription": {
+                "text": "Potential command injection via Invoke-Expression with variables"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "shortDescription": {
+                "text": "Potential command injection via Invoke-Expression with variables"
+              },
+              "id": "CommandInjection",
+              "properties": {
+                "tags": [
+                  "security",
+                  "powershell"
+                ],
+                "category": "security"
+              },
+              "name": "CommandInjection"
+            },
+            {
+              "fullDescription": {
+                "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "shortDescription": {
+                "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+              },
+              "id": "CredentialExposure",
+              "properties": {
+                "tags": [
+                  "security",
+                  "powershell"
+                ],
+                "category": "security"
+              },
+              "name": "CredentialExposure"
+            },
+            {
+              "fullDescription": {
+                "text": "Certificate validation bypass detected"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "shortDescription": {
+                "text": "Certificate validation bypass detected"
+              },
+              "id": "CertificateValidation",
+              "properties": {
+                "tags": [
+                  "security",
+                  "powershell"
+                ],
+                "category": "security"
+              },
+              "name": "CertificateValidation"
+            }
+          ],
+          "name": "PSTS (PowerShell Testing Suite)",
+          "version": "1.0.0",
+          "semanticVersion": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "message": {
+            "text": "Insecure hash algorithm 'MD5' detected. Use SHA-256 or higher."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "21715F6B4F243DDB"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "Get-FileHash -Path \"file.txt\" -Algorithm MD5"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Insecure hash algorithm 'SHA1' detected. Use SHA-256 or higher."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "5E2E7936113A2973"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 18,
+                  "snippet": {
+                    "text": "Get-FileHash -Path \"data.bin\" -Algorithm SHA1"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "3FE8EE29510E55A9"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 7,
+                  "snippet": {
+                    "text": "ConvertTo-SecureString \"Password123\" -AsPlainText -Force"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 2,
+          "level": "warning",
+          "ruleId": "CredentialExposure"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "5B00044AFA13D4EB"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 11,
+                  "snippet": {
+                    "text": "Invoke-Expression $cmd"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "34290467DC16398C"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1,
+                  "snippet": {
+                    "text": "# Test script with multiple types of violations\n\n# Insecure hash algorithm\n$hash = Get-FileHash -Path \"file.txt\" -Algorithm MD5\n\n# Credential exposure\n$pass = ConvertTo-SecureString \"Password123\" -AsPlainText -Force\n\n# Command injection\n$cmd = Read-Host \"Command\"\nInvoke-Expression $cmd\n\n# Certificate bypass\n[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }\n\n# More violations\n$apiKey = \"hardcoded-api-key-secret\"\n$sha1Hash = Get-FileHash -Path \"data.bin\" -Algorithm SHA1\n\nWrite-Host \"This script intentionally contains multiple security violations for testing purposes\"\n"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "21715F6B4F243DDB"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "$hash = Get-FileHash -Path \"file.txt\" -Algorithm MD5\n\n# Credential exposure\n$pass = ConvertTo-SecureString \"Password123\" -AsPlainText -Force\n\n# Command injection\n$cmd = Read-Host \"Command\"\nInvoke-Expression $cmd\n\n# Certificate bypass\n[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }\n\n# More violations\n$apiKey = \"hardcoded-api-key-secret\"\n$sha1Hash = Get-FileHash -Path \"data.bin\" -Algorithm SHA1\n\nWrite-Host \"This script intentionally contains multiple security violations for testing purposes\""
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "94B98FD8A5ADD6C7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 14,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "94B98FD8A5ADD6C7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 14,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "94B98FD8A5ADD6C7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 14,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "94B98FD8A5ADD6C7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 14,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/all-violations.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "D53FF517A90645D7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1,
+                  "snippet": {
+                    "text": "# Test script with certificate validation bypass violations\n\n# Violation 1: Certificate callback that always returns true\n[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }\n\n# Violation 2: Disabling certificate revocation check\n[System.Net.ServicePointManager]::CheckCertificateRevocationList = $false\n\n# Violation 3: Certificate validation bypass in function\nfunction Skip-CertificateValidation {\n    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }\n}\n\n# Correct usage (should not trigger violation)\n# Proper certificate validation would implement actual checks\n[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\n    param($sender, $certificate, $chain, $sslPolicyErrors)\n    \n    # Implement proper validation logic here\n    if ($sslPolicyErrors -eq [System.Net.Security.SslPolicyErrors]::None) {\n        return $true\n    }\n    \n    # Additional validation logic\n    return $false\n}\n"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "C963604BEDC4A291"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }\n\n# Violation 2: Disabling certificate revocation check\n[System.Net.ServicePointManager]::CheckCertificateRevocationList = $false\n\n# Violation 3: Certificate validation bypass in function\nfunction Skip-CertificateValidation {\n    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }\n}\n\n# Correct usage (should not trigger violation)\n# Proper certificate validation would implement actual checks\n[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\n    param($sender, $certificate, $chain, $sslPolicyErrors)\n    \n    # Implement proper validation logic here\n    if ($sslPolicyErrors -eq [System.Net.Security.SslPolicyErrors]::None) {\n        return $true\n    }\n    \n    # Additional validation logic\n    return $false\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "C963604BEDC4A291"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "2E01B3CDCD8430F0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "function Skip-CertificateValidation {\n    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "2E01B3CDCD8430F0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "{\n    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "7F5190A2424F9232"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 11,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "7F5190A2424F9232"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 11,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "568079D60846921F"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 16,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\n    param($sender, $certificate, $chain, $sslPolicyErrors)\n    \n    # Implement proper validation logic here\n    if ($sslPolicyErrors -eq [System.Net.Security.SslPolicyErrors]::None) {\n        return $true\n    }\n    \n    # Additional validation logic\n    return $false\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "568079D60846921F"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 16,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\n    param($sender, $certificate, $chain, $sslPolicyErrors)\n    \n    # Implement proper validation logic here\n    if ($sslPolicyErrors -eq [System.Net.Security.SslPolicyErrors]::None) {\n        return $true\n    }\n    \n    # Additional validation logic\n    return $false\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Certificate validation bypass detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "568079D60846921F"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 16,
+                  "snippet": {
+                    "text": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {\n    param($sender, $certificate, $chain, $sslPolicyErrors)\n    \n    # Implement proper validation logic here\n    if ($sslPolicyErrors -eq [System.Net.Security.SslPolicyErrors]::None) {\n        return $true\n    }\n    \n    # Additional validation logic\n    return $false\n}"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/certificate-bypass.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 3,
+          "level": "warning",
+          "ruleId": "CertificateValidation"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8FE0E01BCA543063"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 5,
+                  "snippet": {
+                    "text": "Invoke-Expression $userInput"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/command-injection.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "D0724E32F13D2AE3"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 9,
+                  "snippet": {
+                    "text": "iex $command"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/command-injection.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "6FC90C133C81E3C2"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 13,
+                  "snippet": {
+                    "text": "Invoke-Expression $scriptBlock"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/command-injection.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "6FC90C133C81E3C2"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 13,
+                  "snippet": {
+                    "text": "Invoke-Expression $scriptBlock"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/command-injection.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Potential command injection via Invoke-Expression with variables"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "6FC90C133C81E3C2"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 13,
+                  "snippet": {
+                    "text": "Invoke-Expression $scriptBlock"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/command-injection.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 1,
+          "level": "warning",
+          "ruleId": "CommandInjection"
+        },
+        {
+          "message": {
+            "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "E078AC22522ADB40"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "ConvertTo-SecureString \"MyPassword123!\" -AsPlainText -Force"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/credential-exposure.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 2,
+          "level": "warning",
+          "ruleId": "CredentialExposure"
+        },
+        {
+          "message": {
+            "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8860683395D0455B"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 8,
+                  "snippet": {
+                    "text": "ConvertTo-SecureString \"DatabasePassword!\" -AsPlainText -Force"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/credential-exposure.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 2,
+          "level": "warning",
+          "ruleId": "CredentialExposure"
+        },
+        {
+          "message": {
+            "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8860683395D0455B"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 8,
+                  "snippet": {
+                    "text": "ConvertTo-SecureString \"DatabasePassword!\" -AsPlainText -Force"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/credential-exposure.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 2,
+          "level": "warning",
+          "ruleId": "CredentialExposure"
+        },
+        {
+          "message": {
+            "text": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8860683395D0455B"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 8,
+                  "snippet": {
+                    "text": "ConvertTo-SecureString \"DatabasePassword!\" -AsPlainText -Force"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/credential-exposure.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 2,
+          "level": "warning",
+          "ruleId": "CredentialExposure"
+        },
+        {
+          "message": {
+            "text": "Insecure hash algorithm 'MD5' detected. Use SHA-256 or higher."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "F0AAB5E684A667A7"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4,
+                  "snippet": {
+                    "text": "Get-FileHash -Path \"C:\\temp\\file.txt\" -Algorithm MD5"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Insecure hash algorithm 'SHA1' detected. Use SHA-256 or higher."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "A19C3A0EFAD3416C"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 7,
+                  "snippet": {
+                    "text": "Get-FileHash -Path \"C:\\temp\\another.txt\" -Algorithm SHA1"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Direct usage of insecure hash algorithm class detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "12DB0B836C40A6A9"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "[System.Security.Cryptography.MD5]"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Direct usage of insecure hash algorithm class detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "12DB0B836C40A6A9"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "[System.Security.Cryptography.MD5]"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Direct usage of insecure hash algorithm class detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "12DB0B836C40A6A9"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "[System.Security.Cryptography.MD5]"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        },
+        {
+          "message": {
+            "text": "Direct usage of insecure hash algorithm class detected"
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "12DB0B836C40A6A9"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 10,
+                  "snippet": {
+                    "text": "[System.Security.Cryptography.MD5]"
+                  }
+                },
+                "artifactLocation": {
+                  "uri": "home/runner/work/PowerShellTestingSuite/PowerShellTestingSuite/tests/TestScripts/insecure-hash.ps1",
+                  "uriBaseId": "SRCROOT"
+                }
+              }
+            }
+          ],
+          "ruleIndex": 0,
+          "level": "warning",
+          "ruleId": "InsecureHashAlgorithms"
+        }
+      ]
+    }
+  ],
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json"
+}
