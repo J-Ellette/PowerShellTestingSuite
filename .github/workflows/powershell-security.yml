@@ -70,7 +70,8 @@ jobs:
         foreach ($fileResult in $result.Results) {
           $allViolations += $fileResult.Violations
         }
-        
+
+        if (-not $allViolations) { $allViolations = @() }
         $filteredViolations = $allViolations | Where-Object { 
           $severityValue = switch ($_.Severity.ToString()) {
             'Low' { 1 }
