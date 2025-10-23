@@ -195,4 +195,8 @@ $($violation.Code)
     Write-Host "Security report written to: $OutputFile"
 }
 
-Export-ModuleMember -Function Generate-SecurityReport
+if ($MyInvocation.PSScriptRoot -eq $null -or $MyInvocation.InvocationName -eq '.') {
+    # Do not call Export-ModuleMember when dot-sourced
+} else {
+    Export-ModuleMember -Function Convert-ToSARIF  # or Generate-SecurityReport
+}
