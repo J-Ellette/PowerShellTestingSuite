@@ -1,18 +1,18 @@
-# Test script with insecure hash algorithm violations
+# Test script demonstrating secure hash algorithm usage
 
-# Violation 1: Using MD5 with Get-FileHash
-$fileHash = Get-FileHash -Path "C:\temp\file.txt" -Algorithm MD5
+# Secure usage: Using SHA256 with Get-FileHash (default and recommended)
+$fileHash = Get-FileHash -Path "C:\temp\file.txt" -Algorithm SHA256
 
-# Violation 2: Using SHA1 with Get-FileHash
-$anotherHash = Get-FileHash -Path "C:\temp\another.txt" -Algorithm SHA1
+# Secure usage: Using SHA256 explicitly
+$anotherHash = Get-FileHash -Path "C:\temp\another.txt" -Algorithm SHA256
 
-# Violation 3: Using MD5 .NET class directly
-$md5 = [System.Security.Cryptography.MD5]::Create()
-$hashBytes = $md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("test"))
+# Secure usage: Using SHA256 .NET class directly
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+$hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("test"))
 
-# Violation 4: SHA1 crypto service provider
-$sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider
-$sha1Hash = $sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("data"))
+# Secure usage: SHA256 crypto service provider
+$sha256Provider = New-Object System.Security.Cryptography.SHA256CryptoServiceProvider
+$sha256Hash = $sha256Provider.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("data"))
 
-# Correct usage (should not trigger violation)
-$secureHash = Get-FileHash -Path "C:\temp\file.txt" -Algorithm SHA256
+# Secure usage: Using SHA512 for even stronger hashing
+$secureHash = Get-FileHash -Path "C:\temp\file.txt" -Algorithm SHA512
