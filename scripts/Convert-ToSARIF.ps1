@@ -101,6 +101,31 @@ function Convert-ToSARIF {
             'warning'
         }
         
+        # Convert file path to relative URI
+        $relativeUri = 'unknown'
+        if ($violation.FilePath) {
+            $filePath = $violation.FilePath.Replace('\', '/')
+            
+            # If path is absolute, convert to relative to current directory
+            if ([System.IO.Path]::IsPathRooted($violation.FilePath)) {
+                try {
+                    $currentDir = (Get-Location).Path.Replace('\', '/')
+                    if ($filePath.StartsWith($currentDir)) {
+                        $relativeUri = $filePath.Substring($currentDir.Length).TrimStart('/')
+                    } else {
+                        # Path is absolute but not under current directory, use as-is
+                        $relativeUri = $filePath
+                    }
+                } catch {
+                    # Fallback to original path
+                    $relativeUri = $filePath
+                }
+            } else {
+                # Already relative, just clean it up
+                $relativeUri = $filePath.TrimStart('./')
+            }
+        }
+        
         $result = @{
             ruleId = $violation.RuleId
             ruleIndex = [array]::IndexOf(@($rulesMap.Keys), $violation.RuleId)
@@ -109,7 +134,7 @@ function Convert-ToSARIF {
             locations = @(@{
                 physicalLocation = @{
                     artifactLocation = @{ 
-                        uri = if ($violation.FilePath) { $violation.FilePath.Replace('\', '/').TrimStart('./') } else { 'unknown' }
+                        uri = $relativeUri
                         uriBaseId = 'SRCROOT'
                     }
                     region = @{
