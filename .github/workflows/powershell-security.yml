@@ -66,27 +66,39 @@ jobs:
         $severityThreshold = '${{ github.event.inputs.severity_threshold || 'Medium' }}'
         Write-Host "Severity threshold: $severityThreshold"
         
-        $allViolations = @()
-        foreach ($fileResult in $result.Results) {
-          $allViolations += $fileResult.Violations
-        }
+# Build flat list of violations safely
+$allViolations = @()
+foreach ($fileResult in $result.Results) {
+  if ($null -ne $fileResult -and $null -ne $fileResult.Violations) {
+    $allViolations += $fileResult.Violations
+  }
+}
 
-        if (-not $allViolations) { $allViolations = @() }
-        $filteredViolations = $allViolations | Where-Object { 
-          $severityValue = switch ($_.Severity.ToString()) {
-            'Low' { 1 }
-            'Medium' { 2 }
-            'High' { 3 }
-            'Critical' { 4 }
-          }
-          $thresholdValue = switch ($severityThreshold) {
-            'Low' { 1 }
-            'Medium' { 2 }
-            'High' { 3 }
-            'Critical' { 4 }
-          }
-          $severityValue -ge $thresholdValue
-        }
+# Remove any null entries (prevents $_ being $null inside Where-Object)
+$allViolations = $allViolations | Where-Object { $_ -ne $null }
+
+# Map severities to numeric values safely
+$severityMap = @{ 'Low' = 1; 'Medium' = 2; 'High' = 3; 'Critical' = 4 }
+$thresholdValue = $severityMap[$severityThreshold]
+if (-not $thresholdValue) { $thresholdValue = 2 }  # default to Medium
+
+# Filter with null-safety (do not call .ToString() on a null)
+$filteredViolations = $allViolations | Where-Object {
+  if ($_ -eq $null) { return $false }
+  $sev = $_.Severity
+  if ($sev -eq $null) { return $false }
+
+  # Accept either string or object; only call ToString when $sev is not null
+  if ($sev -is [string]) {
+    $sevKey = $sev
+  } else {
+    try { $sevKey = $sev.ToString() } catch { return $false }
+  }
+
+  $sevVal = $severityMap[$sevKey]
+  if (-not $sevVal) { return $false }
+  return ($sevVal -ge $thresholdValue)
+}
         
         $criticalCount = @($filteredViolations | Where-Object { $_.Severity -eq 'Critical' }).Count
         $totalCount = $filteredViolations.Count
