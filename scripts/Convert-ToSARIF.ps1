@@ -140,4 +140,8 @@ function Get-StringHash {
     return [System.BitConverter]::ToString($hash).Replace('-', '').Substring(0, 16)
 }
 
-Export-ModuleMember -Function Convert-ToSARIF
+if ($MyInvocation.PSScriptRoot -eq $null -or $MyInvocation.InvocationName -eq '.') {
+    # Do not call Export-ModuleMember when dot-sourced
+} else {
+    Export-ModuleMember -Function Convert-ToSARIF  # or Generate-SecurityReport
+}
