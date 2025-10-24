@@ -110,9 +110,14 @@ PowerShellTestingSuite/
 │   └── Generate-SecurityReport.ps1
 ├── tests/
 │   ├── TestScripts/
-│   │   ├── insecure-hash.ps1
-│   │   ├── credential-exposure.ps1
-│   │   └── command-injection.ps1
+│   │   ├── powershell/
+│   │   │   ├── insecure-hash.ps1
+│   │   │   ├── credential-exposure.ps1
+│   │   │   └── command-injection.ps1
+│   │   ├── network/
+│   │   ├── filesystem/
+│   │   ├── registry/
+│   │   └── data/
 │   └── PowerShellSecurityAnalyzer.Tests.ps1
 └── README.md
 ```
@@ -251,7 +256,7 @@ Phase 1 is complete when:
 ```powershell
 Import-Module ./src/PowerShellSecurityAnalyzer.psm1
 $analyzer = [PowerShellSecurityAnalyzer]::new()
-$result = $analyzer.AnalyzeScript("./tests/TestScripts/insecure-hash.ps1")
+$result = $analyzer.AnalyzeScript("./tests/TestScripts/powershell/insecure-hash.ps1")
 $result.Violations
 ```
 

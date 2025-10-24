@@ -253,7 +253,7 @@ test-*.md
 2. **Test locally**:
    ```powershell
    Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
-   $result = Invoke-SecurityAnalysis -ScriptPath "./tests/TestScripts/insecure-hash.ps1"
+   $result = Invoke-SecurityAnalysis -ScriptPath "./tests/TestScripts/powershell/insecure-hash.ps1"
    $result.Violations
    ```
 3. **Test on workspace**:
@@ -342,7 +342,7 @@ Remove-Item test-results.* -Force
 
 ### Testing
 
-1. **Use test scripts**: The `tests/TestScripts/` folder contains intentional violations
+1. **Use test scripts**: The `tests/TestScripts/` folder contains intentional violations organized by category (powershell/, network/, filesystem/, registry/, data/)
 2. **Verify detection**: Ensure all 4 rule types are detected
 3. **Check counts**: Expected violations: ~28 across all test scripts
 4. **Test SARIF**: Validate SARIF format with schema
@@ -380,7 +380,7 @@ Remove-Item test-results.* -Force
        }
    ))
    ```
-3. Create test script in `tests/TestScripts/`
+3. Create test script in `tests/TestScripts/` in the appropriate category subfolder (powershell/, network/, filesystem/, registry/, data/)
 4. Test the rule
 
 ### Adding a Fix Pattern
@@ -408,7 +408,7 @@ Remove-Item test-results.* -Force
 
 ### No violations detected
 - Check PowerShell version (needs 7.0+)
-- Verify test scripts exist in `tests/TestScripts/`
+- Verify test scripts exist in `tests/TestScripts/` and subdirectories
 - Check file extensions (.ps1, .psm1, .psd1)
 
 ### SARIF upload fails

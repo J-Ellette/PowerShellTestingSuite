@@ -63,14 +63,35 @@ A TypeScript-based GitHub Action that generates and applies security fixes.
 - **Generate-SecurityReport.ps1**: Creates markdown reports with severity breakdown
 
 ### 5. Test Suite
-**Location**: `tests/TestScripts/`
+**Location**: `tests/TestScripts/` (organized by category)
 
-5 test scripts with intentional security violations:
-- `insecure-hash.ps1`: Hash algorithm violations (6 violations)
-- `credential-exposure.ps1`: Credential handling issues
-- `command-injection.ps1`: Command injection vulnerabilities
-- `certificate-bypass.ps1`: Certificate validation bypasses (6 violations)
-- `all-violations.ps1`: Multiple violation types (5 violations)
+Test scripts with intentional security violations are now organized into subdirectories:
+
+**PowerShell-specific tests** (`tests/TestScripts/powershell/`):
+- Original Phase 1 test scripts (insecure-hash.ps1, credential-exposure.ps1, etc.)
+- Phase 1.5A PowerShell-specific rule tests
+
+**Network security tests** (`tests/TestScripts/network/`):
+- `insecure-http.ps1`: HTTP protocol usage violations
+- `weak-tls.ps1`: Weak TLS/SSL configuration violations
+- `hardcoded-urls.ps1`: Hardcoded URL violations
+
+**File system security tests** (`tests/TestScripts/filesystem/`):
+- `unsafe-file-permissions.ps1`: File permission violations
+- `temp-file-exposure.ps1`: Temporary file handling violations
+- `path-traversal.ps1`: Path traversal vulnerabilities
+- `unsafe-file-operations.ps1`: Dangerous file operation violations
+
+**Registry security tests** (`tests/TestScripts/registry/`):
+- `dangerous-registry-modifications.ps1`: Unsafe registry modification violations
+- `registry-credentials.ps1`: Registry credential storage violations
+- `privileged-registry-access.ps1`: Unnecessary privileged access violations
+
+**Data security tests** (`tests/TestScripts/data/`):
+- `sql-injection.ps1`: SQL injection vulnerabilities
+- `ldap-injection.ps1`: LDAP injection vulnerabilities
+- `xml-security.ps1`: XXE and XML parsing vulnerabilities
+- `log-injection.ps1`: Log injection vulnerabilities
 
 ### 6. Documentation
 - **README.md**: Comprehensive guide with quick start, examples, and documentation
@@ -219,11 +240,30 @@ PowerShellTestingSuite/
 │   ├── Convert-ToSARIF.ps1
 │   └── Generate-SecurityReport.ps1
 └── tests/TestScripts/
-    ├── insecure-hash.ps1
-    ├── credential-exposure.ps1
-    ├── command-injection.ps1
-    ├── certificate-bypass.ps1
-    └── all-violations.ps1
+    ├── powershell/         # PowerShell-specific test scripts
+    │   ├── insecure-hash.ps1
+    │   ├── credential-exposure.ps1
+    │   ├── command-injection.ps1
+    │   ├── certificate-bypass.ps1
+    │   └── all-violations.ps1
+    ├── network/            # Network security test scripts
+    │   ├── insecure-http.ps1
+    │   ├── weak-tls.ps1
+    │   └── hardcoded-urls.ps1
+    ├── filesystem/         # File system security test scripts
+    │   ├── unsafe-file-permissions.ps1
+    │   ├── temp-file-exposure.ps1
+    │   ├── path-traversal.ps1
+    │   └── unsafe-file-operations.ps1
+    ├── registry/           # Registry security test scripts
+    │   ├── dangerous-registry-modifications.ps1
+    │   ├── registry-credentials.ps1
+    │   └── privileged-registry-access.ps1
+    └── data/               # Data security test scripts
+        ├── sql-injection.ps1
+        ├── ldap-injection.ps1
+        ├── xml-security.ps1
+        └── log-injection.ps1
 ```
 
 ## 🏆 Conclusion

@@ -332,14 +332,14 @@ jobs:
         # Import module
         Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
         
-        # Test on known vulnerable scripts
-        $testScripts = Get-ChildItem -Path ./tests/TestScripts -Filter *.ps1
+        # Test on known vulnerable scripts - recursively get all test scripts
+        $testScripts = Get-ChildItem -Path ./tests/TestScripts -Filter *.ps1 -Recurse
         
         Write-Host "Running tests on $($testScripts.Count) test scripts..."
         
         $totalTestViolations = 0
         foreach ($script in $testScripts) {
-          Write-Host "`nTesting: $($script.Name)"
+          Write-Host "`nTesting: $($script.FullName.Replace((Get-Location).Path, '.'))"
           $result = Invoke-SecurityAnalysis -ScriptPath $script.FullName
           Write-Host "  Violations found: $($result.Violations.Count)"
           $totalTestViolations += $result.Violations.Count
