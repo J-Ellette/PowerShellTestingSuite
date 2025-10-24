@@ -1,0 +1,98 @@
+# PSTS Configuration
+# Complete configuration reference for PowerShell Testing Suite
+
+version: "1.0"
+
+# Analysis Settings
+analysis:
+  severity_threshold: "Medium"  # Low, Medium, High, Critical
+  max_file_size: 10485760  # 10MB
+  timeout_seconds: 30
+  parallel_analysis: true
+  
+  # Path exclusions (glob patterns)
+  exclude_paths:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/*.min.ps1"
+    - ".github/**"
+  
+  # File exclusions
+  exclude_files:
+    - "*.tests.ps1"
+
+# Rule Configuration
+rules:
+  # Enable/disable rules and override severity
+  InsecureHashAlgorithms:
+    enabled: true
+    severity: "High"
+  
+  CredentialExposure:
+    enabled: true
+    severity: "Critical"
+    check_comments: true
+    min_password_length: 8
+  
+  CommandInjection:
+    enabled: true
+    severity: "Critical"
+  
+  CertificateValidation:
+    enabled: true
+    severity: "High"
+
+# Auto-Fix Configuration
+autofix:
+  enabled: true
+  provider: "github-models"  # github-models, openai, azure, claude, template
+  model: "gpt-4o-mini"
+  max_fixes: 10
+  confidence_threshold: 0.8
+  apply_automatically: false
+  fallback_to_templates: true
+  
+  # Per-rule auto-fix control
+  rule_fixes:
+    InsecureHashAlgorithms: true
+    CredentialExposure: true
+    CommandInjection: false  # Too risky for auto-fix
+    CertificateValidation: false
+
+# Suppression Settings
+suppressions:
+  require_justification: true
+  max_duration_days: 90
+  allow_permanent: false
+
+# Reporting
+reporting:
+  formats: ["sarif", "json", "markdown"]
+  output_dir: ".psts-reports"
+  
+  sarif:
+    include_code_flows: true
+    include_fixes: true
+  
+  markdown:
+    include_severity_summary: true
+    include_top_issues: 5
+
+# CI/CD Integration
+ci:
+  fail_on: ["Critical", "High"]
+  max_warnings: 50
+  baseline_mode: false
+  baseline_file: ".psts-baseline.sarif"
+
+# Webhooks (optional)
+# webhooks:
+#   - url: "https://hooks.slack.com/..."
+#     events: ["critical_found", "analysis_complete"]
+#     severity_filter: ["Critical", "High"]
+
+# Enterprise Settings (optional)
+# enterprise:
+#   audit_log: true
+#   compliance_reporting: true
+#   policy_enforcement: true
