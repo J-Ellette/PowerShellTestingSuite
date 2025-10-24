@@ -79,12 +79,12 @@ These provide:
 
 Then add the broader security rules:
 
-- Network Security (HTTP/TLS rules) <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#network-security-rules>
-- File System Security <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#file-system-security-rules>
-- Registry Security <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#registry-security-rules>
-- Data Security (SQL/LDAP injection) <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#data-security-rules>
+- [Network Security (HTTP/TLS rules)](https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#network-security-rules)
+- [File System Security](https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#file-system-security-rules)
+- [Registry Security](https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#registry-security-rules)
+- [Data Security (SQL/LDAP injection)](https://https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#data-security-rules)
 
-**Why PowerShell-First?**
+**PowerShell-First?**
 
 1. **Market Position**: Become THE PowerShell security tool
 2. **Expertise Depth**: Show deep understanding of PowerShell risks
