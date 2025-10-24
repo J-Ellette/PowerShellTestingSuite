@@ -1,6 +1,12 @@
 # Test Scripts for PSTS (PowerShell Testing Suite)
 
-This directory contains test scripts with **intentional security violations** used to validate the PSTS security analyzer. These scripts are automatically excluded from workspace-level security scans but can be analyzed individually to verify the analyzer is working correctly.
+## ⚠️ IMPORTANT: Intentional Security Violations & Fake Credentials
+
+This directory contains test scripts with **intentional security violations** used to validate the PSTS security analyzer. 
+
+**ALL CREDENTIALS, KEYS, AND SECRETS IN THESE FILES ARE FAKE EXAMPLES AND NOT REAL.**
+
+These scripts are automatically excluded from workspace-level security scans but can be analyzed individually to verify the analyzer is working correctly.
 
 ## Directory Structure
 
@@ -35,7 +41,17 @@ These test scripts validate PowerShell-specific security rules implemented in Ph
 14. **constrained-mode.ps1** - Tests detection of constrained language mode issues
 15. **unsafe-file-inclusion.ps1** - Tests detection of untrusted script dot-sourcing
 16. **powershell-web-requests.ps1** - Tests detection of unvalidated web requests
-17. **all-violations.ps1** - Mixed violations for comprehensive testing
+17. **amsi-evasion.ps1** - Tests detection of AMSI bypass attempts (Phase 1.5C-A)
+18. **etw-evasion.ps1** - Tests detection of ETW manipulation (Phase 1.5C-A)
+19. **enhanced-powershell2-detection.ps1** - Enhanced PowerShell 2.0 detection (Phase 1.5C-A)
+20. **azure-credential-leaks.ps1** - Tests detection of Azure credential exposure (Phase 1.5C-B)
+21. **powershell-gallery-security.ps1** - Tests supply chain security protection (Phase 1.5C-B)
+22. **certificate-store-manipulation.ps1** - Tests PKI security vulnerabilities (Phase 1.5C-B)
+23. **active-directory-dangerous-operations.ps1** - Tests enterprise identity protection (Phase 1.5C-B)
+24. **jea-configuration-vulnerabilities.ps1** - Tests Just Enough Administration security (Phase 1.5C-C)
+25. **dsc-security-issues.ps1** - Tests Desired State Configuration security (Phase 1.5C-C)
+26. **deprecated-cmdlet-usage.ps1** - Tests legacy security improvements (Phase 1.5C-C)
+27. **all-violations.ps1** - Mixed violations for comprehensive testing
 
 ### Network Security Tests (`network/`)
 
@@ -110,13 +126,18 @@ These test scripts are automatically tested by the GitHub Actions workflow in th
 
 ## Exclusion from Scans
 
-By default, all files in the `tests/TestScripts/` directory and its subdirectories are excluded from workspace-level security scans. This is configured in the analyzer's default exclusion paths:
+**These test files are excluded from security scanning through multiple mechanisms:**
 
-```powershell
-ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*')
-```
+1. **PSTS Analyzer Exclusion**: Files in `tests/TestScripts/` are automatically excluded from workspace-level security scans via the analyzer's default exclusion paths:
+   ```powershell
+   ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*')
+   ```
 
-This ensures that intentional violations in test scripts don't appear as real security issues in the analysis results.
+2. **GitHub Secret Scanning Exclusion**: The `.github/secret_scanning.yml` file excludes test directories from GitHub's built-in secret scanning to prevent false positives.
+
+3. **Clear Warning Headers**: Each test script includes a prominent warning header indicating it contains fake credentials for testing purposes.
+
+This ensures that intentional violations in test scripts don't appear as real security issues in the analysis results or trigger false positive security alerts.
 
 ## Adding New Test Scripts
 
@@ -147,9 +168,11 @@ When adding new security rules to PSTS:
 ## Notes
 
 - **⚠️ WARNING**: These scripts contain intentional security vulnerabilities and should **NEVER** be executed in production environments
+- **ALL CREDENTIALS ARE FAKE**: No real passwords, API keys, certificates, or secrets are included in these files
 - Test scripts are for validation purposes only and should not be run directly
 - Each script is designed to test specific security rules and may contain multiple violation patterns
 - The number of violations detected may change as rules are refined and improved
+- **For Security Reviewers**: Any security alerts from files in `tests/TestScripts/` should be marked as false positives or "used in tests"
 
 ## Related Documentation
 
@@ -160,4 +183,4 @@ When adding new security rules to PSTS:
 ---
 
 *Last Updated: October 24, 2025*
-*Total Test Scripts: 31*
+*Total Test Scripts: 38 (includes Phase 1.5C-B and 1.5C-C additions)*
