@@ -65,7 +65,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 
 #### **🎯 Phase 1.5A: PowerShell-Specific Rules**
 
-Focus on the 8 additional PowerShell-specific rules above. These provide:
+Focus on the additional PowerShell-specific rules above. These provide:
 - **Unique value proposition** in the market
 - **Deep PowerShell expertise** demonstration  
 - **High-impact security coverage** for PowerShell environments
