@@ -60,7 +60,11 @@ jobs:
 
         try {
           Write-Host "Starting PSTS security analysis..."
-          $result = Invoke-WorkspaceAnalysis -WorkspacePath "."
+          Write-Host "Configuration: Loading from .psts.yml if present"
+          Write-Host "Suppressions: Enabled"
+          
+          # Use new analyzer with config and suppression support
+          $result = Invoke-WorkspaceAnalysis -WorkspacePath "." -EnableSuppressions
 
           if ($null -eq $result -or $null -eq $result.Results) {
             Write-Warning "Analysis returned no results. Creating empty result structure."
@@ -75,7 +79,7 @@ jobs:
           Write-Host "Analysis completed. Files analyzed: $($result.FilesAnalyzed)"
           Write-Host "Total violations: $($result.TotalViolations)"
 
-          # Severity threshold from env
+          # Severity threshold from env (can be overridden by .psts.yml)
           $severityThreshold = $env:SEVERITY_THRESHOLD
           if (-not $severityThreshold) { $severityThreshold = 'Medium' }
           Write-Host "Severity threshold: $severityThreshold"

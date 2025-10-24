@@ -2,12 +2,32 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/J-Ellette/PowerShellTestingSuite/powershell-security.yml?branch=main)
 ![License](https://img.shields.io/github/license/J-Ellette/PowerShellTestingSuite)
-![Version](https://img.shields.io/badge/version-1.0.0-blue) <br>
+![Version](https://img.shields.io/badge/version-1.1.0-blue) <br>
 [![PSTS - PowerShell Security Analysis](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml/badge.svg)](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml) <br>
 ![Static Badge](https://img.shields.io/badge/Language-PowerShell-blue) ![Static Badge](https://img.shields.io/badge/Language-TypeScript-blue)
 
 
 **PSTS (PowerShell Testing Suite)** is a comprehensive security analysis tool for PowerShell scripts that integrates with GitHub Actions, provides AI-powered auto-fixes, and offers multiple deployment options.
+
+## ✨ What's New in v1.1.0
+
+### 🤖 Real AI Auto-Fix
+- **Multi-Provider AI Integration**: GitHub Models, OpenAI, Azure OpenAI, Anthropic Claude
+- **Intelligent Fix Generation**: Context-aware security fixes with confidence scoring
+- **Template Fallback**: Automatic fallback to rule-based fixes if AI unavailable
+- **Configurable per Rule**: Enable/disable auto-fix for specific rules
+
+### ⚙️ Configuration System
+- **Hierarchical Configuration**: Global → Project → Local `.psts.yml` files
+- **Rule Customization**: Enable/disable rules, override severity levels
+- **Flexible Analysis**: Configure thresholds, exclusions, timeouts
+- **CI/CD Integration**: Fail pipelines on specific severities
+
+### 🔕 Suppression Comments
+- **Multiple Formats**: Next-line, inline, and block suppressions
+- **Expiry Dates**: Automatically expire suppressions with warnings
+- **Justification Required**: Enforce documentation of security exceptions
+- **Audit Reports**: Track and report all suppressions
 
 ## 🎯 Features
 
@@ -17,7 +37,9 @@
   - **Core Rules (4)**: Insecure hashing, credential exposure, command injection, certificate validation
   - **PowerShell-Specific Rules (12)**: Execution policy bypass, unsafe remoting, version downgrades, privilege escalation, and more
 - **SARIF Output**: Integrates with GitHub Security tab
-- **AI-Powered Auto-Fix**: Automatically generates and applies security fixes
+- **AI-Powered Auto-Fix**: Automatically generates and applies security fixes with multiple AI providers
+- **Configuration System**: Flexible YAML-based configuration with hierarchical support
+- **Suppression Comments**: Document and track security exceptions with expiry dates
 - **PR Comments**: Detailed analysis results posted to pull requests
 - **Human-Readable Reports**: Markdown reports with actionable recommendations
 
@@ -81,7 +103,131 @@ $result.Violations | Format-Table RuleId, Severity, LineNumber, Message
 # Analyze entire workspace
 $workspaceResult = Invoke-WorkspaceAnalysis -WorkspacePath "."
 Write-Host "Total violations: $($workspaceResult.TotalViolations)"
+
+# Enable suppressions
+$result = Invoke-SecurityAnalysis -ScriptPath "./MyScript.ps1" -EnableSuppressions
 ```
+
+## 📖 Documentation
+
+- **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configure PSTS with `.psts.yml`
+- **[AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md)** - Setup and use AI-powered fixes
+- **[Suppression Guide](docs/SUPPRESSION_GUIDE.md)** - Document security exceptions
+- **[Example Configuration](.psts.yml.example)** - Complete configuration template
+
+## 🔧 Configuration
+
+PSTS supports flexible configuration through `.psts.yml` files:
+
+```yaml
+# .psts.yml
+version: "1.0"
+
+analysis:
+  severity_threshold: "High"
+  exclude_paths:
+    - "vendor/**"
+    - "build/**"
+
+rules:
+  InsecureHashAlgorithms:
+    enabled: true
+    severity: "High"
+  
+  CommandInjection:
+    enabled: true
+    severity: "Critical"
+
+autofix:
+  enabled: true
+  provider: "github-models"  # Free with GITHUB_TOKEN
+  model: "gpt-4o-mini"
+  confidence_threshold: 0.8
+  fallback_to_templates: true
+
+suppressions:
+  require_justification: true
+  max_duration_days: 90
+  allow_permanent: false
+```
+
+**Configuration Hierarchy** (later overrides earlier):
+1. Default configuration
+2. Global: `~/.psts.yml`
+3. Project: `.psts.yml`
+4. Local: `.psts.local.yml`
+
+See [Configuration Guide](docs/CONFIGURATION_GUIDE.md) for details.
+
+## 🤖 AI Auto-Fix
+
+PSTS can automatically fix security violations using AI:
+
+### Supported Providers
+
+| Provider | Setup | Cost |
+|----------|-------|------|
+| GitHub Models | Uses `GITHUB_TOKEN` | Free tier |
+| OpenAI | `OPENAI_API_KEY` | Pay per use |
+| Azure OpenAI | Azure credentials | Enterprise |
+| Anthropic Claude | `ANTHROPIC_API_KEY` | Pay per use |
+| Template-based | No setup | Free (fallback) |
+
+### Usage
+
+```yaml
+# In GitHub Actions
+- name: Auto-Fix Violations
+  uses: ./actions/copilot-autofix
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    violations-file: psts-results.json
+    apply-fixes: true  # or false for preview
+```
+
+```powershell
+# Command line preview
+node actions/copilot-autofix/dist/index.js \
+  --violations-file psts-results.json \
+  --apply-fixes false
+```
+
+See [AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md) for complete setup.
+
+## 🔕 Suppression Comments
+
+Document and track security exceptions with suppression comments:
+
+```powershell
+# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
+$hash = Get-FileHash -Path "file.txt" -Algorithm MD5
+
+# Inline suppression
+$password = "test" # PSTS-SUPPRESS: CredentialExposure - Test credential
+
+# Block suppression
+# PSTS-SUPPRESS-START: CommandInjection - Validated input only
+Invoke-Expression $validatedCommand
+# PSTS-SUPPRESS-END
+
+# With expiry date
+# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration (2025-12-31)
+$hash = Get-FileHash -Algorithm SHA1 "data.bin"
+```
+
+### Features
+
+- **Multiple formats**: Next-line, inline, and block
+- **Expiry dates**: Automatic expiration with warnings
+- **Justification required**: Enforce documentation
+- **Audit reports**: Track all suppressions
+
+```powershell
+# Enable in analysis
+$result = Invoke-SecurityAnalysis -ScriptPath "script.ps1" -EnableSuppressions
+```
+
+See [Suppression Guide](docs/SUPPRESSION_GUIDE.md) for syntax details.
 
 ## 📋 Security Rules
 
