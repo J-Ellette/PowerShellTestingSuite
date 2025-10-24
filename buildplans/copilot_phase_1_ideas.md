@@ -35,12 +35,20 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **RegistryCredentials**: Credentials stored in registry keys
 - **PrivilegedRegistryAccess**: Unnecessary privileged registry operations
 
-##### **PowerShell Specific Rules**
+##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY**
 
-- **ExecutionPolicyBypass**: Detect execution policy bypass attempts
-- **ScriptBlockLogging**: Missing security logging configuration
-- **UnsafePSRemoting**: Insecure PowerShell remoting configurations
-- **DangerousModules**: Usage of potentially dangerous modules without validation
+- **ExecutionPolicyBypass**: Detect execution policy bypass attempts (`-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted`)
+- **ScriptBlockLogging**: Missing security logging configuration (`$PSModuleAutoLoadingPreference = 'None'`)
+- **UnsafePSRemoting**: Insecure PowerShell remoting configurations (`Enable-PSRemoting -Force`, unencrypted sessions)
+- **DangerousModules**: Usage of potentially dangerous modules without validation (`Import-Module` with untrusted sources)
+- **PowerShellVersionDowngrade**: Detection of PowerShell v2 usage (`powershell.exe -version 2`)
+- **UnsafeDeserialization**: Unsafe XML/CLIXML deserialization (`Import-Clixml` from untrusted sources)
+- **PrivilegeEscalation**: Attempts to elevate privileges (`Start-Process -Verb RunAs` without validation)
+- **ScriptInjection**: Dynamic script generation vulnerabilities (`New-Module`, `Add-Type` with user input)
+- **UnsafeReflection**: Unsafe .NET reflection usage (`[System.Reflection.Assembly]::LoadFrom()`)
+- **PowerShellConstrainedMode**: Scripts that may break in constrained language mode
+- **UnsafeFileInclusion**: Dot-sourcing untrusted scripts (`. $userInput`)
+- **PowerShellWebRequests**: Unvalidated web requests (`Invoke-WebRequest` without certificate validation)
 
 ##### **Data Security Rules**
 
@@ -49,9 +57,85 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **XMLSecurity**: XXE vulnerabilities and unsafe XML parsing
 - **LogInjection**: Unsafe logging that could lead to log injection
 
-**Implementation Priority**: High (expand from 4 to 15+ rules)
-**Effort Estimate**: 2-3 weeks
-**Impact**: High - dramatically improves security coverage
+**Implementation Priority**: **CRITICAL** (PowerShell-first approach - expand from 4 to 12+ PowerShell-specific rules first)
+**Effort Estimate**: 3-4 weeks (focus on PowerShell expertise)
+**Impact**: **VERY HIGH** - establishes PSTS as the definitive PowerShell security platform
+
+### **Recommended Implementation Order:**
+
+#### **🎯 Phase 1A: PowerShell-Specific Rules (Weeks 1-2)**
+
+Focus on the 8 additional PowerShell-specific rules above. These provide:
+- **Unique value proposition** in the market
+- **Deep PowerShell expertise** demonstration  
+- **High-impact security coverage** for PowerShell environments
+- **Strong foundation** for enterprise PowerShell security
+
+#### **🌐 Phase 1B: General Security Rules (Weeks 3-4)**  
+
+Then add the broader security rules:
+- Network Security (HTTP/TLS rules)
+- File System Security  
+- Registry Security
+- Data Security (SQL/LDAP injection)
+
+**Why PowerShell-First?**
+
+1. **Market Position**: Become THE PowerShell security tool
+2. **Expertise Depth**: Show deep understanding of PowerShell risks
+3. **Enterprise Appeal**: PowerShell is critical in enterprise environments
+4. **Unique Differentiation**: Most security tools are generic - you'd be PowerShell-specialized
+
+---
+
+## 🎯 **Strategic Analysis: PowerShell-First vs. General Security**
+
+### **PowerShell-Specific Advantages:**
+
+#### **Market Opportunity**
+- **Underserved niche**: No comprehensive PowerShell-only security tools exist
+- **Enterprise demand**: PowerShell is ubiquitous in Windows enterprise environments
+- **Attack vector reality**: PowerShell is heavily used in real-world attacks (Living off the Land)
+- **Compliance need**: Many frameworks now require PowerShell-specific security controls
+
+#### **Technical Advantages**
+- **AST-based analysis**: PowerShell's rich AST enables deeper analysis than generic tools
+- **Language expertise**: Deep PowerShell knowledge creates better rules and fixes
+- **Contextual understanding**: PowerShell-specific patterns vs. generic code patterns
+- **Fix quality**: PowerShell-aware fixes are more accurate and useful
+
+#### **Examples of PowerShell-Unique Risks:**
+```powershell
+# PowerShell v2 downgrade attack (bypasses many security controls)
+powershell.exe -version 2 -command "malicious code"
+
+# Constrained Language Mode bypass
+[scriptblock]::Create('malicious code').Invoke()
+
+# PowerShell remoting without encryption
+Enter-PSSession -ComputerName target -UseSSL:$false
+
+# Dynamic module loading attack
+Import-Module ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("base64_payload")))
+```
+
+### **General Security Rules Value:**
+- **Broader applicability**: Apply to any language/platform
+- **Enterprise compliance**: Required for comprehensive security posture  
+- **Market expansion**: Appeal to teams using PowerShell alongside other languages
+- **Foundation building**: Establish comprehensive security platform
+
+### **🏆 Recommended Strategy: "PowerShell-First Expansion"**
+
+1. **Phase 1A (Immediate)**: 8 additional PowerShell-specific rules
+2. **Phase 1B (Next)**: 6-8 general security rules most relevant to PowerShell environments  
+3. **Phase 1C (Later)**: Remaining general security rules
+
+This approach:
+- ✅ **Establishes market leadership** in PowerShell security
+- ✅ **Builds deep expertise** that competitors can't easily replicate
+- ✅ **Creates enterprise appeal** with PowerShell-specific insights
+- ✅ **Maintains expansion path** to general security platform
 
 ### **2. Enhanced AI Auto-Fix Capabilities**
 
