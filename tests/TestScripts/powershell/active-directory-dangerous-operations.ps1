@@ -1,3 +1,8 @@
+# =====================================================================
+# WARNING: This is a TEST FILE containing INTENTIONAL security violations
+# These patterns are FAKE examples for testing purposes
+# This file should be EXCLUDED from security scanning
+# =====================================================================
 # Test script for Active Directory dangerous operations violations
 # These patterns represent enterprise identity security risks
 

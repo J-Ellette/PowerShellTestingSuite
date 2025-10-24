@@ -1,3 +1,8 @@
+# =====================================================================
+# WARNING: This is a TEST FILE containing INTENTIONAL security violations
+# These credentials and patterns are FAKE examples for testing purposes
+# This file should be EXCLUDED from security scanning
+# =====================================================================
 # Test script for DSC (Desired State Configuration) security issues
 # These patterns represent DSC security misconfigurations
 

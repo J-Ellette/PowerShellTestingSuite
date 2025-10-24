@@ -1,3 +1,8 @@
+# =====================================================================
+# WARNING: This is a TEST FILE containing INTENTIONAL security violations
+# These credentials and patterns are FAKE examples for testing purposes
+# This file should be EXCLUDED from security scanning
+# =====================================================================
 # Test script for Azure PowerShell credential leak violations
 # These patterns represent security risks in Azure automation and scripts
 

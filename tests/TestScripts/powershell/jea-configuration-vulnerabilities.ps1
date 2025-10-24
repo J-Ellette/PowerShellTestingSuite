@@ -1,3 +1,8 @@
+# =====================================================================
+# WARNING: This is a TEST FILE containing INTENTIONAL security violations
+# These patterns are FAKE examples for testing purposes
+# This file should be EXCLUDED from security scanning
+# =====================================================================
 # Test script for JEA (Just Enough Administration) configuration vulnerabilities
 # These patterns represent JEA security misconfigurations
 
