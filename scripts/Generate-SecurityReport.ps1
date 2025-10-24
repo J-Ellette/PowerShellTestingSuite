@@ -26,6 +26,14 @@ function Generate-SecurityReport {
 
     $results = Get-Content $InputFile -Raw | ConvertFrom-Json
     
+    # Handle missing violations property safely
+    $violations = @()
+    if ($results -and $results.PSObject.Properties.Match('violations')) {
+      $violations = $results.violations
+    }
+    if ($null -eq $violations) { $violations = @() }
+    $totalViolations = $violations.Count
+    
     # Build markdown report
     $report = @"
 # PSTS Security Analysis Report
@@ -41,8 +49,6 @@ function Generate-SecurityReport {
 
 "@
 
-    $violations = $results.violations
-    $totalViolations = $violations.Count
     $criticalCount = @($violations | Where-Object { $_.Severity -eq 'Critical' }).Count
     $highCount = @($violations | Where-Object { $_.Severity -eq 'High' }).Count
     $mediumCount = @($violations | Where-Object { $_.Severity -eq 'Medium' }).Count
@@ -130,7 +136,14 @@ $criticalCount critical security issues were found that need to be addressed bef
 "@
 
             foreach ($violation in $severityGroup.Group) {
-                $fileName = Split-Path $violation.FilePath -Leaf
+                $filePath = $null
+                if ($violation.PSObject.Properties.Match('FilePath').Count -gt 0) { 
+                    $filePath = $violation.FilePath 
+                }
+                elseif ($violation.PSObject.Properties.Match('Path').Count -gt 0) { 
+                    $filePath = $violation.Path 
+                }
+                $fileName = if ($filePath) { Split-Path $filePath -Leaf } else { '<unknown>' }
                 $report += @"
 
 #### $($violation.RuleId)

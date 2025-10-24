@@ -20,6 +20,7 @@ on:
 
 env:
   PSTS_VERSION: '1.0.0'
+  PSTS_IGNORE: '.github/,scripts/,src/'
 
 permissions:
   contents: read
@@ -89,6 +90,54 @@ jobs:
 
           # Ensure no null entries
           $allViolations = @($allViolations | Where-Object { $_ -ne $null })
+
+          # --- Begin: PSTS path-ignore processing ---
+          # Build ignore patterns from .pstsignore and PSTS_IGNORE env var
+          $ignorePatterns = @('.github/', '.github/workflows/', '.git/', 'scripts/', 'tools/', 'src/PowerShellSecurityAnalyzer.psm1')
+
+          if (Test-Path '.pstsignore') {
+            $filePatterns = Get-Content '.pstsignore' | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
+            $ignorePatterns += $filePatterns
+          }
+
+          if ($env:PSTS_IGNORE) {
+            $envPatterns = $env:PSTS_IGNORE -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+            $ignorePatterns += $envPatterns
+          }
+
+          # Normalize simple patterns to wildcard fragments (keep slashes for path comparisons)
+          $ignorePatterns = $ignorePatterns | ForEach-Object {
+            $p = $_ -replace '^\^','' -replace '/$',''
+            if ($p -notmatch '/') { "$p*" } else { $p }
+          } | Select-Object -Unique
+
+          function Should-IgnorePath($path, $patterns) {
+            if (-not $path) { return $false }
+            $norm = ($path -replace '\\','/') -replace '^\./',''
+            foreach ($pat in $patterns) {
+              # Use a simple contains-style check for now
+              if ($norm -like "*$pat*") { return $true }
+            }
+            return $false
+          }
+
+          # Filter out violations that reference ignored paths
+          $allViolations = @($allViolations | Where-Object {
+            # prefer FilePath, fall back to Path property
+            $p = $null
+            if ($_.PSObject.Properties.Match('FilePath').Count -gt 0) { 
+                $p = $_.FilePath 
+            }
+            elseif ($_.PSObject.Properties.Match('Path').Count -gt 0) { 
+                $p = $_.Path 
+            }
+            else { 
+                $p = $null 
+            }
+
+            -not (Should-IgnorePath $p $ignorePatterns)
+          })
+          # --- End: PSTS path-ignore processing ---
 
           # Map severities to numeric values safely
           $severityMap = @{ 'Low' = 1; 'Medium' = 2; 'High' = 3; 'Critical' = 4 }

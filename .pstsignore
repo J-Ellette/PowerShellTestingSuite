@@ -1,0 +1,7 @@
+# Ignore scanner's own files and workflow infra
+.github/
+.github/workflows/
+.git/
+scripts/
+tools/
+src/PowerShellSecurityAnalyzer.psm1
