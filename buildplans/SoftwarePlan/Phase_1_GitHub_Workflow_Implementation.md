@@ -360,10 +360,6 @@ class PowerShellSecurityAnalyzer {
 
 # Export functions and classes
 
-Export-ModuleMember -Function *-Cmdlet*
-
-## 1.2 GitHub Actions Workflow
-
 File: .github/workflows/powershell-security.yml
 yamlname: PSTS - PowerShell Security Analysis
 
@@ -706,7 +702,7 @@ interface FixSuggestion {
 }
 
 class GitHubCopilotFixer {
-    private octokit: ReturnType<typeof github.getOctokit>;
+    private octokit: ReturnType<`typeof github.getOctokit`>;
     private maxFixes: number;
     private confidenceThreshold: number;
 
@@ -974,7 +970,7 @@ Fixed code:`;
     }
 }
 
-async function run(): Promise<void> {
+async function run(): Promise\<void\> {
     try {
         // Get inputs
         const token = core.getInput('github-token', { required: true });
