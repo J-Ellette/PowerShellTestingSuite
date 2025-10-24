@@ -35,7 +35,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **RegistryCredentials**: Credentials stored in registry keys
 - **PrivilegedRegistryAccess**: Unnecessary privileged registry operations
 
-##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY** 
+##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY**
 
 - ✅ **ExecutionPolicyBypass**: Detect execution policy bypass attempts (`-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted`)
 - ✅ **ScriptBlockLogging**: Missing security logging configuration (`$PSModuleAutoLoadingPreference = 'None'`)
@@ -79,10 +79,10 @@ These provide:
 
 Then add the broader security rules:
 
-- Network Security (HTTP/TLS rules) https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#network-security-rules
-- File System Security https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#file-system-security-rules
-- Registry Security https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#registry-security-rules
-- Data Security (SQL/LDAP injection) https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#data-security-rules
+- Network Security (HTTP/TLS rules) <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#network-security-rules>
+- File System Security <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#file-system-security-rules>
+- Registry Security <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#registry-security-rules>
+- Data Security (SQL/LDAP injection) <https://github.com/J-Ellette/PowerShellTestingSuite/edit/main/buildplans/copilot_phase_1_ideas.md#data-security-rules>
 
 **Why PowerShell-First?**
 
