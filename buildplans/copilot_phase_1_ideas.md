@@ -35,7 +35,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **RegistryCredentials**: Credentials stored in registry keys
 - **PrivilegedRegistryAccess**: Unnecessary privileged registry operations
 
-- ✅ ##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY**
+##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY** 
 
 - ✅ **ExecutionPolicyBypass**: Detect execution policy bypass attempts (`-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted`)
 - ✅ **ScriptBlockLogging**: Missing security logging configuration (`$PSModuleAutoLoadingPreference = 'None'`)
