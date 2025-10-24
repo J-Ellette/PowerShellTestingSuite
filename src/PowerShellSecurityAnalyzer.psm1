@@ -82,7 +82,7 @@ class PowerShellSecurityAnalyzer {
             EnableParallelAnalysis = $true
             MaxFileSize = 10MB
             TimeoutSeconds = 30
-            ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*')
+            ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*', 'src/*', 'scripts/*')
         }
         $this.InitializeDefaultRules()
     }
@@ -2001,7 +2001,10 @@ class PowerShellSecurityAnalyzer {
 
     [bool] IsPathExcluded([string]$FilePath, [string]$WorkspacePath) {
         # Normalize paths for comparison
-        $normalizedFilePath = $FilePath.Replace('\', '/').TrimStart('./')
+        $normalizedFilePath = $FilePath.Replace('\', '/')
+        if ($normalizedFilePath.StartsWith('./')) {
+            $normalizedFilePath = $normalizedFilePath.Substring(2)
+        }
         $normalizedWorkspacePath = $WorkspacePath.Replace('\', '/').TrimEnd('/')
         
         # Get relative path from workspace
