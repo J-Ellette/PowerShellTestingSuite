@@ -1,11 +1,12 @@
-Phase 3: Standalone Sandbox Application (Weeks 9-12)
-3.1 Electron Application Main Process
+# Phase 3: Standalone Sandbox Application (Weeks 9-12)
+
+## 3.1 Electron Application Main Process
 
 File: standalone-app/src/main/main.ts
 
 typescriptimport { app, BrowserWindow, ipcMain, dialog, Menu, shell, protocol } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
+import *as path from 'path';
+import* as fs from 'fs';
 import { SandboxManager } from './security/sandboxManager';
 import { LocalAIManager } from './ai/localAIManager';
 import { SecurityReportGenerator } from './reports/securityReportGenerator';
@@ -510,13 +511,15 @@ class PSSTApplication {
 
 // Start the application
 new PSSTApplication();
-3.2 Sandbox Manager with Docker Isolation
+
+## 3.2 Sandbox Manager with Docker Isolation
+
 File: standalone-app/src/main/security/sandboxManager.ts
 typescriptimport { spawn, ChildProcess } from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as crypto from 'crypto';
-import * as os from 'os';
+import *as fs from 'fs/promises';
+import* as path from 'path';
+import *as crypto from 'crypto';
+import* as os from 'os';
 
 export interface SandboxSession {
     id: string;
@@ -907,13 +910,14 @@ export class SandboxManager {
 
     getAllSessions(): SandboxSession[] {
         return Array.from(this.sessions.values());
-    }
 }
-3.3 Local AI Manager with Ollama Integration
+
+## 3.3 Local AI Manager with Ollama Integration
+
 File: standalone-app/src/main/ai/localAIManager.ts
 typescriptimport { spawn, ChildProcess } from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import *as fs from 'fs/promises';
+import* as path from 'path';
 import * as os from 'os';
 import fetch from 'node-fetch';
 
@@ -944,7 +948,7 @@ export interface AIProvider {
 }
 
 export class LocalAIManager {
-    private ollamaUrl = 'http://localhost:11434';
+    private ollamaUrl = '<http://localhost:11434>';
     private providers: Map<string, AIProvider> = new Map();
     private currentModel = 'codellama:13b';
     private isOllamaRunning = false;
@@ -1423,18 +1427,18 @@ class OpenAIFallbackProvider implements AIProvider {
     }
 
     async testConnection(): Promise<boolean> {
-        return Boolean(this.apiKey);
-    }
 }
-3.4 React Frontend Interface
-File: standalone-app/src/renderer/App.tsx
-tsximport React, { useState, useEffect, useCallback } from 'react';
+
+## 3.4 React Frontend Interface
+
+### 3.4.1 Main Application Component
+
 import { Layout, Menu, Button, Upload, Card, Table, Tag, Progress, Modal, Tabs, Spin, Alert, Drawer } from 'antd';
-import { 
-    FileOutlined, 
-    FolderOpenOutlined, 
-    PlayCircleOutlined, 
-    RobotOutlined, 
+import {
+    FileOutlined,
+    FolderOpenOutlined,
+    PlayCircleOutlined,
+    RobotOutlined,
     SettingOutlined,
     ShieldCheckOutlined,
     ExclamationCircleOutlined,
@@ -1894,49 +1898,56 @@ export const App: React.FC = () => {
                 <SettingsPanel />
             </Drawer>
         </Layout>
-    );
-};
-
 export default App;
-3.5 Docker Configuration for Secure Analysis
-File: standalone-app/docker/Dockerfile
-dockerfileFROM mcr.microsoft.com/powershell:7.4-alpine-3.17
 
-# Security: Create non-root user
+## 3.5 Docker Configuration for Secure Analysis
+
+### 3.5.1 Dockerfile Configuration
+
 RUN adduser -D -s /bin/sh -h /home/analyzer analyzer
 
 # Install PowerShell modules and dependencies
+
 RUN pwsh -c "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Install-Module -Name PSScriptAnalyzer -Force -Scope AllUsers"
 
 # Create application directory
+
 RUN mkdir -p /app && chown analyzer:analyzer /app
 
-# Copy PSTS analyzer modules
+## Copy PSTS analyzer modules
+
 COPY --chown=analyzer:analyzer PowerShellSecurityAnalyzer/ /app/modules/
 COPY --chown=analyzer:analyzer scripts/ /app/
 
 # Create workspace and output directories
+
 RUN mkdir -p /workspace /output && chown analyzer:analyzer /workspace /output
 
 # Set up security constraints
+
 RUN chmod 755 /app/analyze.ps1
 RUN chmod -R 644 /app/modules/
 
 # Switch to non-root user
+
 USER analyzer
 
 # Set working directory
+
 WORKDIR /app
 
 # Disable PowerShell telemetry
+
 ENV POWERSHELL_TELEMETRY_OPTOUT=1
 ENV POWERSHELL_UPDATECHECK_OPTOUT=1
 
 # Health check
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD pwsh -c "Test-Path /app/analyze.ps1"
 
 # Entry point
+
 ENTRYPOINT ["pwsh", "/app/analyze.ps1"]
 File: standalone-app/docker/scripts/analyze.ps1
 powershell#!/usr/bin/env pwsh
@@ -1944,7 +1955,7 @@ powershell#!/usr/bin/env pwsh
 param(
     [Parameter(Mandatory = $true)]
     [string]$ScriptPath,
-    
+
     [string]$OutputPath = "/output/results.json",
     
     [string]$ConfigPath = "/app/config.json"
@@ -1954,7 +1965,7 @@ try {
     Write-Host "PSTS Docker Analyzer Starting..."
     Write-Host "Script: $ScriptPath"
     Write-Host "Output: $OutputPath"
-    
+
     # Security: Validate input paths
     if (-not (Test-Path $ScriptPath)) {
         throw "Script file not found: $ScriptPath"
@@ -2115,19 +2126,21 @@ try {
         script = $ScriptPath
         environment = "docker-container"
     }
-    
+
     $errorJson = $errorData | ConvertTo-Json -Depth 5 -Compress
     
     try {
         $errorJson | Out-File -FilePath $OutputPath -Encoding UTF8 -Force
     } catch {
-        Write-Error "Failed to write error output: $_"
-    }
-    
+    exit 1
+}
+
     Write-Error "PSTS Docker Analyzer failed: $($_.Exception.Message)"
     exit 1
 }
-3.6 Enterprise Security Configuration
+
+## 3.6 Enterprise Security Configuration
+
 File: standalone-app/src/main/config/securityPolicies.ts
 typescriptexport interface SecurityPolicy {
     id: string;

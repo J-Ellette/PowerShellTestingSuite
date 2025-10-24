@@ -13,12 +13,14 @@
 ## Priority Matrix
 
 ### Critical Priority (Do Immediately)
+
 1. Expand Security Rule Coverage (4 to 15+ rules)
 2. Implement Real Auto-Fix (replace mock)
 3. Add Configuration File (.psts.yml)
 4. Suppression Comments System
 
 ### High Priority (Phase 1.5)
+
 5. Pre-commit Hook Integration
 6. Fix Verification Testing
 7. Enhanced SARIF Output
@@ -26,6 +28,7 @@
 9. Performance Metrics
 
 ### Medium Priority (Phase 2 Prep)
+
 10. Rule Marketplace/Plugins
 11. Baseline/Diff Mode
 12. Compliance Reporting
@@ -33,6 +36,7 @@
 14. Historical Trending
 
 ### Low Priority (Future)
+
 15-20: VS Code Snippets, Docker, Multi-format Output, Fix Review UI, etc.
 
 ## 1. Expand Security Rule Coverage
@@ -81,21 +85,26 @@ Missing error handling and audit trails
 **Effort**: High
 
 ### Solution A: GitHub Models API (Recommended)
+
 - Free tier with gpt-4o-mini
 - Uses existing GITHUB_TOKEN
-- Endpoint: https://models.inference.ai.azure.com/chat/completions
+- Endpoint: <https://models.inference.ai.azure.com/chat/completions>
 
 ### Solution B: Multi-Provider Support
+
 Configure AI provider in .psts.yml:
+
 - GitHub Models (default, free)
 - OpenAI
 - Anthropic Claude
 - Azure OpenAI
 
 ### Solution C: Template-Based Fallback
+
 Pattern-matching for when AI unavailable
 
 ### Recommended: Hybrid Strategy
+
 1. Try AI first
 2. Fall back to templates
 3. Provide manual suggestions
@@ -103,6 +112,7 @@ Pattern-matching for when AI unavailable
 ## 3. Configuration File (.psts.yml)
 
 Comprehensive enterprise configuration supporting:
+
 - Analysis settings (severity threshold, timeouts)
 - Rule enable/disable/severity override
 - Path/file exclusions
@@ -115,6 +125,7 @@ Comprehensive enterprise configuration supporting:
 ## 4. Suppression Comments System
 
 Multiple formats supported:
+
 ```powershell
 # PSTS-SUPPRESS-NEXT: RuleId - Justification
 # PSTS-SUPPRESS-LINE: RuleId
@@ -123,6 +134,7 @@ Multiple formats supported:
 ```
 
 Features:
+
 - Require justification (configurable)
 - Expiry dates
 - Tracking and reporting
@@ -149,12 +161,14 @@ Features:
 ## Implementation Roadmap
 
 ### Phase 1.1 (1-2 weeks)
+
 - Expand to 10 security rules
 - Real auto-fix with GitHub Models API
 - Basic .psts.yml configuration
 - Suppression comments
 
 ### Phase 1.2 (2-4 weeks)
+
 - Performance metrics
 - Enhanced SARIF
 - CWE mapping
@@ -162,6 +176,7 @@ Features:
 - Fix verification tests
 
 ### Phase 1.3 (1-2 months)
+
 - Rule marketplace foundation
 - Baseline/diff mode
 - Compliance reporting
@@ -169,6 +184,7 @@ Features:
 - Webhook integrations
 
 ### Phase 1.4 (2-3 months)
+
 - Historical trending
 - Docker containerization
 - Fix review UI
@@ -187,6 +203,7 @@ Features:
 These 30 enhancements transform PSTS from MVP to enterprise-grade platform.
 
 **Key Differentiators**:
+
 1. Real AI-powered auto-fix
 2. Extensive rule coverage (15+ rules)
 3. Enterprise-grade configuration
