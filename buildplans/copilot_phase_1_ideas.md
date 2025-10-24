@@ -58,7 +58,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **LogInjection**: Unsafe logging that could lead to log injection
 
 **Implementation Priority**: **CRITICAL** (PowerShell-first approach - expand from 4 to 12+ PowerShell-specific rules first)
-**Effort Estimate**: 3-4 weeks (focus on PowerShell expertise)
+**Effort Estimate**: (focus on PowerShell expertise)
 **Impact**: **VERY HIGH** - establishes PSTS as the definitive PowerShell security platform
 
 ### **Recommended Implementation Order:**
