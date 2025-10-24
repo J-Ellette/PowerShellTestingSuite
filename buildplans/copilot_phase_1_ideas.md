@@ -63,7 +63,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 
 ### **Recommended Implementation Order:**
 
-#### **🎯 Phase 1A: PowerShell-Specific Rules**
+#### **🎯 Phase 1.5A: PowerShell-Specific Rules**
 
 Focus on the 8 additional PowerShell-specific rules above. These provide:
 - **Unique value proposition** in the market
@@ -71,7 +71,7 @@ Focus on the 8 additional PowerShell-specific rules above. These provide:
 - **High-impact security coverage** for PowerShell environments
 - **Strong foundation** for enterprise PowerShell security
 
-#### **🌐 Phase 1B: General Security Rules**  
+#### **🌐 Phase 1.5B: General Security Rules**  
 
 Then add the broader security rules:
 - Network Security (HTTP/TLS rules)
@@ -127,9 +127,9 @@ Import-Module ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase
 
 ### **🏆 Recommended Strategy: "PowerShell-First Expansion"**
 
-1. **Phase 1A (Immediate)**: 8 additional PowerShell-specific rules
-2. **Phase 1B (Next)**: 6-8 general security rules most relevant to PowerShell environments  
-3. **Phase 1C (Later)**: Remaining general security rules
+1. **Phase 1.5A (Immediate)**: 8 additional PowerShell-specific rules
+2. **Phase 1.5B (Next)**: 6-8 general security rules most relevant to PowerShell environments  
+3. **Phase 1.5C (Later)**: Remaining general security rules
 
 This approach:
 - ✅ **Establishes market leadership** in PowerShell security
