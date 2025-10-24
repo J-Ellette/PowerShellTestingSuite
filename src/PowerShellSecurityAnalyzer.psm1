@@ -76,6 +76,8 @@ class PowerShellSecurityAnalyzer {
     [List[SecurityRule]]$SecurityRules
     [List[SecurityRule]]$CodingRules
     [hashtable]$Configuration
+    [object]$PSSTConfig  # PSSTConfiguration object
+    [object]$SuppressionParser  # SuppressionParser object
 
     PowerShellSecurityAnalyzer() {
         $this.SecurityRules = [List[SecurityRule]]::new()
@@ -86,7 +88,63 @@ class PowerShellSecurityAnalyzer {
             TimeoutSeconds = 30
             ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*', 'src/*', 'scripts/*')
         }
+        $this.PSSTConfig = $null
+        $this.SuppressionParser = $null
         $this.InitializeDefaultRules()
+    }
+
+    PowerShellSecurityAnalyzer([object]$pstsConfig) {
+        $this.SecurityRules = [List[SecurityRule]]::new()
+        $this.CodingRules = [List[SecurityRule]]::new()
+        $this.PSSTConfig = $pstsConfig
+        
+        # Merge PSTS config into legacy Configuration
+        $this.Configuration = @{
+            EnableParallelAnalysis = $pstsConfig.Analysis.parallel_analysis
+            MaxFileSize = $pstsConfig.Analysis.max_file_size
+            TimeoutSeconds = $pstsConfig.Analysis.timeout_seconds
+            ExcludedPaths = $pstsConfig.Analysis.exclude_paths
+        }
+        
+        # Initialize suppression parser if configured
+        if ($pstsConfig.Suppressions) {
+            try {
+                # Dynamically load SuppressionParser module if available
+                $modulePath = Join-Path $PSScriptRoot 'SuppressionParser.psm1'
+                if (Test-Path $modulePath) {
+                    Import-Module $modulePath -Force -ErrorAction Stop
+                    $this.SuppressionParser = New-SuppressionParser `
+                        -RequireJustification $pstsConfig.Suppressions.require_justification `
+                        -MaxDurationDays $pstsConfig.Suppressions.max_duration_days `
+                        -AllowPermanent $pstsConfig.Suppressions.allow_permanent
+                }
+            } catch {
+                Write-Warning "Failed to initialize suppression parser: $_"
+            }
+        }
+        
+        $this.InitializeDefaultRules()
+    }
+
+    [void] LoadConfiguration([string]$workspacePath) {
+        try {
+            # Load ConfigLoader module if available
+            $modulePath = Join-Path $PSScriptRoot 'ConfigLoader.psm1'
+            if (Test-Path $modulePath) {
+                Import-Module $modulePath -Force -ErrorAction Stop
+                $this.PSSTConfig = Import-PSSTConfiguration -WorkspacePath $workspacePath
+                
+                # Update Configuration
+                $this.Configuration.EnableParallelAnalysis = $this.PSSTConfig.Analysis.parallel_analysis
+                $this.Configuration.MaxFileSize = $this.PSSTConfig.Analysis.max_file_size
+                $this.Configuration.TimeoutSeconds = $this.PSSTConfig.Analysis.timeout_seconds
+                $this.Configuration.ExcludedPaths = $this.PSSTConfig.Analysis.exclude_paths
+                
+                Write-Verbose "Loaded PSTS configuration from $workspacePath"
+            }
+        } catch {
+            Write-Warning "Failed to load PSTS configuration: $_"
+        }
     }
 
     [void] InitializeDefaultRules() {
@@ -1991,6 +2049,15 @@ class PowerShellSecurityAnalyzer {
         }
 
         try {
+            # Load suppressions for this file if parser is available
+            if ($this.SuppressionParser) {
+                try {
+                    $this.SuppressionParser.ParseFile($ScriptPath)
+                } catch {
+                    Write-Warning "Failed to parse suppressions in ${ScriptPath}: $_"
+                }
+            }
+
             # Parse the script
             $tokens = $null
             $errors = $null
@@ -2005,13 +2072,45 @@ class PowerShellSecurityAnalyzer {
             
             $rules = $this.SecurityRules + $this.CodingRules
             foreach ($rule in $rules) {
+                # Check if rule is disabled in configuration
+                if ($this.PSSTConfig -and $this.PSSTConfig.Rules.ContainsKey($rule.Name)) {
+                    $ruleConfig = $this.PSSTConfig.Rules[$rule.Name]
+                    if ($ruleConfig.enabled -eq $false) {
+                        Write-Verbose "Rule $($rule.Name) is disabled in configuration"
+                        continue
+                    }
+                    
+                    # Override severity if specified in config
+                    if ($ruleConfig.severity) {
+                        try {
+                            $rule.Severity = [SecuritySeverity]::Parse([SecuritySeverity], $ruleConfig.severity)
+                        } catch {
+                            Write-Warning "Invalid severity '$($ruleConfig.severity)' for rule $($rule.Name)"
+                        }
+                    }
+                }
+                
                 try {
                     $ruleViolations = $rule.Evaluate($ast, $ScriptPath)
                     # Filter out null or invalid violations
                     if ($ruleViolations) {
                         foreach ($violation in $ruleViolations) {
                             if ($violation -and $violation.Name) {
-                                $allViolations += $violation
+                                # Check if violation is suppressed
+                                $isSuppressed = $false
+                                if ($this.SuppressionParser) {
+                                    try {
+                                        $isSuppressed = $this.SuppressionParser.IsSuppressed($violation.RuleId, $violation.LineNumber)
+                                    } catch {
+                                        Write-Debug "Suppression check failed: $_"
+                                    }
+                                }
+                                
+                                if (-not $isSuppressed) {
+                                    $allViolations += $violation
+                                } else {
+                                    Write-Verbose "Violation at line $($violation.LineNumber) is suppressed"
+                                }
                             }
                         }
                     }
@@ -2161,8 +2260,45 @@ function New-SecurityAnalyzer {
     <#
     .SYNOPSIS
         Creates a new PowerShell Security Analyzer instance
+    .PARAMETER WorkspacePath
+        Path to workspace for loading configuration
+    .PARAMETER EnableSuppressions
+        Enable suppression comment parsing
     #>
-    return [PowerShellSecurityAnalyzer]::new()
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$WorkspacePath = '.',
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$EnableSuppressions
+    )
+    
+    $analyzer = [PowerShellSecurityAnalyzer]::new()
+    
+    # Try to load configuration
+    try {
+        $analyzer.LoadConfiguration($WorkspacePath)
+    } catch {
+        Write-Warning "Failed to load configuration: $_"
+    }
+    
+    # Initialize suppression parser if requested
+    if ($EnableSuppressions -and $analyzer.PSSTConfig) {
+        try {
+            $modulePath = Join-Path $PSScriptRoot 'SuppressionParser.psm1'
+            if (Test-Path $modulePath) {
+                Import-Module $modulePath -Force -ErrorAction Stop
+                $analyzer.SuppressionParser = New-SuppressionParser `
+                    -RequireJustification $analyzer.PSSTConfig.Suppressions.require_justification `
+                    -MaxDurationDays $analyzer.PSSTConfig.Suppressions.max_duration_days `
+                    -AllowPermanent $analyzer.PSSTConfig.Suppressions.allow_permanent
+            }
+        } catch {
+            Write-Warning "Failed to initialize suppression parser: $_"
+        }
+    }
+    
+    return $analyzer
 }
 
 function Invoke-SecurityAnalysis {
@@ -2171,13 +2307,23 @@ function Invoke-SecurityAnalysis {
         Analyzes a PowerShell script for security violations
     .PARAMETER ScriptPath
         Path to the PowerShell script to analyze
+    .PARAMETER WorkspacePath
+        Path to workspace for loading configuration
+    .PARAMETER EnableSuppressions
+        Enable suppression comment parsing
     #>
     param(
         [Parameter(Mandatory)]
-        [string]$ScriptPath
+        [string]$ScriptPath,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$WorkspacePath = '.',
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$EnableSuppressions
     )
     
-    $analyzer = [PowerShellSecurityAnalyzer]::new()
+    $analyzer = New-SecurityAnalyzer -WorkspacePath $WorkspacePath -EnableSuppressions:$EnableSuppressions
     return $analyzer.AnalyzeScript($ScriptPath)
 }
 
@@ -2187,13 +2333,18 @@ function Invoke-WorkspaceAnalysis {
         Analyzes all PowerShell scripts in a workspace
     .PARAMETER WorkspacePath
         Path to the workspace directory
+    .PARAMETER EnableSuppressions
+        Enable suppression comment parsing
     #>
     param(
         [Parameter(Mandatory)]
-        [string]$WorkspacePath
+        [string]$WorkspacePath,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$EnableSuppressions
     )
     
-    $analyzer = [PowerShellSecurityAnalyzer]::new()
+    $analyzer = New-SecurityAnalyzer -WorkspacePath $WorkspacePath -EnableSuppressions:$EnableSuppressions
     return $analyzer.AnalyzeWorkspace($WorkspacePath)
 }
 
