@@ -1898,21 +1898,45 @@ class PowerShellSecurityAnalyzer {
                     )
                 }
                 
-                # Pattern 3: .NET Framework 2.0 specific calls
-                $dotNet2Calls = $Ast.FindAll({
-                    $args[0] -is [StringConstantExpressionAst] -and 
-                    $args[0].Value -match 'v2\.0\.50727|\.NET.*2\.0|System\.Management\.Automation.*2\.0'
-                }, $true)
-                
-                foreach ($net2 in $dotNet2Calls) {
-                    $violations += [SecurityViolation]::new(
-                        "EnhancedPowerShell2Detection",
-                        ".NET Framework 2.0 reference detected - may indicate PowerShell 2.0 usage",
-                        [SecuritySeverity]::High,
-                        $net2.Extent.StartLineNumber,
-                        $net2.Extent.Text
-                    )
-                }
+               # Pattern 3: .NET Framework 2.0 specific calls
+$dotNet2Calls = $Ast.FindAll({
+    $args[0] -is [StringConstantExpressionAst] -and 
+    $args[0].Value -match 'v2\.0\.50727|\.NET.*2(\.0)?|mscorlib[, ].*Version\s*=\s*2\.0\.0\.0|System\.Management\.Automation.*2\.0'
+}, $true)
+
+foreach ($net2 in $dotNet2Calls) {
+    $value = $net2.Value
+
+    $indicator = switch -Regex ($value) {
+        '(?i)v2\.0\.50727' {
+            "CLR v2 runtime version 'v2.0.50727' detected"
+            break
+        }
+        '(?i)mscorlib[, ].*Version\s*=\s*2\.0\.0\.0' {
+            "mscorlib Version=2.0.0.0 reference detected"
+            break
+        }
+        '(?i)\.NET.*\b2(\.0)?\b' {
+            ".NET 2.x reference detected"
+            break
+        }
+        '(?i)System\.Management\.Automation.*2\.0' {
+            "System.Management.Automation v2 reference detected"
+            break
+        }
+        default {
+            "Possible .NET/PowerShell v2 indicator detected: '$($value.Trim())'"
+        }
+    }
+
+    $violations += [SecurityViolation]::new(
+        "EnhancedPowerShell2Detection",
+        "$indicator — may indicate PowerShell v2 or .NET 2.0 usage; review for legacy compatibility and security implications.",
+        [SecuritySeverity]::High,
+        $net2.Extent.StartLineNumber,
+        $net2.Extent.Text
+    )
+}
                 
                 # Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
                 $wmiExecution = $Ast.FindAll({
