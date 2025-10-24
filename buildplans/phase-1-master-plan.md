@@ -1,7 +1,7 @@
 # PSTS Phase 1 Master Plan
 ## The Definitive PowerShell Security Platform Roadmap
 
-> **Last Updated**: October 24, 2025  
+> **Last Updated**: October 24, 2025
 > **Status**: Phase 1.5C-A Complete | Next: Phase 1.5C-B  
 > **Vision**: Build the #1 PowerShell security testing suite on the market
 
@@ -53,7 +53,6 @@
 **Current**: Mock implementation with template-based fixes  
 **Target**: Production-ready AI integration  
 **Impact**: CRITICAL - Core value proposition  
-**Effort**: 2-3 weeks
 
 #### Solution: Multi-Provider AI Integration
 
@@ -97,7 +96,6 @@ autofix:
 **Current**: Hardcoded configuration  
 **Target**: Flexible, hierarchical configuration  
 **Impact**: HIGH - Enables enterprise adoption  
-**Effort**: 1-2 weeks
 
 #### Comprehensive Configuration File
 
@@ -212,7 +210,6 @@ enterprise:
 **Current**: No suppression mechanism  
 **Target**: Flexible, auditable suppression system  
 **Impact**: HIGH - Reduces false positive friction  
-**Effort**: 1 week
 
 #### Suppression Formats
 
@@ -254,7 +251,6 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 **Current**: 33 rules implemented  
 **Target**: 37 rules (add 4 critical advanced rules)  
 **Impact**: HIGH - Enterprise cloud security  
-**Effort**: 2-3 weeks
 
 #### Azure & Cloud Security Rules
 
@@ -305,12 +301,11 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 
 ---
 
-## ⚡ HIGH PRIORITY (Phase 1.5C-C - Next 4-6 Weeks)
+## ⚡ HIGH PRIORITY (Phase 1.5C-C)
 
 ### 5. Enhanced Rule Coverage - Phase 1.5C-C 📋
 **Target**: 40+ total security rules  
 **Impact**: HIGH - Comprehensive coverage  
-**Effort**: 2 weeks
 
 #### Medium-Priority Rules
 
@@ -334,7 +329,6 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 ### 6. Advanced PowerShell Attack Detection 🛡️
 **Target**: Detect advanced real-world attack patterns  
 **Impact**: HIGH - Modern threat protection  
-**Effort**: 3 weeks
 
 #### Advanced Attack Patterns (from newPSsuggestions.md)
 
@@ -386,7 +380,6 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 **Current**: CI/CD only  
 **Target**: Local validation before commit  
 **Impact**: HIGH - Shift-left security  
-**Effort**: 1 week
 
 #### Git Hook Features
 
@@ -419,7 +412,6 @@ cp .psts/hooks/pre-commit .git/hooks/
 **Current**: Single-threaded, no metrics  
 **Target**: Enterprise-scale performance  
 **Impact**: HIGH - Large codebase support  
-**Effort**: 2 weeks
 
 #### Optimization Features
 
@@ -456,7 +448,6 @@ metrics:
 **Current**: Basic SARIF 2.1.0  
 **Target**: Full SARIF features with rich metadata  
 **Impact**: MEDIUM-HIGH - Better GitHub integration  
-**Effort**: 1 week
 
 #### SARIF Enhancements
 
@@ -488,7 +479,6 @@ metrics:
 **Current**: Module-only interface  
 **Target**: Comprehensive CLI with developer tools  
 **Impact**: MEDIUM-HIGH - Improved usability  
-**Effort**: 2 weeks
 
 #### CLI Commands
 
@@ -530,7 +520,6 @@ psts version
 ### 11. CI/CD Platform Integrations 🔄
 **Current**: GitHub Actions only  
 **Target**: Multi-platform support  
-**Effort**: 4-6 weeks
 
 **Platforms**:
 - Azure DevOps Pipelines
@@ -550,7 +539,6 @@ psts version
 ### 12. Rule Marketplace & Community Plugins 🎪
 **Target**: Extensible rule ecosystem  
 **Impact**: HIGH - Community growth  
-**Effort**: 4-6 weeks
 
 **Features**:
 - YAML-based custom rule definitions
@@ -586,7 +574,6 @@ rule:
 ### 13. Baseline & Diff Mode 📸
 **Target**: Track new violations only  
 **Impact**: MEDIUM-HIGH - Incremental improvement  
-**Effort**: 2 weeks
 
 **Features**:
 - Create baseline from current state
@@ -600,7 +587,6 @@ rule:
 ### 14. Compliance Reporting 📜
 **Target**: Enterprise governance & compliance  
 **Impact**: MEDIUM - Enterprise adoption  
-**Effort**: 3 weeks
 
 **Compliance Frameworks**:
 - NIST Cybersecurity Framework
@@ -621,7 +607,6 @@ rule:
 ### 15. Webhook Integrations 🔗
 **Target**: Real-time notifications  
 **Impact**: MEDIUM - Team collaboration  
-**Effort**: 2 weeks
 
 **Integration Targets**:
 - Slack (rich cards with severity indicators)
@@ -635,7 +620,6 @@ rule:
 ### 16. Historical Trending & Analytics 📈
 **Target**: Security posture over time  
 **Impact**: MEDIUM - Strategic insights  
-**Effort**: 3 weeks
 
 **Features**:
 - Violation trends over time
@@ -651,7 +635,6 @@ rule:
 ### 17. VS Code Extension Foundation 💻
 **Aligns with**: Phase 2 planning  
 **Impact**: HIGH - Developer adoption  
-**Effort**: 6-8 weeks
 
 **Phase 2 Prep Features**:
 - Export diagnostics JSON for Language Server
@@ -663,7 +646,6 @@ rule:
 
 ### 18. Multi-Format Output 📄
 **Target**: Support diverse tooling ecosystems  
-**Effort**: 2 weeks
 
 **Formats**:
 - JSON (current)
@@ -679,7 +661,6 @@ rule:
 ### 19. Advanced Secret Detection 🔐
 **Target**: Comprehensive credential detection  
 **Impact**: HIGH - Prevent credential leaks  
-**Effort**: 3 weeks
 
 **Detection Capabilities**:
 - AWS Access Keys (regex + entropy)
@@ -695,7 +676,6 @@ rule:
 
 ### 20. Performance Benchmarking & Testing 🔬
 **Target**: Enterprise-grade performance validation  
-**Effort**: 2 weeks
 
 **Benchmark Suite**:
 - Analysis speed (files/second)
@@ -783,22 +763,22 @@ rule:
 
 ## 🎯 Next Steps (Immediate Actions)
 
-### Week 1-2: Critical Foundation
+### Critical Foundation
 1. **Real AI Integration**: GitHub Models API implementation
 2. **Configuration System**: Basic .psts.yml support
 3. **Suppression Comments**: Parser and basic functionality
 
-### Week 3-4: Advanced Rules
+### Advanced Rules
 4. **Phase 1.5C-B Rules**: Azure, Gallery, Certificate, AD rules
 5. **Test Coverage**: Comprehensive test scripts
 6. **Documentation**: Updated with new features
 
-### Week 5-6: Developer Experience
+### Developer Experience
 7. **Pre-commit Hooks**: Local validation
 8. **CLI Wrapper**: Basic commands
 9. **Performance**: Incremental analysis
 
-### Week 7-8: Enterprise Features
+### Enterprise Features
 10. **Enhanced SARIF**: CWE mappings, code flows
 11. **Compliance**: Basic compliance reporting
 12. **Baseline Mode**: Track new violations only
