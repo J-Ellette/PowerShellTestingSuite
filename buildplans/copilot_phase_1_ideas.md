@@ -65,7 +65,7 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 
 - ✅ #### **🎯 Phase 1.5A: PowerShell-Specific Rules**
 
-- ✅ Focus on the additional PowerShell-specific rules above.
+- Focus on the additional PowerShell-specific rules above.
 
 [PowerShell-Specific Rules](https://github.com/J-Ellette/PowerShellTestingSuite/blob/main/buildplans/copilot_phase_1_ideas.md#powershell-specific-rules--top-priority)
 These provide:
