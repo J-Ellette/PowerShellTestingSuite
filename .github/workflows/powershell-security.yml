@@ -19,7 +19,7 @@ on:
         - Critical
 
 env:
-  PSTS_VERSION: '1.0.0'
+  PSTS_VERSION: '1.1.0'
   PSTS_IGNORE: '.github/,scripts/,src/'
 
 permissions:
