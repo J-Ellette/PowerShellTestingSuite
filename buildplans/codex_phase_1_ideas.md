@@ -41,7 +41,7 @@ Scope: Make Phase 1 (GitHub Workflow Integration) robust, auditable, and develop
 — Testing
 
 - Pester unit tests per rule: positive/negative cases, parameter variations (variables, splatting, pipeline).
-- Golden file tests: expected JSON output for `tests/TestScripts/*` and comparison test to guard regressions.
+- Golden file tests: expected JSON output for `tests/TestScripts/**/*` and comparison test to guard regressions.
 - Schema regression: ensure required SARIF fields present across changes.
 
 — Security Posture

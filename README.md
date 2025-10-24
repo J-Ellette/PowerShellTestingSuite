@@ -206,7 +206,12 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 - **Unsafe File Inclusion**: Identifies dot-sourcing of untrusted scripts
 - **PowerShell Web Requests**: Detects unvalidated web requests
 
-For detailed examples of all rules, see the [test scripts](tests/TestScripts/).
+For detailed examples of all rules, see the [test scripts](tests/TestScripts/) organized by category:
+- [PowerShell-specific rules](tests/TestScripts/powershell/)
+- [Network security rules](tests/TestScripts/network/)
+- [File system security rules](tests/TestScripts/filesystem/)
+- [Registry security rules](tests/TestScripts/registry/)
+- [Data security rules](tests/TestScripts/data/)
 
 ## 🤖 AI Auto-Fix
 
@@ -281,7 +286,12 @@ PowerShellTestingSuite/
 │   ├── Convert-ToSARIF.ps1
 │   └── Generate-SecurityReport.ps1
 ├── tests/                   # Test scripts
-│   └── TestScripts/        # Scripts with known violations
+│   └── TestScripts/        # Scripts with known violations (organized by category)
+│       ├── powershell/     # PowerShell-specific security tests
+│       ├── network/        # Network security tests
+│       ├── filesystem/     # File system security tests
+│       ├── registry/       # Registry security tests
+│       └── data/           # Data security tests
 └── buildplans/             # Technical documentation
 ```
 
@@ -291,8 +301,8 @@ PowerShellTestingSuite/
 # Test the analyzer on sample vulnerable scripts
 pwsh -Command "
     Import-Module ./src/PowerShellSecurityAnalyzer.psm1
-    Get-ChildItem ./tests/TestScripts/*.ps1 | ForEach-Object {
-        Write-Host \"Testing: $($_.Name)\"
+    Get-ChildItem ./tests/TestScripts -Filter *.ps1 -Recurse | ForEach-Object {
+        Write-Host \"Testing: $($_.FullName)\"
         $result = Invoke-SecurityAnalysis -ScriptPath $_.FullName
         Write-Host \"  Violations: $($result.Violations.Count)\"
     }
