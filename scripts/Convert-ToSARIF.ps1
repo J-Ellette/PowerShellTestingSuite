@@ -145,7 +145,7 @@ function Convert-ToSARIF {
                 }
             })
             partialFingerprints = @{
-                primaryLocationLineHash = (Get-StringHash "$($violation.FilePath):$($violation.LineNumber)")
+                primaryLocationLineHash = (Get-ContentBasedFingerprint -Violation $violation)
             }
         }
         
@@ -163,6 +163,45 @@ function Get-StringHash {
     $hasher = [System.Security.Cryptography.SHA256]::Create()
     $hash = $hasher.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($String))
     return [System.BitConverter]::ToString($hash).Replace('-', '').Substring(0, 16)
+}
+
+function Get-ContentBasedFingerprint {
+    param([object]$Violation)
+    
+    # Build a stable fingerprint based on:
+    # 1. Rule ID (what was detected)
+    # 2. Code content (the actual issue)
+    # 3. Normalized file path (to handle relative/absolute path differences)
+    
+    $components = @()
+    
+    # Add rule ID
+    if ($Violation.RuleId) {
+        $components += $Violation.RuleId
+    }
+    
+    # Add normalized code snippet (trim and normalize whitespace)
+    if ($Violation.Code) {
+        $normalizedCode = $Violation.Code.Trim() -replace '\s+', ' '
+        $components += $normalizedCode
+    }
+    
+    # Add normalized file path (use just the filename or relative path from repo root)
+    if ($Violation.FilePath) {
+        $filePath = $Violation.FilePath.Replace('\', '/')
+        # Extract just the relative path from the repo (remove any absolute prefix)
+        if ($filePath -match '/(src/|scripts/|tests/)') {
+            $filePath = $Matches[0] + ($filePath -split $Matches[0], 2)[1]
+        } elseif ([System.IO.Path]::IsPathRooted($filePath)) {
+            # If absolute, try to get just the filename
+            $filePath = [System.IO.Path]::GetFileName($filePath)
+        }
+        $components += $filePath
+    }
+    
+    # Combine all components and hash
+    $fingerprintString = $components -join '|'
+    return Get-StringHash $fingerprintString
 }
 
 if ($MyInvocation.PSScriptRoot -eq $null -or $MyInvocation.InvocationName -eq '.') {
