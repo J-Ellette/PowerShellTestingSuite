@@ -10,11 +10,9 @@
 
 ### Phase 1: GitHub Workflow Integration ✅
 - **Automated Security Analysis**: Runs on every push and pull request
-- **4 Core Security Rules**: Detects critical vulnerabilities
-  - Insecure Hash Algorithms (MD5, SHA1)
-  - Credential Exposure (plaintext passwords)
-  - Command Injection (unsafe Invoke-Expression)
-  - Certificate Validation Bypasses
+- **16 Security Rules**: Comprehensive PowerShell security coverage
+  - **Core Rules (4)**: Insecure hashing, credential exposure, command injection, certificate validation
+  - **PowerShell-Specific Rules (12)**: Execution policy bypass, unsafe remoting, version downgrades, privilege escalation, and more
 - **SARIF Output**: Integrates with GitHub Security tab
 - **AI-Powered Auto-Fix**: Automatically generates and applies security fixes
 - **PR Comments**: Detailed analysis results posted to pull requests
@@ -140,6 +138,72 @@ Invoke-Expression $userInput
     return $errors -eq [System.Net.Security.SslPolicyErrors]::None
 }
 ```
+
+### 5. Execution Policy Bypass ⭐ NEW
+**Severity**: Critical  
+**Description**: Detects attempts to bypass PowerShell execution policy
+
+**Example Violation**:
+```powershell
+# ❌ Bad - Bypasses execution policy
+Set-ExecutionPolicy Bypass -Force
+
+# ✅ Good - Use appropriate policy
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### 6. Unsafe PowerShell Remoting ⭐ NEW
+**Severity**: Critical  
+**Description**: Detects insecure PowerShell remoting configurations
+
+**Example Violation**:
+```powershell
+# ❌ Bad - Remoting without SSL
+Enter-PSSession -ComputerName Server01 -UseSSL:$false
+
+# ✅ Good - Use SSL encryption
+Enter-PSSession -ComputerName Server01 -UseSSL
+```
+
+### 7. PowerShell Version Downgrade ⭐ NEW
+**Severity**: Critical  
+**Description**: Detects PowerShell v2 usage which bypasses modern security features
+
+**Example Violation**:
+```powershell
+# ❌ Bad - Uses vulnerable PowerShell v2
+powershell.exe -version 2 -command "malicious code"
+
+# ✅ Good - Use modern PowerShell
+pwsh -command "safe code"
+```
+
+### 8. Privilege Escalation ⭐ NEW
+**Severity**: Critical  
+**Description**: Detects attempts to elevate privileges
+
+**Example Violation**:
+```powershell
+# ❌ Bad - Elevates without validation
+Start-Process -FilePath "cmd.exe" -Verb RunAs
+
+# ✅ Good - Check if elevation is necessary
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    # Handle appropriately
+}
+```
+
+### 9-16. Additional PowerShell-Specific Rules ⭐ NEW
+- **Script Block Logging**: Detects disabled security logging
+- **Dangerous Modules**: Identifies imports from untrusted sources
+- **Unsafe Deserialization**: Finds unsafe XML/CLIXML deserialization
+- **Script Injection**: Detects dynamic script generation vulnerabilities
+- **Unsafe Reflection**: Finds unsafe .NET reflection usage
+- **Constrained Mode**: Detects patterns breaking constrained language mode
+- **Unsafe File Inclusion**: Identifies dot-sourcing of untrusted scripts
+- **PowerShell Web Requests**: Detects unvalidated web requests
+
+For detailed examples of all rules, see the [test scripts](tests/TestScripts/).
 
 ## 🤖 AI Auto-Fix
 

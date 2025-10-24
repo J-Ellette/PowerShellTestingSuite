@@ -296,6 +296,658 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+
+        # Rule 5: Execution Policy Bypass
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "ExecutionPolicyBypass",
+            "Detects attempts to bypass PowerShell execution policy",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Set-ExecutionPolicy with Unrestricted or Bypass
+                $execPolicyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Set-ExecutionPolicy'
+                }, $true)
+                
+                foreach ($call in $execPolicyCalls) {
+                    $policyValue = $null
+                    for ($i = 0; $i -lt $call.CommandElements.Count; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [StringConstantExpressionAst]) {
+                            $value = $element.Value
+                            if ($value -in @('Unrestricted', 'Bypass')) {
+                                $policyValue = $value
+                                break
+                            }
+                        }
+                    }
+                    
+                    if ($policyValue) {
+                        $violations += [SecurityViolation]::new(
+                            "ExecutionPolicyBypass",
+                            "Execution policy set to '$policyValue' - bypasses security controls",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Check for -ExecutionPolicy parameter in command line arguments
+                $stringLiterals = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst]
+                }, $true)
+                
+                foreach ($literal in $stringLiterals) {
+                    if ($literal.Value -match '-ExecutionPolicy\s+(Bypass|Unrestricted)') {
+                        $violations += [SecurityViolation]::new(
+                            "ExecutionPolicyBypass",
+                            "Command line execution policy bypass detected",
+                            [SecuritySeverity]::Critical,
+                            $literal.Extent.StartLineNumber,
+                            $literal.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 6: Script Block Logging
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "ScriptBlockLogging",
+            "Detects disabling of security logging configuration",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find PSModuleAutoLoadingPreference = 'None'
+                $assignments = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst]
+                }, $true)
+                
+                foreach ($assignment in $assignments) {
+                    $leftSide = $assignment.Left.Extent.Text
+                    if ($leftSide -match 'PSModuleAutoLoadingPreference') {
+                        $rightSide = $assignment.Right.Extent.Text
+                        if ($rightSide -match 'None') {
+                            $violations += [SecurityViolation]::new(
+                                "ScriptBlockLogging",
+                                "Module auto-loading disabled - may bypass logging",
+                                [SecuritySeverity]::High,
+                                $assignment.Extent.StartLineNumber,
+                                $assignment.Extent.Text
+                            )
+                        }
+                    }
+                    
+                    # Check for disabling script block logging
+                    if ($leftSide -match 'ScriptBlockLogging|EnableScriptBlockLogging') {
+                        $rightSide = $assignment.Right.Extent.Text
+                        if ($rightSide -match '\$false|0') {
+                            $violations += [SecurityViolation]::new(
+                                "ScriptBlockLogging",
+                                "Script block logging disabled - security risk",
+                                [SecuritySeverity]::High,
+                                $assignment.Extent.StartLineNumber,
+                                $assignment.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 7: Unsafe PS Remoting
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "UnsafePSRemoting",
+            "Detects insecure PowerShell remoting configurations",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Enable-PSRemoting with -Force
+                $remotingCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -in @('Enable-PSRemoting', 'Enter-PSSession', 'New-PSSession')
+                }, $true)
+                
+                foreach ($call in $remotingCalls) {
+                    $commandName = $call.GetCommandName()
+                    
+                    # Check for -Force parameter in Enable-PSRemoting
+                    if ($commandName -eq 'Enable-PSRemoting') {
+                        foreach ($element in $call.CommandElements) {
+                            if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'Force') {
+                                $violations += [SecurityViolation]::new(
+                                    "UnsafePSRemoting",
+                                    "Enable-PSRemoting with -Force bypasses security prompts",
+                                    [SecuritySeverity]::Critical,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                                break
+                            }
+                        }
+                    }
+                    
+                    # Check for -UseSSL:$false in session commands
+                    if ($commandName -in @('Enter-PSSession', 'New-PSSession')) {
+                        $hasUseSSLFalse = $false
+                        for ($i = 0; $i -lt $call.CommandElements.Count; $i++) {
+                            $element = $call.CommandElements[$i]
+                            if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'UseSSL') {
+                                # Check if parameter has argument (e.g., -UseSSL:$false)
+                                if ($element.Argument) {
+                                    if ($element.Argument.Extent.Text -match '\$false') {
+                                        $hasUseSSLFalse = $true
+                                        break
+                                    }
+                                }
+                                # Check if next element is $false (e.g., -UseSSL $false)
+                                elseif ($i + 1 -lt $call.CommandElements.Count) {
+                                    $nextElement = $call.CommandElements[$i + 1]
+                                    if ($nextElement.Extent.Text -match '\$false') {
+                                        $hasUseSSLFalse = $true
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if ($hasUseSSLFalse) {
+                            $violations += [SecurityViolation]::new(
+                                "UnsafePSRemoting",
+                                "PowerShell remoting without SSL encryption - security risk",
+                                [SecuritySeverity]::Critical,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 8: Dangerous Modules
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "DangerousModules",
+            "Detects import of modules from untrusted sources",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Import-Module calls
+                $importCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Import-Module'
+                }, $true)
+                
+                foreach ($call in $importCalls) {
+                    $hasVariable = $false
+                    $hasExpression = $false
+                    
+                    # Check if module path contains variables or expressions
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [VariableExpressionAst]) {
+                            $hasVariable = $true
+                        } elseif ($element -is [SubExpressionAst] -or $element -is [ExpandableStringExpressionAst]) {
+                            $hasExpression = $true
+                        }
+                    }
+                    
+                    if ($hasVariable -or $hasExpression) {
+                        $violations += [SecurityViolation]::new(
+                            "DangerousModules",
+                            "Dynamic module import from variable or expression - validate source",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 9: PowerShell Version Downgrade
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PowerShellVersionDowngrade",
+            "Detects PowerShell version downgrade attacks",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find powershell.exe with -version parameter
+                $stringLiterals = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst]
+                }, $true)
+                
+                foreach ($literal in $stringLiterals) {
+                    if ($literal.Value -match 'powershell(.exe)?\s+-version\s+2') {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellVersionDowngrade",
+                            "PowerShell v2 downgrade detected - bypasses modern security features",
+                            [SecuritySeverity]::Critical,
+                            $literal.Extent.StartLineNumber,
+                            $literal.Extent.Text
+                        )
+                    }
+                }
+                
+                # Check for Start-Process with PowerShell v2
+                $startProcessCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Start-Process'
+                }, $true)
+                
+                foreach ($call in $startProcessCalls) {
+                    $callText = $call.Extent.Text
+                    if ($callText -match '-version\s+2') {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellVersionDowngrade",
+                            "PowerShell v2 launch detected in Start-Process",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 10: Unsafe Deserialization
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "UnsafeDeserialization",
+            "Detects unsafe XML/CLIXML deserialization",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Import-Clixml calls
+                $clixmlCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Import-Clixml'
+                }, $true)
+                
+                foreach ($call in $clixmlCalls) {
+                    # Check if path comes from variable or user input
+                    $hasVariable = $false
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [VariableExpressionAst] -or $element -is [SubExpressionAst]) {
+                            $hasVariable = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasVariable) {
+                        $violations += [SecurityViolation]::new(
+                            "UnsafeDeserialization",
+                            "Import-Clixml from untrusted source - code execution risk",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Check for ConvertFrom-Json with -Depth parameter (deep object graphs)
+                $jsonCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'ConvertFrom-Json'
+                }, $true)
+                
+                foreach ($call in $jsonCalls) {
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'Depth') {
+                            $violations += [SecurityViolation]::new(
+                                "UnsafeDeserialization",
+                                "Deep JSON deserialization can cause DoS or memory issues",
+                                [SecuritySeverity]::Medium,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 11: Privilege Escalation
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PrivilegeEscalation",
+            "Detects privilege escalation attempts",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Start-Process with -Verb RunAs
+                $startProcessCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Start-Process'
+                }, $true)
+                
+                foreach ($call in $startProcessCalls) {
+                    $hasRunAs = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'Verb') {
+                            if ($i + 1 -lt $call.CommandElements.Count) {
+                                $nextElement = $call.CommandElements[$i + 1]
+                                if ($nextElement -is [StringConstantExpressionAst] -and $nextElement.Value -eq 'RunAs') {
+                                    $hasRunAs = $true
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    
+                    if ($hasRunAs) {
+                        $violations += [SecurityViolation]::new(
+                            "PrivilegeEscalation",
+                            "Privilege escalation via Start-Process -Verb RunAs - validate necessity",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 12: Script Injection
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "ScriptInjection",
+            "Detects dynamic script generation vulnerabilities",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find New-Module with dynamic content
+                $moduleCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'New-Module'
+                }, $true)
+                
+                foreach ($call in $moduleCalls) {
+                    $hasScriptBlock = $false
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [ScriptBlockExpressionAst] -or $element -is [VariableExpressionAst]) {
+                            $hasScriptBlock = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasScriptBlock) {
+                        $violations += [SecurityViolation]::new(
+                            "ScriptInjection",
+                            "Dynamic module creation - validate script content",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Find Add-Type with user input
+                $addTypeCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Add-Type'
+                }, $true)
+                
+                foreach ($call in $addTypeCalls) {
+                    $hasVariable = $false
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [VariableExpressionAst] -or $element -is [SubExpressionAst]) {
+                            $hasVariable = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasVariable) {
+                        $violations += [SecurityViolation]::new(
+                            "ScriptInjection",
+                            "Add-Type with dynamic content - code injection risk",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Find [scriptblock]::Create with variables
+                $scriptBlockCreate = $Ast.FindAll({
+                    $args[0] -is [MemberExpressionAst] -and
+                    $args[0].Member.Value -eq 'Create'
+                }, $true)
+                
+                foreach ($member in $scriptBlockCreate) {
+                    if ($member.Expression -is [TypeExpressionAst] -and 
+                        $member.Expression.TypeName.Name -eq 'scriptblock') {
+                        $violations += [SecurityViolation]::new(
+                            "ScriptInjection",
+                            "[scriptblock]::Create() detected - potential constrained mode bypass",
+                            [SecuritySeverity]::Critical,
+                            $member.Extent.StartLineNumber,
+                            $member.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 13: Unsafe Reflection
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "UnsafeReflection",
+            "Detects unsafe .NET reflection usage",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Assembly::LoadFrom, Assembly::Load, or Assembly::LoadFile
+                $memberAccess = $Ast.FindAll({
+                    $args[0] -is [MemberExpressionAst] -and
+                    $args[0].Member -and
+                    $args[0].Member.Value -in @('LoadFrom', 'Load', 'LoadFile', 'Assembly')
+                }, $true)
+                
+                foreach ($member in $memberAccess) {
+                    if ($member.Member.Value -in @('LoadFrom', 'Load', 'LoadFile')) {
+                        if ($member.Expression -is [TypeExpressionAst] -and 
+                            $member.Expression.TypeName.Name -match 'Assembly') {
+                            $violations += [SecurityViolation]::new(
+                                "UnsafeReflection",
+                                "Unsafe assembly loading via reflection - validate source",
+                                [SecuritySeverity]::High,
+                                $member.Extent.StartLineNumber,
+                                $member.Extent.Text
+                            )
+                        }
+                    }
+                    elseif ($member.Member.Value -eq 'Assembly') {
+                        # Only flag if it's part of GetType().Assembly pattern
+                        if ($member.Expression -is [MemberExpressionAst] -and
+                            $member.Expression.Member -and
+                            $member.Expression.Member.Value -eq 'GetType') {
+                            $violations += [SecurityViolation]::new(
+                                "UnsafeReflection",
+                                "Direct assembly access via GetType().Assembly - review security implications",
+                                [SecuritySeverity]::Medium,
+                                $member.Extent.StartLineNumber,
+                                $member.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 14: PowerShell Constrained Mode
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PowerShellConstrainedMode",
+            "Detects patterns that may break in constrained language mode",
+            [SecuritySeverity]::Medium,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Add-Type usage
+                $addTypeCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'Add-Type'
+                }, $true)
+                
+                if ($addTypeCalls.Count -gt 0) {
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellConstrainedMode",
+                        "Add-Type not allowed in constrained language mode",
+                        [SecuritySeverity]::Medium,
+                        $addTypeCalls[0].Extent.StartLineNumber,
+                        $addTypeCalls[0].Extent.Text
+                    )
+                }
+                
+                # Find New-Object with COM objects
+                $newObjectCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'New-Object'
+                }, $true)
+                
+                foreach ($call in $newObjectCalls) {
+                    $hasComObject = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'ComObject') {
+                            $hasComObject = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasComObject) {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellConstrainedMode",
+                            "COM object creation not allowed in constrained mode",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 15: Unsafe File Inclusion
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "UnsafeFileInclusion",
+            "Detects dot-sourcing of untrusted scripts",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find dot-sourcing operations
+                $dotSourceExpressions = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and $args[0].InvocationOperator -eq [TokenKind]::Dot
+                }, $true)
+                
+                foreach ($dotSource in $dotSourceExpressions) {
+                    # Check if the sourced file path contains variables or dynamic content
+                    $hasDynamicPath = $false
+                    foreach ($element in $dotSource.CommandElements) {
+                        if ($element -is [VariableExpressionAst] -or 
+                            $element -is [SubExpressionAst] -or
+                            $element -is [ParenExpressionAst] -or
+                            $element -is [ExpandableStringExpressionAst]) {
+                            $hasDynamicPath = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasDynamicPath) {
+                        $violations += [SecurityViolation]::new(
+                            "UnsafeFileInclusion",
+                            "Dot-sourcing script from variable or dynamic path - validate source",
+                            [SecuritySeverity]::Critical,
+                            $dotSource.Extent.StartLineNumber,
+                            $dotSource.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 16: PowerShell Web Requests
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PowerShellWebRequests",
+            "Detects web requests without proper certificate validation",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Find Invoke-WebRequest and Invoke-RestMethod calls
+                $webCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -in @('Invoke-WebRequest', 'Invoke-RestMethod')
+                }, $true)
+                
+                foreach ($call in $webCalls) {
+                    $hasSkipCertCheck = $false
+                    
+                    foreach ($element in $call.CommandElements) {
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -in @('SkipCertificateCheck', 'SkipCertCheck')) {
+                            $hasSkipCertCheck = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasSkipCertCheck) {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellWebRequests",
+                            "Web request with certificate validation disabled",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
     }
 
     [PSCustomObject] AnalyzeScript([string]$ScriptPath) {
