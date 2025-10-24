@@ -63,8 +63,10 @@ class SecurityRule {
     [SecurityViolation[]] Evaluate([Ast]$ast, [string]$filePath) {
         $violations = & $this.Evaluator $ast $filePath
         foreach ($violation in $violations) {
-            $violation.FilePath = $filePath
-            $violation.RuleId = $this.Name
+            if ($violation) {
+                $violation.FilePath = $filePath
+                $violation.RuleId = $this.Name
+            }
         }
         return $violations
     }
@@ -1881,96 +1883,81 @@ class PowerShellSecurityAnalyzer {
                     )
                 }
                 
-# Pattern 2: PowerShell ISE usage (often indicates PS 2.0 environment)
-$iseUsage = $Ast.FindAll({
-    $args[0] -is [CommandAst] -and 
-    ($args[0].GetCommandName() -eq 'powershell_ise' -or 
-     $args[0].GetCommandName() -eq 'powershell_ise.exe')
-}, $true)
-
-foreach ($ise in $iseUsage) {
-    $violations += [SecurityViolation]::new(
-        "EnhancedPowerShell2Detection",
-        "PowerShell ISE usage detected - may indicate PowerShell 2.0 environment",
-        [SecuritySeverity]::High,
-        $ise.Extent.StartLineNumber,
-        $ise.Extent.Text
-    )
-}
-
-# Pattern 3: .NET Framework 2.0 specific calls
-foreach ($net2 in $dotNet2Calls) {
-    $value = $net2.Value
-
-    $indicator = switch -Regex ($value) {
-        '(?i)v2\.0\.50727' {
-            "CLR v2 runtime version 'v2.0.50727' detected"
-            break
-        }
-        '(?i)mscorlib[, ].*Version\s*=\s*2\.0\.0\.0' {
-            "mscorlib Version=2.0.0.0 reference detected"
-            break
-        }
-        '(?i)\.NET.*\b2(\.0)?\b' {
-            ".NET 2.x reference detected"
-            break
-        }
-        '(?i)System\.Management\.Automation.*2\.0' {
-            "System.Management.Automation v2 reference detected"
-            break
-        }
-        default {
-            "Possible .NET/PowerShell v2 indicator detected: '$($value.Trim())'"
-        }
-    }
-
-    $violations += [SecurityViolation]::new(
-        "EnhancedPowerShell2Detection",
-        "$indicator — may indicate PowerShell v2 or .NET 2.0 usage; review for legacy compatibility and security implications.",
-        [SecuritySeverity]::High,
-        $net2.Extent.StartLineNumber,
-        $net2.Extent.Text
-    )
-}
-
-# Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
-$wmiExecution = $Ast.FindAll({
-    $args[0] -is [CommandAst] -and 
-    ($args[0].GetCommandName() -eq 'Invoke-WmiMethod' -or 
-     $args[0].GetCommandName() -eq 'Get-WmiObject')
-}, $true)
-
-foreach ($wmi in $wmiExecution) {
-    if ($wmi.Extent.Text -match 'Win32_Process.*powershell|CommandLine.*powershell') {
-        $violations += [SecurityViolation]::new(
-            "EnhancedPowerShell2Detection",
-            "WMI-based PowerShell execution detected - often used for PS 2.0 bypass",
-            [SecuritySeverity]::High,
-            $wmi.Extent.StartLineNumber,
-            $wmi.Extent.Text
-        )
-    }
-}
-
-# Pattern 5: Legacy cmdlet usage specific to PS 2.0
-$legacyCmdlets = $Ast.FindAll({
-    $args[0] -is [CommandAst] -and 
-    $args[0].GetCommandName() -match '^(ConvertTo-SecureString.*-AsPlainText|New-Object.*System\.Net\.WebClient|Add-PSSnapin)$'
-}, $true)
-
-foreach ($legacy in $legacyCmdlets) {
-    $violations += [SecurityViolation]::new(
-        "EnhancedPowerShell2Detection",
-        "Legacy cmdlet usage detected: $($legacy.GetCommandName()) - common in PowerShell 2.0 environments",
-        [SecuritySeverity]::Medium,
-        $legacy.Extent.StartLineNumber,
-        $legacy.Extent.Text
-    )
-}
-
-return $violations
-}   # end of scriptblock parameter for [SecurityRule]::new
-))  # close [SecurityRule]::new(...) and then .Add(...)
+                # Pattern 2: PowerShell ISE usage (often indicates PS 2.0 environment)
+                $iseUsage = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'powershell_ise' -or 
+                     $args[0].GetCommandName() -eq 'powershell_ise.exe')
+                }, $true)
+                
+                foreach ($ise in $iseUsage) {
+                    $violations += [SecurityViolation]::new(
+                        "EnhancedPowerShell2Detection",
+                        "PowerShell ISE usage detected - may indicate PowerShell 2.0 environment",
+                        [SecuritySeverity]::High,
+                        $ise.Extent.StartLineNumber,
+                        $ise.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: .NET Framework 2.0 specific calls
+                $dotNet2Calls = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and 
+                    ($args[0].Value -match '(?i)v2\.0\.50727|mscorlib[, ].*Version\s*=\s*2\.0\.0\.0|\.NET.*\b2(\.0)?\b|System\.Management\.Automation.*2\.0')
+                }, $true)
+                
+                foreach ($net2 in $dotNet2Calls) {
+                    $value = $net2.Value
+                
+                    $indicator = switch -Regex ($value) {
+                        '(?i)v2\.0\.50727' {
+                            "CLR v2 runtime version 'v2.0.50727' detected"
+                            break
+                        }
+                        '(?i)mscorlib[, ].*Version\s*=\s*2\.0\.0\.0' {
+                            "mscorlib Version=2.0.0.0 reference detected"
+                            break
+                        }
+                        '(?i)\.NET.*\b2(\.0)?\b' {
+                            ".NET 2.x reference detected"
+                            break
+                        }
+                        '(?i)System\.Management\.Automation.*2\.0' {
+                            "System.Management.Automation v2 reference detected"
+                            break
+                        }
+                        default {
+                            "Possible .NET/PowerShell v2 indicator detected: '$($value.Trim())'"
+                        }
+                    }
+                
+                    $violations += [SecurityViolation]::new(
+                        "EnhancedPowerShell2Detection",
+                        "$indicator — may indicate PowerShell v2 or .NET 2.0 usage; review for legacy compatibility and security implications.",
+                        [SecuritySeverity]::High,
+                        $net2.Extent.StartLineNumber,
+                        $net2.Extent.Text
+                    )
+                }
+                
+                # Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
+                $wmiExecution = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Invoke-WmiMethod' -or 
+                     $args[0].GetCommandName() -eq 'Get-WmiObject')
+                }, $true)
+                
+                foreach ($wmi in $wmiExecution) {
+                    if ($wmi.Extent.Text -match 'Win32_Process.*powershell|CommandLine.*powershell') {
+                        $violations += [SecurityViolation]::new(
+                            "EnhancedPowerShell2Detection",
+                            "WMI-based PowerShell execution detected - often used for PS 2.0 bypass",
+                            [SecuritySeverity]::High,
+                            $wmi.Extent.StartLineNumber,
+                            $wmi.Extent.Text
+                        )
+                    }
+                }
                 
                 # Pattern 5: Legacy cmdlet usage specific to PS 2.0
                 $legacyCmdlets = $Ast.FindAll({
@@ -2020,7 +2007,14 @@ return $violations
             foreach ($rule in $rules) {
                 try {
                     $ruleViolations = $rule.Evaluate($ast, $ScriptPath)
-                    $allViolations += $ruleViolations
+                    # Filter out null or invalid violations
+                    if ($ruleViolations) {
+                        foreach ($violation in $ruleViolations) {
+                            if ($violation -and $violation.Name) {
+                                $allViolations += $violation
+                            }
+                        }
+                    }
                 } catch {
                     Write-Warning "Rule $($rule.Name) failed: $($_.Exception.Message)"
                 }
