@@ -35,20 +35,20 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 - **RegistryCredentials**: Credentials stored in registry keys
 - **PrivilegedRegistryAccess**: Unnecessary privileged registry operations
 
-##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY**
+- ✅ ##### **PowerShell Specific Rules** 🎯 **TOP PRIORITY**
 
-- **ExecutionPolicyBypass**: Detect execution policy bypass attempts (`-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted`)
-- **ScriptBlockLogging**: Missing security logging configuration (`$PSModuleAutoLoadingPreference = 'None'`)
-- **UnsafePSRemoting**: Insecure PowerShell remoting configurations (`Enable-PSRemoting -Force`, unencrypted sessions)
-- **DangerousModules**: Usage of potentially dangerous modules without validation (`Import-Module` with untrusted sources)
-- **PowerShellVersionDowngrade**: Detection of PowerShell v2 usage (`powershell.exe -version 2`)
-- **UnsafeDeserialization**: Unsafe XML/CLIXML deserialization (`Import-Clixml` from untrusted sources)
-- **PrivilegeEscalation**: Attempts to elevate privileges (`Start-Process -Verb RunAs` without validation)
-- **ScriptInjection**: Dynamic script generation vulnerabilities (`New-Module`, `Add-Type` with user input)
-- **UnsafeReflection**: Unsafe .NET reflection usage (`[System.Reflection.Assembly]::LoadFrom()`)
-- **PowerShellConstrainedMode**: Scripts that may break in constrained language mode
-- **UnsafeFileInclusion**: Dot-sourcing untrusted scripts (`. $userInput`)
-- **PowerShellWebRequests**: Unvalidated web requests (`Invoke-WebRequest` without certificate validation)
+- ✅ **ExecutionPolicyBypass**: Detect execution policy bypass attempts (`-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted`)
+- ✅ **ScriptBlockLogging**: Missing security logging configuration (`$PSModuleAutoLoadingPreference = 'None'`)
+- ✅ **UnsafePSRemoting**: Insecure PowerShell remoting configurations (`Enable-PSRemoting -Force`, unencrypted sessions)
+- ✅ **DangerousModules**: Usage of potentially dangerous modules without validation (`Import-Module` with untrusted sources)
+- ✅ **PowerShellVersionDowngrade**: Detection of PowerShell v2 usage (`powershell.exe -version 2`)
+- ✅ **UnsafeDeserialization**: Unsafe XML/CLIXML deserialization (`Import-Clixml` from untrusted sources)
+- ✅ **PrivilegeEscalation**: Attempts to elevate privileges (`Start-Process -Verb RunAs` without validation)
+- ✅ **ScriptInjection**: Dynamic script generation vulnerabilities (`New-Module`, `Add-Type` with user input)
+- ✅ **UnsafeReflection**: Unsafe .NET reflection usage (`[System.Reflection.Assembly]::LoadFrom()`)
+- ✅ **PowerShellConstrainedMode**: Scripts that may break in constrained language mode
+- ✅ **UnsafeFileInclusion**: Dot-sourcing untrusted scripts (`. $userInput`)
+- ✅ **PowerShellWebRequests**: Unvalidated web requests (`Invoke-WebRequest` without certificate validation)
 
 ##### **Data Security Rules**
 
@@ -63,19 +63,22 @@ This document outlines enhancement ideas and future vision for the PowerShell Te
 
 ### **Recommended Implementation Order:**
 
-#### **🎯 Phase 1.5A: PowerShell-Specific Rules**
+- ✅ #### **🎯 Phase 1.5A: PowerShell-Specific Rules**
 
-Focus on the additional PowerShell-specific rules above. <br>
-https://github.com/J-Ellette/PowerShellTestingSuite/blob/main/buildplans/copilot_phase_1_ideas.md#powershell-specific-rules--top-priority <br>
+- ✅ Focus on the additional PowerShell-specific rules above.
+
+[PowerShell-Specific Rules](https://github.com/J-Ellette/PowerShellTestingSuite/blob/main/buildplans/copilot_phase_1_ideas.md#powershell-specific-rules--top-priority)
 These provide:
-- **Unique value proposition** in the market
-- **Deep PowerShell expertise** demonstration  
-- **High-impact security coverage** for PowerShell environments
-- **Strong foundation** for enterprise PowerShell security
+
+- ✅ **Unique value proposition** in the market
+- ✅ **Deep PowerShell expertise** demonstration  
+- ✅ **High-impact security coverage** for PowerShell environments
+- ✅ **Strong foundation** for enterprise PowerShell security
 
 #### **🌐 Phase 1.5B: General Security Rules**  
 
 Then add the broader security rules:
+
 - Network Security (HTTP/TLS rules)
 - File System Security  
 - Registry Security
@@ -95,18 +98,21 @@ Then add the broader security rules:
 ### **PowerShell-Specific Advantages:**
 
 #### **Market Opportunity**
+
 - **Underserved niche**: No comprehensive PowerShell-only security tools exist
 - **Enterprise demand**: PowerShell is ubiquitous in Windows enterprise environments
 - **Attack vector reality**: PowerShell is heavily used in real-world attacks (Living off the Land)
 - **Compliance need**: Many frameworks now require PowerShell-specific security controls
 
 #### **Technical Advantages**
+
 - **AST-based analysis**: PowerShell's rich AST enables deeper analysis than generic tools
 - **Language expertise**: Deep PowerShell knowledge creates better rules and fixes
 - **Contextual understanding**: PowerShell-specific patterns vs. generic code patterns
 - **Fix quality**: PowerShell-aware fixes are more accurate and useful
 
 #### **Examples of PowerShell-Unique Risks:**
+
 ```powershell
 # PowerShell v2 downgrade attack (bypasses many security controls)
 powershell.exe -version 2 -command "malicious code"
@@ -122,6 +128,7 @@ Import-Module ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase
 ```
 
 ### **General Security Rules Value:**
+
 - **Broader applicability**: Apply to any language/platform
 - **Enterprise compliance**: Required for comprehensive security posture  
 - **Market expansion**: Appeal to teams using PowerShell alongside other languages
@@ -134,6 +141,7 @@ Import-Module ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase
 3. **Phase 1.5C (Later)**: Remaining general security rules
 
 This approach:
+
 - ✅ **Establishes market leadership** in PowerShell security
 - ✅ **Builds deep expertise** that competitors can't easily replicate
 - ✅ **Creates enterprise appeal** with PowerShell-specific insights
