@@ -1881,29 +1881,24 @@ class PowerShellSecurityAnalyzer {
                     )
                 }
                 
-                # Pattern 2: PowerShell ISE usage (often indicates PS 2.0 environment)
-                $iseUsage = $Ast.FindAll({
-                    $args[0] -is [CommandAst] -and 
-                    ($args[0].GetCommandName() -eq 'powershell_ise' -or 
-                     $args[0].GetCommandName() -eq 'powershell_ise.exe')
-                }, $true)
-                
-                foreach ($ise in $iseUsage) {
-                    $violations += [SecurityViolation]::new(
-                        "EnhancedPowerShell2Detection",
-                        "PowerShell ISE usage detected - may indicate PowerShell 2.0 environment",
-                        [SecuritySeverity]::High,
-                        $ise.Extent.StartLineNumber,
-                        $ise.Extent.Text
-                    )
-                }
-                
-               # Pattern 3: .NET Framework 2.0 specific calls
-$dotNet2Calls = $Ast.FindAll({
-    $args[0] -is [StringConstantExpressionAst] -and 
-    $args[0].Value -match 'v2\.0\.50727|\.NET.*2(\.0)?|mscorlib[, ].*Version\s*=\s*2\.0\.0\.0|System\.Management\.Automation.*2\.0'
+# Pattern 2: PowerShell ISE usage (often indicates PS 2.0 environment)
+$iseUsage = $Ast.FindAll({
+    $args[0] -is [CommandAst] -and 
+    ($args[0].GetCommandName() -eq 'powershell_ise' -or 
+     $args[0].GetCommandName() -eq 'powershell_ise.exe')
 }, $true)
 
+foreach ($ise in $iseUsage) {
+    $violations += [SecurityViolation]::new(
+        "EnhancedPowerShell2Detection",
+        "PowerShell ISE usage detected - may indicate PowerShell 2.0 environment",
+        [SecuritySeverity]::High,
+        $ise.Extent.StartLineNumber,
+        $ise.Extent.Text
+    )
+}
+
+# Pattern 3: .NET Framework 2.0 specific calls
 foreach ($net2 in $dotNet2Calls) {
     $value = $net2.Value
 
@@ -1938,33 +1933,44 @@ foreach ($net2 in $dotNet2Calls) {
     )
 }
 
+# Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
+$wmiExecution = $Ast.FindAll({
+    $args[0] -is [CommandAst] -and 
+    ($args[0].GetCommandName() -eq 'Invoke-WmiMethod' -or 
+     $args[0].GetCommandName() -eq 'Get-WmiObject')
+}, $true)
+
+foreach ($wmi in $wmiExecution) {
+    if ($wmi.Extent.Text -match 'Win32_Process.*powershell|CommandLine.*powershell') {
+        $violations += [SecurityViolation]::new(
+            "EnhancedPowerShell2Detection",
+            "WMI-based PowerShell execution detected - often used for PS 2.0 bypass",
+            [SecuritySeverity]::High,
+            $wmi.Extent.StartLineNumber,
+            $wmi.Extent.Text
+        )
+    }
+}
+
+# Pattern 5: Legacy cmdlet usage specific to PS 2.0
+$legacyCmdlets = $Ast.FindAll({
+    $args[0] -is [CommandAst] -and 
+    $args[0].GetCommandName() -match '^(ConvertTo-SecureString.*-AsPlainText|New-Object.*System\.Net\.WebClient|Add-PSSnapin)$'
+}, $true)
+
+foreach ($legacy in $legacyCmdlets) {
     $violations += [SecurityViolation]::new(
         "EnhancedPowerShell2Detection",
-        "$indicator — may indicate PowerShell v2 or .NET 2.0 usage; review for legacy compatibility and security implications.",
-        [SecuritySeverity]::High,
-        $net2.Extent.StartLineNumber,
-        $net2.Extent.Text
+        "Legacy cmdlet usage detected: $($legacy.GetCommandName()) - common in PowerShell 2.0 environments",
+        [SecuritySeverity]::Medium,
+        $legacy.Extent.StartLineNumber,
+        $legacy.Extent.Text
     )
 }
-                
-                # Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
-                $wmiExecution = $Ast.FindAll({
-                    $args[0] -is [CommandAst] -and 
-                    ($args[0].GetCommandName() -eq 'Invoke-WmiMethod' -or 
-                     $args[0].GetCommandName() -eq 'Get-WmiObject')
-                }, $true)
-                
-                foreach ($wmi in $wmiExecution) {
-                    if ($wmi.Extent.Text -match 'Win32_Process.*powershell|CommandLine.*powershell') {
-                        $violations += [SecurityViolation]::new(
-                            "EnhancedPowerShell2Detection",
-                            "WMI-based PowerShell execution detected - often used for PS 2.0 bypass",
-                            [SecuritySeverity]::High,
-                            $wmi.Extent.StartLineNumber,
-                            $wmi.Extent.Text
-                        )
-                    }
-                }
+
+return $violations
+}   # end of scriptblock parameter for [SecurityRule]::new
+))  # close [SecurityRule]::new(...) and then .Add(...)
                 
                 # Pattern 5: Legacy cmdlet usage specific to PS 2.0
                 $legacyCmdlets = $Ast.FindAll({
