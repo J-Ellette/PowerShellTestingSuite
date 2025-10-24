@@ -1937,6 +1937,15 @@ foreach ($net2 in $dotNet2Calls) {
         $net2.Extent.Text
     )
 }
+
+    $violations += [SecurityViolation]::new(
+        "EnhancedPowerShell2Detection",
+        "$indicator — may indicate PowerShell v2 or .NET 2.0 usage; review for legacy compatibility and security implications.",
+        [SecuritySeverity]::High,
+        $net2.Extent.StartLineNumber,
+        $net2.Extent.Text
+    )
+}
                 
                 # Pattern 4: WMI-based PowerShell execution (common PS 2.0 technique)
                 $wmiExecution = $Ast.FindAll({
