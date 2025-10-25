@@ -44,7 +44,7 @@ Write-Host "══════════════════════�
 Write-Host "Test 1: Baseline Analysis (No Optimizations)" -ForegroundColor Yellow
 Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor DarkGray
 
-$result1 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath 2>&1 | Out-Null
+$result1 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -WarningAction SilentlyContinue
 
 Write-Host "  Files analyzed: $($result1.FilesAnalyzed)" -ForegroundColor White
 Write-Host "  Total violations: $($result1.TotalViolations)" -ForegroundColor White
@@ -55,7 +55,7 @@ Write-Host "══════════════════════�
 Write-Host "Test 2: Analysis with Performance Metrics" -ForegroundColor Yellow
 Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor DarkGray
 
-$result2 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics 2>&1 | Out-Null
+$result2 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics -WarningAction SilentlyContinue
 
 Write-Host "  Files analyzed: $($result2.FilesAnalyzed)" -ForegroundColor White
 Write-Host "  Total violations: $($result2.TotalViolations)" -ForegroundColor White
@@ -69,7 +69,7 @@ Write-Host "══════════════════════�
 Write-Host "Test 3: Analysis with Caching (Cold Cache)" -ForegroundColor Yellow
 Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor DarkGray
 
-$result3 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics -EnableCache 2>&1 | Out-Null
+$result3 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics -EnableCache -WarningAction SilentlyContinue
 
 Write-Host "  Files analyzed: $($result3.FilesAnalyzed)" -ForegroundColor White
 Write-Host "  Total violations: $($result3.TotalViolations)" -ForegroundColor White
@@ -84,7 +84,7 @@ Write-Host "══════════════════════�
 Write-Host "Test 4: Analysis with Caching (Warm Cache)" -ForegroundColor Yellow
 Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor DarkGray
 
-$result4 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics -EnableCache 2>&1 | Out-Null
+$result4 = Invoke-WorkspaceAnalysis -WorkspacePath $WorkspacePath -TrackMetrics -EnableCache -WarningAction SilentlyContinue
 
 Write-Host "  Files analyzed: $($result4.FilesAnalyzed)" -ForegroundColor White
 Write-Host "  Total violations: $($result4.TotalViolations)" -ForegroundColor White
