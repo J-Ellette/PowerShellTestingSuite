@@ -434,7 +434,7 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 
 #### Advanced Attack Patterns (from newPSsuggestions.md)
 
-**PowerShell Obfuscation Detection**
+**Rule 49: PowerShell Obfuscation Detection**
 
 - Base64 encoded commands
 - String concatenation obfuscation
@@ -442,34 +442,34 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Format string obfuscation
 - Reversed strings
 
-**Download Cradle Detection**
+**Rule 50: Download Cradle Detection**
 
 - `IEX (New-Object Net.WebClient).DownloadString(...)`
 - Memory-only execution patterns
 - BitsTransfer + execution chains
 
-**Persistence Mechanism Detection**
+**Rule 51: Persistence Mechanism Detection**
 
 - Registry Run keys
 - Scheduled task creation
 - WMI event subscriptions
 - PowerShell profile modifications
 
-**Credential Harvesting Detection**
+**Rule 52: Credential Harvesting Detection**
 
 - Mimikatz patterns
 - LSASS dumping
 - Browser credential extraction
 - WiFi password dumping
 
-**Lateral Movement Detection**
+**Rule 53: Lateral Movement Detection**
 
 - WMI/CIM remote execution
 - Remote scheduled tasks
 - SMB share enumeration
 - Pass-the-Hash techniques
 
-**Data Exfiltration Detection**
+**Rule 54: Data Exfiltration Detection**
 
 - DNS tunneling
 - HTTP POST with large data
