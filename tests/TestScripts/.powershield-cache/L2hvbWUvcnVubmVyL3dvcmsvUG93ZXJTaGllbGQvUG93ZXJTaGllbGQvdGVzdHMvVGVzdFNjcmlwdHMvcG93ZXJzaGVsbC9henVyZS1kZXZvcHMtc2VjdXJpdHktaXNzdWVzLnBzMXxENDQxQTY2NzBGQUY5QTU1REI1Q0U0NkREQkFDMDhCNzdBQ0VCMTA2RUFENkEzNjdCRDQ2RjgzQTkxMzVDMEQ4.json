@@ -1,0 +1,189 @@
+{
+  "Timestamp": "2025-10-25T17:22:21.3186475Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+  "FileHash": "D441A6670FAF9A55DB5CE46DDBAC08B77ACEB106EAD6A367BD46F83A9135C0D8",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+    "Violations": [
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Azure DevOps variable containing sensitive data not marked as secret.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 13,
+        "Code": "Set-AzDevOpsVariable -Project \"WebApp\" -Name \"APIKey\" -Value \"sk-1234567890abcdef\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Azure DevOps variable containing sensitive data not marked as secret.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 16,
+        "Code": "Set-AzDevOpsVariable -Project \"Mobile\" -Name \"AuthToken\" -Value \"bearer_token_here\" -IsSecret:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Azure DevOps variable containing sensitive data not marked as secret.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 22,
+        "Code": "Set-AzDevOpsVariable -Project \"Backend\" -Name \"ServiceCredential\" -Value \"admin:password123\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Azure DevOps variable containing sensitive data not marked as secret.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 65,
+        "Code": "Set-AzDevOpsVariable -Project \"MyProject\" -Name \"DatabasePassword\" -Value $securePassword -IsSecret $true",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Pipeline with elevated permissions detected. Use least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 25,
+        "Code": "New-AzDevOpsPipeline -Project \"Production\" -Name \"Deploy-Prod\" -YamlPath \"pipeline.yml\" -Permission \"Admin\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Pipeline with elevated permissions detected. Use least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 28,
+        "Code": "New-AzDevOpsPipeline -Organization \"Company\" -Project \"Critical\" -Name \"Privileged-Deploy\" -Permissions \"Elevated\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Pipeline with elevated permissions detected. Use least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 31,
+        "Code": "New-AzDevOpsPipeline -Project \"Infrastructure\" -Name \"IaC-Pipeline\" -PermissionLevel \"Privileged\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Service connection creation detected. Ensure proper scope and access controls.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 34,
+        "Code": "Add-AzDevOpsServiceConnection -Project \"MyProject\" -Name \"AzureConnection\" -Type \"AzureRM\" -Scope \"Subscription\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Service connection creation detected. Ensure proper scope and access controls.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 37,
+        "Code": "Add-AzDevOpsServiceConnection -Organization \"MyOrg\" -Project \"All\" -Name \"GlobalConnection\" -AccessLevel \"Full\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Service connection creation detected. Ensure proper scope and access controls.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 40,
+        "Code": "Add-AzDevOpsServiceConnection -Project \"Prod\" -Name \"ProdConnection\" -Type \"GitHub\" -Scope \"Organization\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Service connection creation detected. Ensure proper scope and access controls.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 74,
+        "Code": "Add-AzDevOpsServiceConnection -Project \"MyProject\" -Name \"DevConnection\" -Type \"AzureRM\" -Scope \"ResourceGroup\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Repository policy being disabled. Maintain security checks for code quality.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 43,
+        "Code": "Set-AzDevOpsRepositoryPolicy -Project \"WebApp\" -RepositoryId $repoId -PolicyType \"RequireReviewer\" -Enabled $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Granting excessive Azure DevOps permissions. Apply least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 52,
+        "Code": "Grant-AzDevOpsPermission -Project \"MyProject\" -User \"user@company.com\" -Permission \"Allow All\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Granting excessive Azure DevOps permissions. Apply least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 55,
+        "Code": "Grant-AzDevOpsPermission -Organization \"MyOrg\" -Project \"Prod\" -Group \"Developers\" -Role \"Administrator\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Granting excessive Azure DevOps permissions. Apply least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 58,
+        "Code": "Grant-AzDevOpsPermission -Project \"Critical\" -User \"contractor@external.com\" -AccessLevel \"Full Control\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureDevOpsSecurityIssues",
+        "Message": "Granting excessive Azure DevOps permissions. Apply least privilege principle.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 61,
+        "Code": "Grant-AzDevOpsPermission -Organization \"Company\" -Scope \"Organization\" -User \"temp@company.com\" -Permission \"Administrator\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-devops-security-issues.ps1",
+        "RuleId": "AzureDevOpsSecurityIssues",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:21.31783+00:00"
+  }
+}

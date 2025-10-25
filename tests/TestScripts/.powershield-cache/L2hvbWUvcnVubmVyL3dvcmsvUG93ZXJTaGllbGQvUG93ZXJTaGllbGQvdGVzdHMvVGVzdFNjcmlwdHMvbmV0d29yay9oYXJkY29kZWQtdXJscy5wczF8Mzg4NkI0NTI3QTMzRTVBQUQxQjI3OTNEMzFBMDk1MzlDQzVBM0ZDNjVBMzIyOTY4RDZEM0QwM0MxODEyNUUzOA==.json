@@ -1,0 +1,24 @@
+{
+  "Timestamp": "2025-10-25T17:22:18.6586564Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/hardcoded-urls.ps1",
+  "FileHash": "3886B4527A33E5AAD1B2793D31A09539CC5A3FC65A322968D6D3D03C18125E38",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/hardcoded-urls.ps1",
+    "Violations": [
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 5,
+        "Code": "\"https://api.production.company.com\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/hardcoded-urls.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:18.6577229+00:00"
+  }
+}

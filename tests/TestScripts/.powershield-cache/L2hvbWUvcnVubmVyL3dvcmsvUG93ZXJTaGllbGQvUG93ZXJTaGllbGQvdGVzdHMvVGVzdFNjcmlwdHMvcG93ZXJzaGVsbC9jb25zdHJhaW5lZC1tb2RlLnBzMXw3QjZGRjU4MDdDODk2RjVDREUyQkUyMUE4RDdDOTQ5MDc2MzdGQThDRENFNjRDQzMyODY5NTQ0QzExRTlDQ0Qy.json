@@ -1,0 +1,46 @@
+{
+  "Timestamp": "2025-10-25T17:22:24.4789842Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/constrained-mode.ps1",
+  "FileHash": "7B6FF5807C896F5CDE2BE21A8D7C94907637FA8CDCE64CC32869544C11E9CCD2",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/constrained-mode.ps1",
+    "Violations": [
+      {
+        "Name": "PowerShellConstrainedMode",
+        "Message": "Add-Type not allowed in constrained language mode",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 4,
+        "Code": "Add-Type -TypeDefinition \"public class MyClass { }\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/constrained-mode.ps1",
+        "RuleId": "PowerShellConstrainedMode",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellConstrainedMode",
+        "Message": "COM object creation not allowed in constrained mode",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 7,
+        "Code": "New-Object -ComObject Excel.Application",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/constrained-mode.ps1",
+        "RuleId": "PowerShellConstrainedMode",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellConstrainedMode",
+        "Message": "COM object creation not allowed in constrained mode",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 10,
+        "Code": "New-Object -ComObject WScript.Shell",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/constrained-mode.ps1",
+        "RuleId": "PowerShellConstrainedMode",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:24.4784215+00:00"
+  }
+}

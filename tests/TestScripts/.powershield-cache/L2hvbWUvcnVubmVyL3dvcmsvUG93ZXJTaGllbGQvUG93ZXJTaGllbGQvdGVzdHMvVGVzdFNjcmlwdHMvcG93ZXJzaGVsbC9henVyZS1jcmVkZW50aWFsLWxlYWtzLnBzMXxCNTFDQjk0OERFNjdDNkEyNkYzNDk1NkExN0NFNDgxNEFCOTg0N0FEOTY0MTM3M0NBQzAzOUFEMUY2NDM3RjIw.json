@@ -1,0 +1,123 @@
+{
+  "Timestamp": "2025-10-25T17:22:20.4831480Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+  "FileHash": "B51CB948DE67C6A26F34956A17CE4814AB9847AD9641373CAC039AD1F6437F20",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+    "Violations": [
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 12,
+        "Code": "ConvertTo-SecureString $password -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 20,
+        "Code": "ConvertTo-SecureString $servicePrincipalKey -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 40,
+        "Code": "ConvertTo-SecureString $appSecret -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 67,
+        "Code": "ConvertTo-SecureString $envPassword -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Potential hardcoded credential detected",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 34,
+        "Code": "\"Server=tcp:myserver.database.windows.net,1433;Database=mydb;User ID=sqladmin;Password=SqlP@ssw0rd123!;Encrypt=true;\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Connect-AzAccount with credential parameter detected. Use Managed Identity or certificate-based auth instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 14,
+        "Code": "Connect-AzAccount -Credential $credential",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Connect-AzAccount with credential parameter detected. Use Managed Identity or certificate-based auth instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 22,
+        "Code": "Connect-AzAccount -ServicePrincipal -Credential $spCredential -Tenant $tenantId",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Azure connection string with embedded credentials detected",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 30,
+        "Code": "\"DefaultEndpointsProtocol=https;AccountName=mystorageaccount;AccountKey=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789+/==;EndpointSuffix=core.windows.net\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Azure connection string with embedded credentials detected",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 34,
+        "Code": "\"Server=tcp:myserver.database.windows.net,1433;Database=mydb;User ID=sqladmin;Password=SqlP@ssw0rd123!;Encrypt=true;\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Azure Key Vault secret retrieved into variable. Ensure proper access controls and avoid plaintext handling.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 62,
+        "Code": "Get-AzKeyVaultSecret -VaultName \"MyKeyVault\" -Name \"MySecret\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-credential-leaks.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:20.4823222+00:00"
+  }
+}

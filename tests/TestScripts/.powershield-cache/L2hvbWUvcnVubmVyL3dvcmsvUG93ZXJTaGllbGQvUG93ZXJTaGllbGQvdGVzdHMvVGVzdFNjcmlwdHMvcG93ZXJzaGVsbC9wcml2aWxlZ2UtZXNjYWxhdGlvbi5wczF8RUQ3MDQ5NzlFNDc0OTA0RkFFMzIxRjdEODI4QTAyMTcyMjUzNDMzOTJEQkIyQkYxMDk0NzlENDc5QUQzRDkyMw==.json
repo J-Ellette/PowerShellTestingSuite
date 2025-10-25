@@ -1,0 +1,35 @@
+{
+  "Timestamp": "2025-10-25T17:22:33.7113718Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/privilege-escalation.ps1",
+  "FileHash": "ED704979E474904FAE321F7D828A0217225343392DBB2BF109479D479AD3D923",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/privilege-escalation.ps1",
+    "Violations": [
+      {
+        "Name": "PrivilegeEscalation",
+        "Message": "Privilege escalation via Start-Process -Verb RunAs - validate necessity",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 4,
+        "Code": "Start-Process -FilePath \"cmd.exe\" -Verb RunAs",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/privilege-escalation.ps1",
+        "RuleId": "PrivilegeEscalation",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegeEscalation",
+        "Message": "Privilege escalation via Start-Process -Verb RunAs - validate necessity",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 7,
+        "Code": "Start-Process powershell.exe -Verb RunAs -ArgumentList \"-File script.ps1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/privilege-escalation.ps1",
+        "RuleId": "PrivilegeEscalation",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:33.7110535+00:00"
+  }
+}

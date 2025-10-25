@@ -1,0 +1,167 @@
+{
+  "Timestamp": "2025-10-25T17:22:32.9118098Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+  "FileHash": "7B5C5BBF6150D95FEAECAFA31FDE557ADBF800C326398626C867E94C11E144FC",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+    "Violations": [
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA role capability using wildcards (*) for visible cmdlets/functions. Use explicit cmdlet lists.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "@'\n@{\n    ModulesToImport = 'Microsoft.PowerShell.Management'\n    VisibleCmdlets = @('*')\n    VisibleFunctions = @('*')\n}\n'@",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA role capability using wildcards (*) for visible cmdlets/functions. Use explicit cmdlet lists.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 32,
+        "Code": "@'\n@{\n    VisibleCmdlets = @(\n        'Invoke-Expression',\n        'Invoke-Command',\n        'Enter-PSSession',\n        'New-PSSession'\n    )\n    VisibleFunctions = @('*')\n}\n'@",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA role capability using wildcards (*) for visible cmdlets/functions. Use explicit cmdlet lists.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 81,
+        "Code": "@'\n@{\n    VisibleAliases = @('*')\n    VisibleCmdlets = @('Get-Service', 'Get-Process')\n}\n'@",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 25,
+        "Code": "Register-PSSessionConfiguration @sessionConfigParams -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 29,
+        "Code": "Register-PSSessionConfiguration -Name 'CredentialBasedJEA' -RunAsCredential $credential -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 46,
+        "Code": "Register-PSSessionConfiguration -Name 'FullLanguageJEA' -SessionType Default -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 70,
+        "Code": "Register-PSSessionConfiguration -Name 'NoDriveJEA' -MountUserDrive:$false -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 78,
+        "Code": "Register-PSSessionConfiguration @scriptBlockConfig -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 90,
+        "Code": "Register-PSSessionConfiguration -Name 'NoExecPolicyJEA' -ExecutionPolicy Bypass -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 104,
+        "Code": "Register-PSSessionConfiguration -Name 'NoTimeoutJEA' -MaximumReceivedObjectSizeMB 1024 -MaximumReceivedDataSizePerCommandMB 512 -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 138,
+        "Code": "Register-PSSessionConfiguration @secureSessionParams -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA using RunAsCredential instead of RunAsVirtualAccount. Use virtual accounts for better security.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 29,
+        "Code": "Register-PSSessionConfiguration -Name 'CredentialBasedJEA' -RunAsCredential $credential -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session using Default (full language) mode. Use RestrictedRemoteServer for JEA.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 46,
+        "Code": "Register-PSSessionConfiguration -Name 'FullLanguageJEA' -SessionType Default -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      },
+      {
+        "Name": "JEAConfigurationVulnerabilities",
+        "Message": "JEA session with Bypass/Unrestricted execution policy. Use RemoteSigned or AllSigned.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 90,
+        "Code": "Register-PSSessionConfiguration -Name 'NoExecPolicyJEA' -ExecutionPolicy Bypass -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/jea-configuration-vulnerabilities.ps1",
+        "RuleId": "JEAConfigurationVulnerabilities",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:32.9114626+00:00"
+  }
+}

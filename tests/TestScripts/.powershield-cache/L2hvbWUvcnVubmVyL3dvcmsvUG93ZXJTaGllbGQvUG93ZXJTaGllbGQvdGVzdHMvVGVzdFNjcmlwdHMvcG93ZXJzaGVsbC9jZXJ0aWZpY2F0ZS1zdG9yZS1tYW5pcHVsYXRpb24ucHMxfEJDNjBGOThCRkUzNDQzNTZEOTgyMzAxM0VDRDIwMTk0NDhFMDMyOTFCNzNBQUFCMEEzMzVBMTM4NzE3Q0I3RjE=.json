@@ -1,0 +1,68 @@
+{
+  "Timestamp": "2025-10-25T17:22:24.3144801Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+  "FileHash": "BC60F98BFE344356D9823013ECD2019448E03291B73AAAB0A335A138717CB7F1",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+    "Violations": [
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 11,
+        "Code": "ConvertTo-SecureString \"weak\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 37,
+        "Code": "ConvertTo-SecureString \"backup\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CertificateValidation",
+        "Message": "Certificate validation callback set to always return true - bypasses certificate security",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 42,
+        "Code": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+        "RuleId": "CertificateValidation",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 73,
+        "Code": "\"https://untrusted-site.com/certificate.cer\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "DownloadCradleDetection",
+        "Message": "Direct content access from web request detected. Review for potential fileless download pattern. MITRE ATT&CK: T1105.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 75,
+        "Code": "$webCert.Content",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-store-manipulation.ps1",
+        "RuleId": "DownloadCradleDetection",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:24.3139399+00:00"
+  }
+}

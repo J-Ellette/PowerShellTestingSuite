@@ -1,0 +1,68 @@
+{
+  "Timestamp": "2025-10-25T17:22:18.9019353Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+  "FileHash": "90C1CBC0626029C642D7A740278276360A07978CE4F443BE1302ED6F7637DB65",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+    "Violations": [
+      {
+        "Name": "WeakTLS",
+        "Message": "Reference to weak TLS/SSL protocol detected: Tls",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 5,
+        "Code": "[Net.SecurityProtocolType]::Tls",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+        "RuleId": "WeakTLS",
+        "Metadata": {}
+      },
+      {
+        "Name": "WeakTLS",
+        "Message": "Reference to weak TLS/SSL protocol detected: Ssl3",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 8,
+        "Code": "[System.Net.SecurityProtocolType]::Ssl3",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+        "RuleId": "WeakTLS",
+        "Metadata": {}
+      },
+      {
+        "Name": "WeakTLS",
+        "Message": "Reference to weak TLS/SSL protocol detected: Tls11",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 11,
+        "Code": "[Net.SecurityProtocolType]::Tls11",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+        "RuleId": "WeakTLS",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated security protocol (SSL3/TLS1.0/TLS1.1). Use TLS 1.2 or higher.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 8,
+        "Code": "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated security protocol (SSL3/TLS1.0/TLS1.1). Use TLS 1.2 or higher.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 11,
+        "Code": "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls11",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/network/weak-tls.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:18.9011597+00:00"
+  }
+}

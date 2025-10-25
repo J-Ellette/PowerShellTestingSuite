@@ -1,0 +1,156 @@
+{
+  "Timestamp": "2025-10-25T17:22:23.3622015Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+  "FileHash": "C0CF7F6142616E80A0C864DF72A379FC91AF7375958DBDCE634BDFDA290BE22F",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+    "Violations": [
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Removing Azure policy assignment. Ensure compliance requirements are maintained.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "Remove-AzPolicyAssignment -Name \"RequireTags\" -Scope \"/subscriptions/sub-id\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Removing Azure policy assignment. Ensure compliance requirements are maintained.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 13,
+        "Code": "Remove-AzPolicyAssignment -Id \"/subscriptions/sub-id/providers/Microsoft.Authorization/policyAssignments/SecurityBaseline\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Removing Azure policy assignment. Ensure compliance requirements are maintained.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 18,
+        "Code": "Remove-AzPolicyAssignment -Id $assignment.Id",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Modifying policy definition to weaken controls. Review for compliance impact.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 26,
+        "Code": "Set-AzPolicyDefinition -Id $policyId -EnforcementMode \"Disabled\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Modifying policy definition to weaken controls. Review for compliance impact.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 41,
+        "Code": "Set-AzPolicyDefinition -Name \"RequireEncryption\" -Deny:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Policy exemption without description/justification. Document reason for exemption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 44,
+        "Code": "New-AzPolicyExemption -Name \"TempExemption\" -PolicyAssignment $assignment -Scope \"/subscriptions/sub-id/resourceGroups/rg1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Policy exemption without description/justification. Document reason for exemption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 47,
+        "Code": "New-AzPolicyExemption -Name \"DevExemption\" -PolicyAssignmentId $assignmentId -Scope $scope -ExemptionCategory \"Waiver\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Policy exemption without description/justification. Document reason for exemption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 52,
+        "Code": "New-AzPolicyExemption -Name \"Exempt-$($policy.Name)\" -PolicyAssignment $policy -Scope \"/subscriptions/sub-id\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Disabling security contact. Maintain active security contacts for incident response.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 56,
+        "Code": "Disable-AzSecurityContact -Name \"default1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Disabling security contact. Maintain active security contacts for incident response.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 59,
+        "Code": "Disable-AzSecurityContact -Name $_.Name",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Setting Security Center to Free tier. Use Standard tier for production environments.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 62,
+        "Code": "Set-AzSecurityPricing -Name \"VirtualMachines\" -PricingTier \"Free\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Setting Security Center to Free tier. Use Standard tier for production environments.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 65,
+        "Code": "Set-AzSecurityPricing -Name \"SqlServers\" -PricingTier \"Free\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePolicyAndCompliance",
+        "Message": "Setting Security Center to Free tier. Use Standard tier for production environments.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 70,
+        "Code": "Set-AzSecurityPricing -Name $type -PricingTier \"Free\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-policy-compliance.ps1",
+        "RuleId": "AzurePolicyAndCompliance",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:23.3615696+00:00"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "Timestamp": "2025-10-25T17:22:34.0656428Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+  "FileHash": "DEB67D8FCC7B3199D79078FEAB160C2006CA669652000F6A56A8F5B65C4904A1",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+    "Violations": [
+      {
+        "Name": "UnsafePSRemoting",
+        "Message": "Enable-PSRemoting with -Force bypasses security prompts",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 4,
+        "Code": "Enable-PSRemoting -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "UnsafePSRemoting",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafePSRemoting",
+        "Message": "PowerShell remoting without SSL encryption - security risk",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 7,
+        "Code": "Enter-PSSession -ComputerName Server01 -UseSSL:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "UnsafePSRemoting",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafePSRemoting",
+        "Message": "PowerShell remoting without SSL encryption - security risk",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 10,
+        "Code": "New-PSSession -ComputerName Server02 -UseSSL:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "UnsafePSRemoting",
+        "Metadata": {}
+      },
+      {
+        "Name": "LateralMovementDetection",
+        "Message": "PowerShell remoting to remote systems detected. Verify this is authorized. MITRE ATT&CK: T1021.006 (Windows Remote Management).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "Enter-PSSession -ComputerName Server01 -UseSSL:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "LateralMovementDetection",
+        "Metadata": {}
+      },
+      {
+        "Name": "LateralMovementDetection",
+        "Message": "PowerShell remoting to remote systems detected. Verify this is authorized. MITRE ATT&CK: T1021.006 (Windows Remote Management).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "New-PSSession -ComputerName Server02 -UseSSL:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "LateralMovementDetection",
+        "Metadata": {}
+      },
+      {
+        "Name": "LateralMovementDetection",
+        "Message": "PowerShell remoting to remote systems detected. Verify this is authorized. MITRE ATT&CK: T1021.006 (Windows Remote Management).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 14,
+        "Code": "New-PSSession -ComputerName Server01 -UseSSL",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-ps-remoting.ps1",
+        "RuleId": "LateralMovementDetection",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:34.0653276+00:00"
+  }
+}

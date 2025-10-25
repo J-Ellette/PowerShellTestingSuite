@@ -1,0 +1,35 @@
+{
+  "Timestamp": "2025-10-25T17:22:25.1025766Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/dangerous-modules.ps1",
+  "FileHash": "4A4D8F15983748961CE084D2FD501815AFA1CECFC14EBE0D71D763DC812DB6F7",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/dangerous-modules.ps1",
+    "Violations": [
+      {
+        "Name": "DangerousModules",
+        "Message": "Dynamic module import from variable or expression - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 5,
+        "Code": "Import-Module $modulePath",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/dangerous-modules.ps1",
+        "RuleId": "DangerousModules",
+        "Metadata": {}
+      },
+      {
+        "Name": "DangerousModules",
+        "Message": "Dynamic module import from variable or expression - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 12,
+        "Code": "Import-Module \"$folder\\module.psm1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/dangerous-modules.ps1",
+        "RuleId": "DangerousModules",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:25.0986638+00:00"
+  }
+}

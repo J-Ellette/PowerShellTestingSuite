@@ -1,0 +1,46 @@
+{
+  "Timestamp": "2025-10-25T17:22:24.0542673Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-bypass.ps1",
+  "FileHash": "24504EDD35266A16CED3AC2915632BFDC4F3D77668E4992C0F96A676B335B480",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-bypass.ps1",
+    "Violations": [
+      {
+        "Name": "CertificateValidation",
+        "Message": "Certificate validation callback set to always return true - bypasses certificate security",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 4,
+        "Code": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-bypass.ps1",
+        "RuleId": "CertificateValidation",
+        "Metadata": {}
+      },
+      {
+        "Name": "CertificateValidation",
+        "Message": "Certificate validation callback set to always return true - bypasses certificate security",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 11,
+        "Code": "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { return $true }",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-bypass.ps1",
+        "RuleId": "CertificateValidation",
+        "Metadata": {}
+      },
+      {
+        "Name": "CertificateValidation",
+        "Message": "Certificate revocation checking disabled - security risk",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "[System.Net.ServicePointManager]::CheckCertificateRevocationList = $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/certificate-bypass.ps1",
+        "RuleId": "CertificateValidation",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:24.0537978+00:00"
+  }
+}

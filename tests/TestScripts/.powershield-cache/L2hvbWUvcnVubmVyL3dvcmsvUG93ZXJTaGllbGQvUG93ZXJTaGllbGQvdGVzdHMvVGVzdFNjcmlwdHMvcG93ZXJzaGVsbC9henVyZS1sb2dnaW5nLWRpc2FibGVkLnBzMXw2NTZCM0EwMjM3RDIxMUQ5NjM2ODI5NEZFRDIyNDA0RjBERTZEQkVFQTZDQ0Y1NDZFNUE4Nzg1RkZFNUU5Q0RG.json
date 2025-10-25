@@ -1,0 +1,189 @@
+{
+  "Timestamp": "2025-10-25T17:22:22.6347986Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+  "FileHash": "656B3A0237D211D96368294FED22404F0DE6DBEEA6CCF546E5A8785FFE5E9CDF",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+    "Violations": [
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Azure diagnostic setting being disabled. Logging should always be enabled for compliance.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "Set-AzDiagnosticSetting -ResourceId \"/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1\" -Enabled $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Azure diagnostic setting being disabled. Logging should always be enabled for compliance.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 13,
+        "Code": "Set-AzDiagnosticSetting -ResourceId \"/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/storage1\" -Enabled:$false -WorkspaceId $workspaceId",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Azure diagnostic setting being disabled. Logging should always be enabled for compliance.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 16,
+        "Code": "Set-AzDiagnosticSetting -Name \"DiagSetting\" -ResourceId $resourceId -Enabled:$false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Removing Azure log profile. This disables activity log collection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 19,
+        "Code": "Remove-AzLogProfile -Name \"default\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Removing Azure log profile. This disables activity log collection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 22,
+        "Code": "Remove-AzLogProfile -Name \"production-logs\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Removing Azure log profile. This disables activity log collection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 25,
+        "Code": "Remove-AzLogProfile",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Security contact notifications being disabled. Keep enabled for security alerts.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 28,
+        "Code": "Set-AzSecurityContact -Name \"default1\" -Email \"security@contoso.com\" -AlertsToAdmins Off",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Security contact notifications being disabled. Keep enabled for security alerts.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 31,
+        "Code": "Set-AzSecurityContact -Name \"contact1\" -Email \"admin@company.com\" -AlertNotifications $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Security contact notifications being disabled. Keep enabled for security alerts.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 34,
+        "Code": "Set-AzSecurityContact -Name \"security-team\" -Email \"team@contoso.com\" -AlertsToAdmins $false -AlertNotifications $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Security contact notifications being disabled. Keep enabled for security alerts.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 34,
+        "Code": "Set-AzSecurityContact -Name \"security-team\" -Email \"team@contoso.com\" -AlertsToAdmins $false -AlertNotifications $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Disabling activity log alert. Maintain alerts for security monitoring.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 37,
+        "Code": "Disable-AzActivityLogAlert -Name \"HighSeverityAlert\" -ResourceGroupName \"Monitoring-RG\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Disabling activity log alert. Maintain alerts for security monitoring.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 40,
+        "Code": "Disable-AzActivityLogAlert -Name \"UnauthorizedAccessAlert\" -ResourceGroupName \"Security-RG\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Log retention set to less than 90 days (30). Increase for compliance requirements.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 43,
+        "Code": "Set-AzMonitorLogProfile -Name \"short-retention\" -RetentionInDays 30 -Locations \"eastus\" -Categories \"Write\",\"Delete\",\"Action\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Log retention set to less than 90 days (60). Increase for compliance requirements.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 46,
+        "Code": "Set-AzMonitorLogProfile -Name \"medium-retention\" -RetentionInDays 60 -StorageAccountId $storageId",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Log retention set to less than 90 days (7). Increase for compliance requirements.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 49,
+        "Code": "Set-AzMonitorLogProfile -Name \"minimal-retention\" -RetentionInDays 7 -Locations \"westus\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureLoggingDisabled",
+        "Message": "Log retention set to less than 90 days (1). Increase for compliance requirements.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 52,
+        "Code": "Set-AzMonitorLogProfile -Name \"daily-logs\" -RetentionInDays 1 -ServiceBusRuleId $ruleId",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-logging-disabled.ps1",
+        "RuleId": "AzureLoggingDisabled",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:22.6340447+00:00"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "Timestamp": "2025-10-25T17:22:34.1384936Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+  "FileHash": "872AE82E40BBD9B5F81E7124E212913831FA8DD2EEBB4D0D8A575C28CE8611E8",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+    "Violations": [
+      {
+        "Name": "UnsafeReflection",
+        "Message": "Unsafe assembly loading via reflection - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 4,
+        "Code": "[System.Reflection.Assembly]::LoadFrom(\"C:\\temp\\untrusted.dll\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+        "RuleId": "UnsafeReflection",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafeReflection",
+        "Message": "Unsafe assembly loading via reflection - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "[System.Reflection.Assembly]::Load(\"UntrustedAssembly\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+        "RuleId": "UnsafeReflection",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafeReflection",
+        "Message": "Unsafe assembly loading via reflection - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "[System.Reflection.Assembly]::LoadFile(\"C:\\malicious.dll\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+        "RuleId": "UnsafeReflection",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafeReflection",
+        "Message": "Direct assembly access via GetType().Assembly - review security implications",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 13,
+        "Code": "(Get-Process).GetType().Assembly",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+        "RuleId": "UnsafeReflection",
+        "Metadata": {}
+      },
+      {
+        "Name": "UnsafeReflection",
+        "Message": "Unsafe assembly loading via reflection - validate source",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 17,
+        "Code": "[System.Reflection.Assembly]::Load(\"System.Management.Automation\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/unsafe-reflection.ps1",
+        "RuleId": "UnsafeReflection",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:34.1381747+00:00"
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "Timestamp": "2025-10-25T17:22:25.7651796Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+  "FileHash": "30ADC7070BE9C3F0A1A0893E72181C1FBB6728012A3244CBF3C95811A9727F13",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+    "Violations": [
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 11,
+        "Code": "ConvertTo-SecureString $password -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 19,
+        "Code": "ConvertTo-SecureString \"P@ssw0rd\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 58,
+        "Code": "ConvertTo-SecureString \"Password123!\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CommandInjection",
+        "Message": "Potential command injection via Invoke-Expression with variables",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 82,
+        "Code": "Invoke-Expression $command",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "CommandInjection",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellConstrainedMode",
+        "Message": "Add-Type not allowed in constrained language mode",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 54,
+        "Code": "Add-Type -AssemblyName System.Web",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "PowerShellConstrainedMode",
+        "Metadata": {}
+      },
+      {
+        "Name": "WeakTLS",
+        "Message": "Reference to weak TLS/SSL protocol detected: Ssl3",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 38,
+        "Code": "[Net.SecurityProtocolType]::Ssl3",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "WeakTLS",
+        "Metadata": {}
+      },
+      {
+        "Name": "WeakTLS",
+        "Message": "Reference to weak TLS/SSL protocol detected: Tls",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 42,
+        "Code": "[Net.SecurityProtocolType]::Tls",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "WeakTLS",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 15,
+        "Code": "\"https://example.com/data\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 24,
+        "Code": "\"https://example.com/file.exe\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 70,
+        "Code": "\"https://example.com/service.asmx?WSDL\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 99,
+        "Code": "\"https://api.example.com/data\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "TempFileExposure",
+        "Message": "Temporary directory usage detected. Ensure proper cleanup and permissions.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 50,
+        "Code": "$env:TEMP",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "TempFileExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated System.Net.WebClient. Use Invoke-RestMethod or Invoke-WebRequest instead.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 14,
+        "Code": "New-Object System.Net.WebClient",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated System.Net.WebClient. Use Invoke-RestMethod or Invoke-WebRequest instead.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 23,
+        "Code": "New-Object System.Net.WebClient",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Send-MailMessage is deprecated and has security issues. Use MailKit or Microsoft.Graph instead.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 35,
+        "Code": "Send-MailMessage -From \"sender@example.com\" -To \"recipient@example.com\" -Subject \"Test\" -SmtpServer \"smtp.example.com\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated WMI cmdlet 'Get-WmiObject'. Use CIM cmdlet 'Get-CimObject' instead.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 77,
+        "Code": "Get-WmiObject -Class Win32_Service",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated WMI cmdlet 'Set-WmiInstance'. Use CIM cmdlet 'Set-CimInstance' instead.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 78,
+        "Code": "Set-WmiInstance -Class Win32_Service -Arguments @{Name=\"ServiceName\"; StartMode=\"Automatic\"}",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Using deprecated security protocol (SSL3/TLS1.0/TLS1.1). Use TLS 1.2 or higher.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 38,
+        "Code": "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Ssl3",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Out-Printer is deprecated. Use Start-Process with -Verb Print instead.",
+        "Description": null,
+        "Severity": 1,
+        "LineNumber": 63,
+        "Code": "Out-Printer",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "New-WebServiceProxy is deprecated. Use Invoke-RestMethod for REST APIs or modern SOAP clients.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 70,
+        "Code": "New-WebServiceProxy -Uri \"https://example.com/service.asmx?WSDL\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Export-Console is deprecated. Use PowerShell modules instead of PSSnapins.",
+        "Description": null,
+        "Severity": 1,
+        "LineNumber": 74,
+        "Code": "Export-Console -Path \"C:\\temp\\console.psc1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Read-Host for sensitive data without -AsSecureString. Use -AsSecureString for passwords.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 66,
+        "Code": "Read-Host \"Enter your password\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "Read-Host for sensitive data without -AsSecureString. Use -AsSecureString for passwords.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 67,
+        "Code": "Read-Host \"Enter API key\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DeprecatedCmdletUsage",
+        "Message": "[System.Web.Security.Membership]::GeneratePassword is deprecated. Use Get-Random or cryptographic RNG.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 55,
+        "Code": "[System.Web.Security.Membership]::GeneratePassword(10, 2)",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DeprecatedCmdletUsage",
+        "Metadata": {}
+      },
+      {
+        "Name": "DownloadCradleDetection",
+        "Message": "Remote download via WebClient detected. Verify the source is trusted. MITRE ATT&CK: T1105 (Ingress Tool Transfer).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 15,
+        "Code": "$webClient.DownloadString(\"https://example.com/data\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/deprecated-cmdlet-usage.ps1",
+        "RuleId": "DownloadCradleDetection",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:25.7647099+00:00"
+  }
+}

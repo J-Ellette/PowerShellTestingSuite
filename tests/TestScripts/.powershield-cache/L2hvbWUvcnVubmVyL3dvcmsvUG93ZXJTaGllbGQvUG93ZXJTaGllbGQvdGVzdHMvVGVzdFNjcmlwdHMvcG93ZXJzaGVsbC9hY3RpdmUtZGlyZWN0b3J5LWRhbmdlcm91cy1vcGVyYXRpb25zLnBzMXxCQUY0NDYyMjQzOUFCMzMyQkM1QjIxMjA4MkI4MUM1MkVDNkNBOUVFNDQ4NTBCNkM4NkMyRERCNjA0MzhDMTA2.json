@@ -1,0 +1,35 @@
+{
+  "Timestamp": "2025-10-25T17:22:19.4225524Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/active-directory-dangerous-operations.ps1",
+  "FileHash": "BAF44622439AB332BC5B212082B81C52EC6CA9EE44850B6C86C2DDB60438C106",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/active-directory-dangerous-operations.ps1",
+    "Violations": [
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 25,
+        "Code": "ConvertTo-SecureString \"Password123!\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/active-directory-dangerous-operations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 36,
+        "Code": "ConvertTo-SecureString \"Password1\" -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/active-directory-dangerous-operations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:19.4216742+00:00"
+  }
+}

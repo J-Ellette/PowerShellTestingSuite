@@ -1,0 +1,46 @@
+{
+  "Timestamp": "2025-10-25T17:22:33.6436061Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/powershell-web-requests.ps1",
+  "FileHash": "EF35C5FDE443DB46CA812662E34B51196247E77F0F2F4C257D7A186882BC2A34",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/powershell-web-requests.ps1",
+    "Violations": [
+      {
+        "Name": "PowerShellWebRequests",
+        "Message": "Web request with certificate validation disabled",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 4,
+        "Code": "Invoke-WebRequest -Uri \"https://example.com\" -SkipCertificateCheck",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/powershell-web-requests.ps1",
+        "RuleId": "PowerShellWebRequests",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellWebRequests",
+        "Message": "Web request with certificate validation disabled",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "Invoke-RestMethod -Uri \"https://api.example.com\" -SkipCertCheck",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/powershell-web-requests.ps1",
+        "RuleId": "PowerShellWebRequests",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellWebRequests",
+        "Message": "Web request with certificate validation disabled",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "Invoke-WebRequest -Uri \"https://untrusted.com\" -SkipCertificateCheck",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/powershell-web-requests.ps1",
+        "RuleId": "PowerShellWebRequests",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:33.6433037+00:00"
+  }
+}

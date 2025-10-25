@@ -1,0 +1,79 @@
+{
+  "Timestamp": "2025-10-25T17:22:34.2180599Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+  "FileHash": "A3D7C3D8B806409C491F03493391A75B41E578E46DC2BA21B0C1BD9A83125B2C",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+    "Violations": [
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 5,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\" -Name \"DisableAntiSpyware\" -Value 1",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 8,
+        "Code": "New-ItemProperty -Path \"HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\" -Name \"EnableLUA\" -Value 0 -PropertyType DWord -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 14,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\" -Name \"EnableFirewall\" -Value 0",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 17,
+        "Code": "New-Item -Path \"HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\" -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 18,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\" -Name \"ConsentPromptBehaviorAdmin\" -Value 0",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 21,
+        "Code": "Get-ItemProperty -Path \"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\" -Name \"CurrentVersion\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/registry/dangerous-registry-modifications.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:34.2177693+00:00"
+  }
+}

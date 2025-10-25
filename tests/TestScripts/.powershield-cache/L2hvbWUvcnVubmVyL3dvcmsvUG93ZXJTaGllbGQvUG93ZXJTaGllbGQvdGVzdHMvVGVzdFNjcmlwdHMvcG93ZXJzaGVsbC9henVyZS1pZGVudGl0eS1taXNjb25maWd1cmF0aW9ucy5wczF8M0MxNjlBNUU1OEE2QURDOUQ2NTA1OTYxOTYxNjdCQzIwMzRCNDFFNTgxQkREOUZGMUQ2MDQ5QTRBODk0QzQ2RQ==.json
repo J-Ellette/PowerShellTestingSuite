@@ -1,0 +1,134 @@
+{
+  "Timestamp": "2025-10-25T17:22:22.3811993Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+  "FileHash": "3C169A5E58A6ADC9D650596196167BC2034B41E581BDD9FF1D6049A4A894C46E",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+    "Violations": [
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 17,
+        "Code": "ConvertTo-SecureString $certPassword -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 22,
+        "Code": "ConvertTo-SecureString $appSecret -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 28,
+        "Code": "ConvertTo-SecureString $clientSecret -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 62,
+        "Code": "ConvertTo-SecureString $syncAccountPassword -AsPlainText -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "CredentialExposure",
+        "Message": "Potential hardcoded credential detected",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 48,
+        "Code": "client_secret",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "CredentialExposure",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 36,
+        "Code": "\"https://graph.microsoft.com/v1.0/me\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 41,
+        "Code": "\"https://myapp.com/callback\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 45,
+        "Code": "\"https://graph.microsoft.com/.default\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzurePowerShellCredentialLeaks",
+        "Message": "Azure Key Vault secret retrieved into variable. Ensure proper access controls and avoid plaintext handling.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 76,
+        "Code": "Get-AzKeyVaultSecret -VaultName $vault -Name $secretName",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "AzurePowerShellCredentialLeaks",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEntraIDPrivilegedOperations",
+        "Message": "Adding member to privileged Azure AD role detected. Requires approval and justification.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 57,
+        "Code": "Add-AzureADDirectoryRoleMember -ObjectId \"user-object-id\" -RefObjectId \"Global Administrator\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "AzureEntraIDPrivilegedOperations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEntraIDPrivilegedOperations",
+        "Message": "Modifying Azure AD policy detected. Ensure compliance with security standards.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 54,
+        "Code": "Set-AzureADPolicy -Id \"ConditionalAccessPolicy123\" -DisplayName \"BypassPolicy\" -Type \"TokenIssuancePolicy\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-identity-misconfigurations.ps1",
+        "RuleId": "AzureEntraIDPrivilegedOperations",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:22.3803259+00:00"
+  }
+}

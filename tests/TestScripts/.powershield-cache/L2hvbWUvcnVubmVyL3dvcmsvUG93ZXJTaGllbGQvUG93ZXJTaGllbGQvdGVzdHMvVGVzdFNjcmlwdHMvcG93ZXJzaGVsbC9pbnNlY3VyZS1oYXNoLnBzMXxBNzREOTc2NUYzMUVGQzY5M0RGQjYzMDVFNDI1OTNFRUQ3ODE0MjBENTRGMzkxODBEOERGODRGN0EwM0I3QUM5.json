@@ -1,0 +1,46 @@
+{
+  "Timestamp": "2025-10-25T17:22:32.7741485Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/insecure-hash.ps1",
+  "FileHash": "A74D9765F31EFC693DFB6305E42593EED781420D54F39180D8DF84F7A03B7AC9",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/insecure-hash.ps1",
+    "Violations": [
+      {
+        "Name": "InsecureHashAlgorithms",
+        "Message": "Insecure hash algorithm 'MD5' detected. Use SHA-256 or higher.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 4,
+        "Code": "Get-FileHash -Path \"C:\\temp\\file.txt\" -Algorithm MD5",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/insecure-hash.ps1",
+        "RuleId": "InsecureHashAlgorithms",
+        "Metadata": {}
+      },
+      {
+        "Name": "InsecureHashAlgorithms",
+        "Message": "Insecure hash algorithm 'SHA1' detected. Use SHA-256 or higher.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "Get-FileHash -Path \"C:\\temp\\another.txt\" -Algorithm SHA1",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/insecure-hash.ps1",
+        "RuleId": "InsecureHashAlgorithms",
+        "Metadata": {}
+      },
+      {
+        "Name": "InsecureHashAlgorithms",
+        "Message": "Direct usage of insecure hash algorithm class detected",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 10,
+        "Code": "[System.Security.Cryptography.MD5]",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/insecure-hash.ps1",
+        "RuleId": "InsecureHashAlgorithms",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:32.7737922+00:00"
+  }
+}

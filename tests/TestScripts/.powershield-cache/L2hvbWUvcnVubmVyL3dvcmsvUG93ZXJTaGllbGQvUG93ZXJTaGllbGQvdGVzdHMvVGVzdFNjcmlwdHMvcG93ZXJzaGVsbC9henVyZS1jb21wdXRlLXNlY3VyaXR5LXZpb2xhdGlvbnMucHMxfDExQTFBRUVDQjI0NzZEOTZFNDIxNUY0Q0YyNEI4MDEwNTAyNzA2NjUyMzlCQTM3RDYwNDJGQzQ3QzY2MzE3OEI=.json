@@ -1,0 +1,167 @@
+{
+  "Timestamp": "2025-10-25T17:22:20.1588919Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+  "FileHash": "11A1AEECB2476D96E4215F4CF24B801050270665239BA37D6042FC47C663178B",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+    "Violations": [
+      {
+        "Name": "HardcodedURLs",
+        "Message": "Hardcoded production URL detected. Consider using configuration variables.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 28,
+        "Code": "\"https://example.com/script.ps1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "HardcodedURLs",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "VM with public IP and open RDP/SSH ports detected. Use Azure Bastion or VPN instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 10,
+        "Code": "New-AzVm -ResourceGroupName \"RG-Test\" -Name \"vm-public-rdp\" -Location \"eastus\" -PublicIpAddressName \"public-ip-1\" -OpenPorts 3389",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "VM with public IP and open RDP/SSH ports detected. Use Azure Bastion or VPN instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 13,
+        "Code": "New-AzVM -ResourceGroupName \"RG-Prod\" -Name \"vm-ssh\" -PublicIpAddress \"pip-vm\" -OpenPorts 22 -Image UbuntuLTS",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "VM with public IP and open RDP/SSH ports detected. Use Azure Bastion or VPN instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 16,
+        "Code": "New-AzVm -ResourceGroupName \"RG-Web\" -Name \"web-server\" -PublicIpAddressName \"web-public-ip\" -OpenPorts @(22, 3389, 80, 443)",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "VM with public IP and open RDP/SSH ports detected. Use Azure Bastion or VPN instead.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 19,
+        "Code": "New-AzVM -ResourceGroupName \"RG-Windows\" -Name \"win-vm-01\" -PublicIpAddressName \"win-pip\" -OpenPorts @(3389) -Credential $cred",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Custom script VM extension detected. Ensure script source is trusted and validated.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 22,
+        "Code": "Set-AzVMExtension -ResourceGroupName \"RG-VM\" -VMName \"vm1\" -Name \"CustomScript\" -ExtensionType \"CustomScript\" -Publisher \"Microsoft.Compute\" -TypeHandlerVersion \"1.10\" -Settings $settings",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Custom script VM extension detected. Ensure script source is trusted and validated.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 25,
+        "Code": "Set-AzVMExtension -ResourceGroupName \"RG-Linux\" -VMName \"linux-vm\" -Name \"LinuxCustomScript\" -Publisher \"Microsoft.Azure.Extensions\" -ExtensionType \"CustomScript\" -TypeHandlerVersion \"2.0\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Custom script VM extension detected. Ensure script source is trusted and validated.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 28,
+        "Code": "Set-AzVMExtension -VMName \"vm-test\" -ResourceGroupName \"RG\" -ExtensionType \"CustomScript\" -Name \"Script\" -FileUri \"https://example.com/script.ps1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Adding VM data disk without encryption. Enable Azure Disk Encryption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 31,
+        "Code": "Add-AzVMDataDisk -VM $vm -Name \"datadisk1\" -DiskSizeInGB 128 -Lun 0 -CreateOption Empty",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Adding VM data disk without encryption. Enable Azure Disk Encryption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 34,
+        "Code": "Add-AzVMDataDisk -VM $vmConfig -Name \"disk2\" -DiskSizeInGB 256 -Lun 1 -Caching ReadWrite",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Adding VM data disk without encryption. Enable Azure Disk Encryption.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 37,
+        "Code": "Add-AzVMDataDisk -VM $vm -Name \"premium-disk\" -DiskSizeInGB 512 -StorageAccountType Premium_LRS -Lun 2 -CreateOption Empty",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Password authentication enabled on Linux VM. Use SSH keys only.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 40,
+        "Code": "Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName \"linux-host\" -Credential $cred -DisablePasswordAuthentication $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Creating privileged container detected. Avoid privileged mode for security.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 46,
+        "Code": "New-AzContainerGroup -ResourceGroupName \"RG-Containers\" -Name \"privileged-container\" -Image \"nginx:latest\" -OsType Linux -Privileged",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureComputeSecurityViolations",
+        "Message": "Creating privileged container detected. Avoid privileged mode for security.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 49,
+        "Code": "New-AzContainerGroup -ResourceGroupName \"RG-App\" -Name \"app-container\" -Image \"myapp:latest\" -Command @(\"--privileged\", \"run\")",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-compute-security-violations.ps1",
+        "RuleId": "AzureComputeSecurityViolations",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:20.1579677+00:00"
+  }
+}

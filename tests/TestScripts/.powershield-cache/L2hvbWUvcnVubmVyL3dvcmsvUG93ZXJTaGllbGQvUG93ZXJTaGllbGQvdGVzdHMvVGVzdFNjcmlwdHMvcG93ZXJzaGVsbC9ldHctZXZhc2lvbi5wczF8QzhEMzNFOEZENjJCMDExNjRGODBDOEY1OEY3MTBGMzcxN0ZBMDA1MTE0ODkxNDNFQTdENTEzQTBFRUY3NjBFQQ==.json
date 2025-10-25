@@ -1,0 +1,211 @@
+{
+  "Timestamp": "2025-10-25T17:22:32.6217783Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+  "FileHash": "C8D33E8FD62B01164F80C8F58F710F3717FA00511489143EA7D513A0EEF760EA",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+    "Violations": [
+      {
+        "Name": "ScriptBlockLogging",
+        "Message": "Module auto-loading disabled - may bypass logging",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 7,
+        "Code": "$PSModuleAutoLoadingPreference = 'None'",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ScriptBlockLogging",
+        "Metadata": {}
+      },
+      {
+        "Name": "ScriptBlockLogging",
+        "Message": "Script block logging disabled - security risk",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 8,
+        "Code": "$EnableScriptBlockLogging = $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ScriptBlockLogging",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 18,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\" -Name \"EnableScriptBlockLogging\" -Value 0",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 20,
+        "Code": "New-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging\" -Name \"EnableModuleLogging\" -Value 0 -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 23,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\" -Name \"PowerShellExecutionPolicy\" -Value \"Bypass\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "PrivilegedRegistryAccess",
+        "Message": "HKEY_LOCAL_MACHINE registry access detected. Consider if privileges are necessary.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 25,
+        "Code": "Remove-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\" -Name \"EnableScriptBlockLogging\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "PrivilegedRegistryAccess",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "PowerShell logging bypass detected: PSModuleAutoLoadingPreference",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 7,
+        "Code": "$PSModuleAutoLoadingPreference = 'None'",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "PowerShell logging bypass detected: EnableScriptBlockLogging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 8,
+        "Code": "$EnableScriptBlockLogging = $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "ETW provider manipulation detected: Set-EtwTraceProvider",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 11,
+        "Code": "Set-EtwTraceProvider -Guid '{A0C1853B-5C40-4B15-8766-3CF1C58F985A}' -MatchAnyKeyword 0",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "ETW provider manipulation detected: Remove-EtwTraceSession",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 13,
+        "Code": "Remove-EtwTraceSession -Name \"PowerShell-Security\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "ETW provider manipulation detected: Stop-EtwTraceSession",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 15,
+        "Code": "Stop-EtwTraceSession -Name \"Microsoft-Windows-PowerShell\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Registry modification to disable PowerShell logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 18,
+        "Code": "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\" -Name \"EnableScriptBlockLogging\" -Value 0",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Registry modification to disable PowerShell logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 20,
+        "Code": "New-ItemProperty -Path \"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging\" -Name \"EnableModuleLogging\" -Value 0 -Force",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Group Policy modification to bypass security logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 18,
+        "Code": "\"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Group Policy modification to bypass security logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 18,
+        "Code": "\"EnableScriptBlockLogging\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Group Policy modification to bypass security logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 23,
+        "Code": "\"PowerShellExecutionPolicy\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Group Policy modification to bypass security logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 25,
+        "Code": "\"HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      },
+      {
+        "Name": "ETWEvasion",
+        "Message": "Group Policy modification to bypass security logging",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 25,
+        "Code": "\"EnableScriptBlockLogging\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/etw-evasion.ps1",
+        "RuleId": "ETWEvasion",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:32.6214674+00:00"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "Timestamp": "2025-10-25T17:22:23.0234481Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-network-security.ps1",
+  "FileHash": "E2F24567A49D3475BF3D41A9D99C1869DE66006E6FDCF5A5FF8C635B8C3F9557",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-network-security.ps1",
+    "Violations": [
+      {
+        "Name": "AzureResourceExposure",
+        "Message": "Public IP address creation detected. Ensure this is necessary and properly secured.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 19,
+        "Code": "New-AzPublicIpAddress -ResourceGroupName \"test-rg\" -Name \"lb-public-ip\" -Location \"East US\" -AllocationMethod Static",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-network-security.ps1",
+        "RuleId": "AzureResourceExposure",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:23.0226294+00:00"
+  }
+}

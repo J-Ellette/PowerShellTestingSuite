@@ -1,0 +1,57 @@
+{
+  "Timestamp": "2025-10-25T17:22:33.8491980Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+  "FileHash": "049E0AB1FF0E665FF2357FD9FADFF0EF7CA28696A53709BFA9A07924AFA3B67B",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+    "Violations": [
+      {
+        "Name": "ScriptInjection",
+        "Message": "Dynamic module creation - validate script content",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 5,
+        "Code": "New-Module -ScriptBlock $scriptBlock",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+        "RuleId": "ScriptInjection",
+        "Metadata": {}
+      },
+      {
+        "Name": "ScriptInjection",
+        "Message": "Add-Type with dynamic content - code injection risk",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 9,
+        "Code": "Add-Type -TypeDefinition $csharpCode",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+        "RuleId": "ScriptInjection",
+        "Metadata": {}
+      },
+      {
+        "Name": "ScriptInjection",
+        "Message": "[scriptblock]::Create() detected - potential constrained mode bypass",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 13,
+        "Code": "[scriptblock]::Create($code)",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+        "RuleId": "ScriptInjection",
+        "Metadata": {}
+      },
+      {
+        "Name": "PowerShellConstrainedMode",
+        "Message": "Add-Type not allowed in constrained language mode",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 9,
+        "Code": "Add-Type -TypeDefinition $csharpCode",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/script-injection.ps1",
+        "RuleId": "PowerShellConstrainedMode",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:33.8488523+00:00"
+  }
+}

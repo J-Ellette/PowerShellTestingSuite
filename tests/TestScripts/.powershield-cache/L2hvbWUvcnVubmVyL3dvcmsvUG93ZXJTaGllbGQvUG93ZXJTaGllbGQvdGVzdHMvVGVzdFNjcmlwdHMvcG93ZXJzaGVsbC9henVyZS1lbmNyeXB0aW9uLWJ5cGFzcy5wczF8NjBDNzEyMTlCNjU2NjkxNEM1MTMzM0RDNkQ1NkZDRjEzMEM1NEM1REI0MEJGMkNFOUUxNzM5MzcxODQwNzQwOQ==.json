@@ -1,0 +1,178 @@
+{
+  "Timestamp": "2025-10-25T17:22:21.7161668Z",
+  "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+  "FileHash": "60C71219B6566914C51333DC6D56FCF130C54C5DB40BF2CE9E17393718407409",
+  "Result": {
+    "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+    "Violations": [
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Storage account encryption being disabled. Encryption is required for data protection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 10,
+        "Code": "Set-AzStorageAccount -ResourceGroupName \"RG-Storage\" -Name \"mystorage\" -EnableEncryptionService $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Storage account encryption being disabled. Encryption is required for data protection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 13,
+        "Code": "Set-AzStorageAccount -ResourceGroupName \"RG-Prod\" -AccountName \"prodstorage\" -EnableEncryptionService None",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Storage account encryption being disabled. Encryption is required for data protection.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 16,
+        "Code": "Set-AzStorageAccount -ResourceGroupName \"RG\" -Name \"storage1\" -RequireInfrastructureEncryption $false",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Creating disk without encryption. Enable encryption at rest.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 22,
+        "Code": "New-AzDisk -ResourceGroupName \"RG-VM\" -DiskName \"datadisk1\" -DiskSizeGB 128 -Location \"eastus\" -CreateOption Empty",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Creating disk without encryption. Enable encryption at rest.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 25,
+        "Code": "New-AzDisk -ResourceGroupName \"RG-Disks\" -DiskName \"disk2\" -Location \"westus\" -SkuName Premium_LRS -DiskSizeGB 256 -CreateOption Empty",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Creating disk without encryption. Enable encryption at rest.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 29,
+        "Code": "New-AzDisk -ResourceGroupName \"RG\" -DiskName \"unencrypted-disk\" -Disk $diskConfig",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Creating disk without encryption. Enable encryption at rest.",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 62,
+        "Code": "New-AzDisk -ResourceGroupName \"RG\" -DiskName \"encrypted-disk\" -Disk $encryptedDiskConfig",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "SQL Database Transparent Data Encryption (TDE) being disabled. Keep enabled for compliance.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 35,
+        "Code": "Set-AzSqlDatabaseTransparentDataEncryption -ResourceGroupName \"RG-Data\" -ServerName \"sql-prod\" -DatabaseName \"customerdb\" -State Disabled",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "SQL Database Transparent Data Encryption (TDE) being disabled. Keep enabled for compliance.",
+        "Description": null,
+        "Severity": 4,
+        "LineNumber": 38,
+        "Code": "Set-AzSqlDatabase -ResourceGroupName \"RG\" -ServerName \"server1\" -DatabaseName \"db1\" -State \"Disabled\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "VM created without disk encryption. Enable Azure Disk Encryption (ADE).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 41,
+        "Code": "New-AzVirtualMachine -ResourceGroupName \"RG-VMs\" -Name \"vm1\" -Location \"eastus\" -VirtualNetworkName \"vnet1\" -SubnetName \"subnet1\" -SecurityGroupName \"nsg1\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "VM created without disk encryption. Enable Azure Disk Encryption (ADE).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 45,
+        "Code": "New-AzVirtualMachine -ResourceGroupName \"RG\" -Location \"westus\" -VM $vmConfig",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "VM created without disk encryption. Enable Azure Disk Encryption (ADE).",
+        "Description": null,
+        "Severity": 3,
+        "LineNumber": 75,
+        "Code": "New-AzVirtualMachine -ResourceGroupName \"RG\" -Location \"eastus\" -VM $vmConfig",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Production Key Vault without HSM protection. Use Premium SKU with HSM for production.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 48,
+        "Code": "New-AzKeyVault -ResourceGroupName \"RG-Production\" -Name \"prod-keyvault\" -Location \"eastus\" -Sku Standard",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Production Key Vault without HSM protection. Use Premium SKU with HSM for production.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 51,
+        "Code": "Set-AzKeyVault -ResourceGroupName \"RG-Prod\" -Name \"production-vault\" -Sku Standard",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      },
+      {
+        "Name": "AzureEncryptionBypass",
+        "Message": "Production Key Vault without HSM protection. Use Premium SKU with HSM for production.",
+        "Description": null,
+        "Severity": 2,
+        "LineNumber": 54,
+        "Code": "New-AzKeyVault -ResourceGroupName \"RG\" -Name \"prod-vault-001\" -Location \"westus\"",
+        "FilePath": "/home/runner/work/PowerShield/PowerShield/tests/TestScripts/powershell/azure-encryption-bypass.ps1",
+        "RuleId": "AzureEncryptionBypass",
+        "Metadata": {}
+      }
+    ],
+    "ParseErrors": [],
+    "RulesExecuted": 52,
+    "Timestamp": "2025-10-25T17:22:21.7152683+00:00"
+  }
+}
