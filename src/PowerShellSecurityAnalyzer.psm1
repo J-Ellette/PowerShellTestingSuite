@@ -1756,12 +1756,11 @@ class PowerShellSecurityAnalyzer {
                 foreach ($call in $sqlCalls) {
                     # Check for string concatenation in SQL queries
                     $hasConcat = $false
-                    $concatElements = @()
                     foreach ($element in $call.CommandElements) {
                         if ($element -is [BinaryExpressionAst] -and
                             $element.Operator -eq 'Plus') {
                             $hasConcat = $true
-                            $concatElements += $element
+                            break
                         }
                     }
                     

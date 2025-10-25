@@ -2,6 +2,11 @@
 
 Write-Host "Testing Enhanced SARIF Output..." -ForegroundColor Cyan
 
+# Get cross-platform temp directory
+$tempDir = [System.IO.Path]::GetTempPath()
+$testJsonFile = Join-Path $tempDir "test-sarif-validation.json"
+$testSarifFile = Join-Path $tempDir "test-sarif-validation.sarif"
+
 # Import analyzer
 Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
 
@@ -41,13 +46,13 @@ $exportData = @{
     violations = $result.Violations
 }
 
-$exportData | ConvertTo-Json -Depth 10 | Out-File '/tmp/test-sarif-validation.json'
+$exportData | ConvertTo-Json -Depth 10 | Out-File $testJsonFile
 
 . ./scripts/Convert-ToSARIF.ps1
-Convert-ToSARIF -InputFile '/tmp/test-sarif-validation.json' -OutputFile '/tmp/test-sarif-validation.sarif'
+Convert-ToSARIF -InputFile $testJsonFile -OutputFile $testSarifFile
 
 # Parse SARIF
-$sarif = Get-Content '/tmp/test-sarif-validation.sarif' -Raw | ConvertFrom-Json
+$sarif = Get-Content $testSarifFile -Raw | ConvertFrom-Json
 
 # Test 3: Validate SARIF structure
 Write-Host "`n[Test 3] Validating SARIF structure..." -ForegroundColor Yellow
@@ -121,7 +126,7 @@ if ($resultsWithFixes.Count -gt 0) {
 Write-Host "`n[Test 6] Validating JSON structure..." -ForegroundColor Yellow
 
 try {
-    $sarifText = Get-Content '/tmp/test-sarif-validation.sarif' -Raw
+    $sarifText = Get-Content $testSarifFile -Raw
     $null = ConvertFrom-Json $sarifText
     Write-Host "  ✓ Valid JSON" -ForegroundColor Green
 } catch {
@@ -163,7 +168,7 @@ Write-Host "  Results with fixes: $($resultsWithFixes.Count)"
 Write-Host "  Schema version: $($sarif.version)"
 
 # Cleanup
-Remove-Item '/tmp/test-sarif-validation.json' -ErrorAction SilentlyContinue
-Remove-Item '/tmp/test-sarif-validation.sarif' -ErrorAction SilentlyContinue
+Remove-Item $testJsonFile -ErrorAction SilentlyContinue
+Remove-Item $testSarifFile -ErrorAction SilentlyContinue
 
 Write-Host "`nTest completed successfully!" -ForegroundColor Green
