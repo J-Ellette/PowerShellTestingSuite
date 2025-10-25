@@ -243,8 +243,8 @@ $result = Invoke-WorkspaceAnalysis `
 
 ## Next Steps
 
-### High Priority (Completed) ✅
-1. ✅ **Fix metrics object access** - Completed and validated
+### High Priority
+1. ✅ **Fix metrics object access** - Completed and validated (v1.3.0)
 2. **CLI integration** - Add `psts analyze --metrics --cache` commands
 3. **Performance tests** - Create comprehensive regression test suite
 4. **Documentation** - Add performance optimization guide to README
