@@ -393,7 +393,7 @@ Invoke-WebRequest -Uri "https://example.com"
 
 #### 48. Download Cradle Detection
 **Severity**: Critical  
-**MITRE ATT&CK**: T1105, T1059.001, T1204.002  
+**MITRE ATT&CK**: T1105, T1059.001, T1204.002, T1027.004, T1620, T1197  
 **Description**: Detects download cradles that fetch and execute remote code
 
 **Patterns Detected**:

