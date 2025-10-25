@@ -11,6 +11,29 @@
     Convert-ToSARIF -InputFile results.json -OutputFile results.sarif
 #>
 
+function Get-MetadataValue {
+    param(
+        [object]$Metadata,
+        [string]$Key
+    )
+    
+    if (-not $Metadata) {
+        return $null
+    }
+    
+    # Handle hashtable
+    if ($Metadata -is [hashtable]) {
+        return $Metadata[$Key]
+    }
+    
+    # Handle PSCustomObject (from JSON deserialization)
+    if ($Metadata.PSObject.Properties.Name -contains $Key) {
+        return $Metadata.$Key
+    }
+    
+    return $null
+}
+
 function Convert-ToSARIF {
     param(
         [Parameter(Mandatory)]
@@ -49,7 +72,7 @@ function Convert-ToSARIF {
         })
     }
 
-    # Build rules dictionary
+    # Build rules dictionary with rich metadata
     $rulesMap = @{}
     foreach ($violation in $results.violations) {
         if ($violation -and $violation.RuleId -and -not $rulesMap.ContainsKey($violation.RuleId)) {
@@ -65,7 +88,39 @@ function Convert-ToSARIF {
                 'warning'
             }
             
-            $rulesMap[$violation.RuleId] = @{
+            # Build properties with metadata
+            $properties = @{
+                category = 'security'
+                tags = @('security', 'powershell')
+            }
+            
+            # Add CWE mappings
+            $cweValue = Get-MetadataValue -Metadata $violation.Metadata -Key 'CWE'
+            if ($cweValue) {
+                $properties['cwe'] = $cweValue
+            }
+            
+            # Add MITRE ATT&CK technique IDs
+            $mitreValue = Get-MetadataValue -Metadata $violation.Metadata -Key 'MitreAttack'
+            if ($mitreValue) {
+                $properties['mitreAttack'] = $mitreValue
+                # Also add as precision tag for GitHub
+                $properties['precision'] = 'high'
+            }
+            
+            # Add OWASP categories
+            $owaspValue = Get-MetadataValue -Metadata $violation.Metadata -Key 'OWASP'
+            if ($owaspValue) {
+                $properties['owasp'] = $owaspValue
+            }
+            
+            # Add security severity
+            $securitySeverityValue = Get-MetadataValue -Metadata $violation.Metadata -Key 'SecuritySeverity'
+            if ($securitySeverityValue) {
+                $properties['securitySeverity'] = $securitySeverityValue
+            }
+            
+            $ruleDefinition = @{
                 id = $violation.RuleId
                 name = if ($violation.Name) { $violation.Name } else { $violation.RuleId }
                 shortDescription = @{ text = if ($violation.Message) { $violation.Message } else { "Security violation" } }
@@ -73,11 +128,16 @@ function Convert-ToSARIF {
                 defaultConfiguration = @{
                     level = $severityLevel
                 }
-                properties = @{
-                    category = 'security'
-                    tags = @('security', 'powershell')
-                }
+                properties = $properties
             }
+            
+            # Add help URL if available
+            $helpUriValue = Get-MetadataValue -Metadata $violation.Metadata -Key 'HelpUri'
+            if ($helpUriValue) {
+                $ruleDefinition['helpUri'] = $helpUriValue
+            }
+            
+            $rulesMap[$violation.RuleId] = $ruleDefinition
         }
     }
 
@@ -146,6 +206,93 @@ function Convert-ToSARIF {
             })
             partialFingerprints = @{
                 primaryLocationLineHash = (Get-ContentBasedFingerprint -Violation $violation)
+            }
+        }
+        
+        # Add fix suggestions if available
+        if ($violation.Fixes -and $violation.Fixes.Count -gt 0) {
+            $result['fixes'] = @()
+            foreach ($fix in $violation.Fixes) {
+                $sarifFix = @{
+                    description = @{
+                        text = $fix.description
+                    }
+                    artifactChanges = @(@{
+                        artifactLocation = @{
+                            uri = $relativeUri
+                            uriBaseId = 'SRCROOT'
+                        }
+                        replacements = @(@{
+                            deletedRegion = @{
+                                startLine = $violation.LineNumber
+                                startColumn = 1
+                            }
+                            insertedContent = @{
+                                text = $fix.replacement
+                            }
+                        })
+                    })
+                }
+                $result['fixes'] += $sarifFix
+            }
+        }
+        
+        # Add code flows if available
+        if ($violation.CodeFlows -and $violation.CodeFlows.Count -gt 0) {
+            $result['codeFlows'] = @()
+            foreach ($flow in $violation.CodeFlows) {
+                $sarifFlow = @{
+                    message = @{
+                        text = if ($flow.message) { $flow.message } else { "Data flow" }
+                    }
+                    threadFlows = @(@{
+                        locations = @()
+                    })
+                }
+                
+                foreach ($location in $flow.locations) {
+                    $flowLocation = @{
+                        location = @{
+                            physicalLocation = @{
+                                artifactLocation = @{
+                                    uri = if ($location.filePath) { $location.filePath.Replace('\', '/').TrimStart('./') } else { $relativeUri }
+                                    uriBaseId = 'SRCROOT'
+                                }
+                                region = @{
+                                    startLine = if ($location.lineNumber) { $location.lineNumber } else { 1 }
+                                }
+                            }
+                            message = @{
+                                text = if ($location.message) { $location.message } else { "Flow step" }
+                            }
+                        }
+                    }
+                    $sarifFlow.threadFlows[0].locations += $flowLocation
+                }
+                
+                $result['codeFlows'] += $sarifFlow
+            }
+        }
+        
+        # Add related locations if metadata contains them
+        $relatedLocations = Get-MetadataValue -Metadata $violation.Metadata -Key 'RelatedLocations'
+        if ($relatedLocations) {
+            $result['relatedLocations'] = @()
+            foreach ($relatedLoc in $relatedLocations) {
+                $result['relatedLocations'] += @{
+                    physicalLocation = @{
+                        artifactLocation = @{
+                            uri = if ($relatedLoc.filePath) { $relatedLoc.filePath.Replace('\', '/').TrimStart('./') } else { $relativeUri }
+                            uriBaseId = 'SRCROOT'
+                        }
+                        region = @{
+                            startLine = if ($relatedLoc.lineNumber) { $relatedLoc.lineNumber } else { 1 }
+                        }
+                    }
+                    message = @{
+                        text = if ($relatedLoc.message) { $relatedLoc.message } else { "Related location" }
+                    }
+                }
             }
         }
         

@@ -32,6 +32,8 @@ class SecurityViolation {
     [string]$FilePath
     [string]$RuleId
     [hashtable]$Metadata
+    [array]$Fixes  # Fix suggestions with alternatives
+    [array]$CodeFlows  # Data flow information for complex vulnerabilities
 
     SecurityViolation([string]$name, [string]$message, [SecuritySeverity]$severity, [int]$lineNumber, [string]$code) {
         $this.Name = $name
@@ -40,6 +42,8 @@ class SecurityViolation {
         $this.LineNumber = $lineNumber
         $this.Code = $code
         $this.Metadata = @{}
+        $this.Fixes = @()
+        $this.CodeFlows = @()
     }
 }
 
@@ -50,6 +54,10 @@ class SecurityRule {
     [ScriptBlock]$Evaluator
     [string]$Category
     [string[]]$Tags
+    [string[]]$CWE  # CWE (Common Weakness Enumeration) IDs
+    [string[]]$MitreAttack  # MITRE ATT&CK technique IDs
+    [string[]]$OWASP  # OWASP category mappings
+    [string]$HelpUri  # URL to remediation documentation
 
     SecurityRule([string]$name, [string]$description, [SecuritySeverity]$severity, [ScriptBlock]$evaluator) {
         $this.Name = $name
@@ -58,6 +66,10 @@ class SecurityRule {
         $this.Evaluator = $evaluator
         $this.Category = "Security"
         $this.Tags = @()
+        $this.CWE = @()
+        $this.MitreAttack = @()
+        $this.OWASP = @()
+        $this.HelpUri = ""
     }
 
     [SecurityViolation[]] Evaluate([Ast]$ast, [string]$filePath) {
@@ -66,6 +78,11 @@ class SecurityRule {
             if ($violation) {
                 $violation.FilePath = $filePath
                 $violation.RuleId = $this.Name
+                # Propagate metadata to violation
+                if ($this.CWE) { $violation.Metadata['CWE'] = $this.CWE }
+                if ($this.MitreAttack) { $violation.Metadata['MitreAttack'] = $this.MitreAttack }
+                if ($this.OWASP) { $violation.Metadata['OWASP'] = $this.OWASP }
+                if ($this.HelpUri) { $violation.Metadata['HelpUri'] = $this.HelpUri }
             }
         }
         return $violations
@@ -178,13 +195,25 @@ class PowerShellSecurityAnalyzer {
                     }
                     
                     if ($algorithmParam -and $algorithmParam.Value -in $insecureAlgorithms) {
-                        $violations += [SecurityViolation]::new(
+                        $violation = [SecurityViolation]::new(
                             "InsecureHashAlgorithms",
                             "Insecure hash algorithm '$($algorithmParam.Value)' detected. Use SHA-256 or higher.",
                             [SecuritySeverity]::High,
                             $call.Extent.StartLineNumber,
                             $call.Extent.Text
                         )
+                        # Add fix suggestion
+                        $violation.Fixes = @(
+                            @{
+                                description = "Replace with SHA-256"
+                                replacement = $call.Extent.Text -replace $algorithmParam.Value, 'SHA256'
+                            },
+                            @{
+                                description = "Replace with SHA-512 (more secure)"
+                                replacement = $call.Extent.Text -replace $algorithmParam.Value, 'SHA512'
+                            }
+                        )
+                        $violations += $violation
                     }
                 }
                 
@@ -195,18 +224,32 @@ class PowerShellSecurityAnalyzer {
                 }, $true)
                 
                 foreach ($usage in $cryptoUsage) {
-                    $violations += [SecurityViolation]::new(
+                    $violation = [SecurityViolation]::new(
                         "InsecureHashAlgorithms",
                         "Direct usage of insecure hash algorithm class detected",
                         [SecuritySeverity]::High,
                         $usage.Extent.StartLineNumber,
                         $usage.Extent.Text
                     )
+                    # Add fix suggestion
+                    $violation.Fixes = @(
+                        @{
+                            description = "Replace with SHA256 class"
+                            replacement = "[System.Security.Cryptography.SHA256]::Create()"
+                        }
+                    )
+                    $violations += $violation
                 }
                 
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-327', 'CWE-328')
+        $rule.MitreAttack = @('T1553.002')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/327.html'
 
         # Rule 2: Credential Exposure
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -233,13 +276,25 @@ class PowerShellSecurityAnalyzer {
                     }
                     
                     if ($hasAsPlainText) {
-                        $violations += [SecurityViolation]::new(
+                        $violation = [SecurityViolation]::new(
                             "CredentialExposure",
                             "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
                             [SecuritySeverity]::Critical,
                             $call.Extent.StartLineNumber,
                             $call.Extent.Text
                         )
+                        # Add fix suggestion
+                        $violation.Fixes = @(
+                            @{
+                                description = "Use Read-Host -AsSecureString to prompt securely"
+                                replacement = 'Read-Host -Prompt "Enter password" -AsSecureString'
+                            },
+                            @{
+                                description = "Use Get-Credential for credential prompts"
+                                replacement = '$credential = Get-Credential'
+                            }
+                        )
+                        $violations += $violation
                     }
                 }
                 
@@ -253,13 +308,25 @@ class PowerShellSecurityAnalyzer {
                     if ($text -match 'password|pwd|secret|key' -and $literal.Value.Length -gt 8) {
                         $context = $literal.Parent.Extent.Text
                         if ($context -match 'password\s*=|pwd\s*=|secret\s*=') {
-                            $violations += [SecurityViolation]::new(
+                            $violation = [SecurityViolation]::new(
                                 "CredentialExposure",
                                 "Potential hardcoded credential detected",
                                 [SecuritySeverity]::Critical,
                                 $literal.Extent.StartLineNumber,
                                 $literal.Extent.Text
                             )
+                            # Add fix suggestion
+                            $violation.Fixes = @(
+                                @{
+                                    description = "Use environment variable for sensitive data"
+                                    replacement = '$password = $env:SECURE_PASSWORD'
+                                },
+                                @{
+                                    description = "Use Azure Key Vault or secure configuration"
+                                    replacement = '$password = Get-AzKeyVaultSecret -VaultName "MyVault" -Name "MySecret" -AsPlainText'
+                                }
+                            )
+                            $violations += $violation
                         }
                     }
                 }
@@ -267,6 +334,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-259', 'CWE-798')
+        $rule.MitreAttack = @('T1552.001')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures', 'A07:2021-Identification and Authentication Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/798.html'
 
         # Rule 3: Command Injection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -289,13 +362,29 @@ class PowerShellSecurityAnalyzer {
                     if ($call.CommandElements.Count -gt 1) {
                         $expression = $call.CommandElements[1].Extent.Text
                         if ($expression -match '\$') {
-                            $violations += [SecurityViolation]::new(
+                            $violation = [SecurityViolation]::new(
                                 "CommandInjection",
                                 "Potential command injection via Invoke-Expression with variables",
                                 [SecuritySeverity]::Critical,
                                 $call.Extent.StartLineNumber,
                                 $call.Extent.Text
                             )
+                            # Add fix suggestions
+                            $violation.Fixes = @(
+                                @{
+                                    description = "Use script blocks and parameter validation instead"
+                                    replacement = '# Refactor to use scriptblocks: & { param($param1) ... } -param1 $value'
+                                },
+                                @{
+                                    description = "Use switch statement for command dispatching"
+                                    replacement = 'switch ($command) { "option1" { ... }; "option2" { ... } }'
+                                },
+                                @{
+                                    description = "Comment out dangerous code for review"
+                                    replacement = '# SECURITY: Invoke-Expression removed - ' + $call.Extent.Text
+                                }
+                            )
+                            $violations += $violation
                         }
                     }
                 }
@@ -303,6 +392,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-78', 'CWE-77')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/78.html'
 
         # Rule 4: Certificate Validation
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -356,6 +451,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-295')
+        $rule.MitreAttack = @('T1553.004')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures', 'A07:2021-Identification and Authentication Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/295.html'
 
         # Rule 5: Execution Policy Bypass
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -416,6 +517,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1059.001', 'T1202')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1202/'
 
         # Rule 6: Script Block Logging
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -464,6 +571,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-778')
+        $rule.MitreAttack = @('T1562.002')
+        $rule.OWASP = @('A09:2021-Security Logging and Monitoring Failures')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1562/002/'
 
         # Rule 7: Unsafe PS Remoting
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -538,6 +651,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-319', 'CWE-287')
+        $rule.MitreAttack = @('T1021.006')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures', 'A07:2021-Identification and Authentication Failures')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1021/006/'
 
         # Rule 8: Dangerous Modules
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -581,6 +700,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-829')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A06:2021-Vulnerable and Outdated Components')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/829.html'
 
         # Rule 9: PowerShell Version Downgrade
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -630,6 +755,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1059/001/'
 
         # Rule 10: Unsafe Deserialization
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -691,6 +822,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-502')
+        $rule.MitreAttack = @('T1027')
+        $rule.OWASP = @('A08:2021-Software and Data Integrity Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/502.html'
 
         # Rule 11: Privilege Escalation
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -736,6 +873,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-269')
+        $rule.MitreAttack = @('T1068', 'T1548')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/269.html'
 
         # Rule 12: Script Injection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -820,6 +963,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-94')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/94.html'
 
         # Rule 13: Unsafe Reflection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -869,6 +1018,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-470')
+        $rule.MitreAttack = @('T1620')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/470.html'
 
         # Rule 14: PowerShell Constrained Mode
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -925,6 +1080,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1059/001/'
 
         # Rule 15: Unsafe File Inclusion
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -967,6 +1128,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-98')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/98.html'
 
         # Rule 16: PowerShell Web Requests
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1008,6 +1175,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-319')
+        $rule.MitreAttack = @('T1071.001')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/319.html'
 
         # ===== PHASE 1.5B: GENERAL SECURITY RULES =====
 
@@ -1065,6 +1238,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-319')
+        $rule.MitreAttack = @('T1071.001')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/319.html'
 
         # Rule 18: Weak TLS Configuration
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1113,6 +1292,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-326')
+        $rule.MitreAttack = @('T1040')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/326.html'
 
         # Rule 19: Hardcoded URLs
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1160,6 +1345,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-1188')
+        $rule.MitreAttack = @('T1071.001')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/1188.html'
 
         # File System Security Rules
 
@@ -1214,6 +1405,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-22')
+        $rule.MitreAttack = @('T1083')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/22.html'
 
         # Rule 21: Unsafe File Permissions
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1266,6 +1463,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-732')
+        $rule.MitreAttack = @('T1222')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/732.html'
 
         # Rule 22: Temporary File Exposure
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1316,6 +1519,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-377')
+        $rule.MitreAttack = @('T1083')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/377.html'
 
         # Rule 23: Unsafe File Operations
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1380,6 +1589,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-73')
+        $rule.MitreAttack = @('T1106')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/73.html'
 
         # Registry Security Rules
 
@@ -1430,6 +1645,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-15')
+        $rule.MitreAttack = @('T1112')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/15.html'
 
         # Rule 25: Registry Credentials
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1466,6 +1687,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-522')
+        $rule.MitreAttack = @('T1552.002')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/522.html'
 
         # Rule 26: Privileged Registry Access
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1500,6 +1727,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-250')
+        $rule.MitreAttack = @('T1112')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/250.html'
 
         # Data Security Rules
 
@@ -1527,17 +1760,51 @@ class PowerShellSecurityAnalyzer {
                         if ($element -is [BinaryExpressionAst] -and
                             $element.Operator -eq 'Plus') {
                             $hasConcat = $true
+                            break
                         }
                     }
                     
                     if ($hasConcat) {
-                        $violations += [SecurityViolation]::new(
+                        $violation = [SecurityViolation]::new(
                             "SQLInjection",
                             "String concatenation in SQL command detected. Use parameterized queries.",
                             [SecuritySeverity]::Critical,
                             $call.Extent.StartLineNumber,
                             $call.Extent.Text
                         )
+                        
+                        # Add fix suggestions
+                        $violation.Fixes = @(
+                            @{
+                                description = "Use parameterized query with -Variable parameter"
+                                replacement = 'Invoke-Sqlcmd -Query "SELECT * FROM Users WHERE Name = @username" -Variable @("username=''$userInput''")'
+                            },
+                            @{
+                                description = "Use SQL parameters with SqlCommand"
+                                replacement = '$cmd = New-Object System.Data.SqlClient.SqlCommand("SELECT * FROM Users WHERE Name = @username"); $cmd.Parameters.AddWithValue("@username", $userInput)'
+                            }
+                        )
+                        
+                        # Add code flow to show data flow from user input to SQL
+                        $violation.CodeFlows = @(
+                            @{
+                                message = "Untrusted data flows into SQL query"
+                                locations = @(
+                                    @{
+                                        lineNumber = $call.Extent.StartLineNumber
+                                        message = "User input variable used here"
+                                        filePath = $FilePath
+                                    },
+                                    @{
+                                        lineNumber = $call.Extent.StartLineNumber
+                                        message = "SQL query executed with concatenated string"
+                                        filePath = $FilePath
+                                    }
+                                )
+                            }
+                        )
+                        
+                        $violations += $violation
                     }
                 }
                 
@@ -1561,6 +1828,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-89')
+        $rule.MitreAttack = @('T1190')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/89.html'
 
         # Rule 28: LDAP Injection Detection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1620,6 +1893,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-90')
+        $rule.MitreAttack = @('T1078')
+        $rule.OWASP = @('A03:2021-Injection')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/90.html'
 
         # Rule 29: XML Security Vulnerabilities
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1667,6 +1946,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-611')
+        $rule.MitreAttack = @('T1059')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/611.html'
 
         # Rule 30: Log Injection Detection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1715,6 +2000,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-117')
+        $rule.MitreAttack = @('T1562.002')
+        $rule.OWASP = @('A09:2021-Security Logging and Monitoring Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/117.html'
 
         # Phase 1.5C-A: Advanced PowerShell Security Rules - Immediate Priority
 
@@ -1800,6 +2091,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1562.001')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1562/001/'
 
         # Rule 32: ETW Evasion Detection  
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -1888,6 +2185,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-778')
+        $rule.MitreAttack = @('T1562.006')
+        $rule.OWASP = @('A09:2021-Security Logging and Monitoring Failures')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1562/006/'
 
         # Rule 33: Enhanced PowerShell 2.0 Detection
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2036,6 +2339,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1059.001')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1059/001/'
 
         # Phase 1.5C-B: Azure & Cloud Security Rules
 
@@ -2198,6 +2507,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-522', 'CWE-798')
+        $rule.MitreAttack = @('T1552.001', 'T1078.004')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures', 'A07:2021-Identification and Authentication Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/522.html'
 
         # Rule 35: Azure Resource Exposure
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2361,6 +2676,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-668')
+        $rule.MitreAttack = @('T1530')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/668.html'
 
         # Rule 36: Azure Entra ID Privileged Operations
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2485,6 +2806,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-250')
+        $rule.MitreAttack = @('T1098')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1098/'
 
         # Rule 37: Azure Data Exfiltration
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2602,6 +2929,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-200')
+        $rule.MitreAttack = @('T1567', 'T1537')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1567/'
 
         # Rule 38: Azure Logging Disabled
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2720,6 +3053,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-778')
+        $rule.MitreAttack = @('T1562.008')
+        $rule.OWASP = @('A09:2021-Security Logging and Monitoring Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/778.html'
 
         # Rule 39: Azure Subscription Management
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2846,6 +3185,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-250')
+        $rule.MitreAttack = @('T1098')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1098/'
 
         # Rule 40: Azure Compute Security Violations
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -2996,6 +3341,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-16')
+        $rule.MitreAttack = @('T1610')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1610/'
 
         # Rule 41: Azure DevOps Security Issues
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3119,6 +3470,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-522')
+        $rule.MitreAttack = @('T1552.001')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/522.html'
 
         # Rule 42: Azure Encryption Bypass
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3264,6 +3621,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-311')
+        $rule.MitreAttack = @('T1486')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/311.html'
 
         # Rule 43: Azure Policy and Compliance
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3381,6 +3744,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-693')
+        $rule.MitreAttack = @('T1562.001')
+        $rule.OWASP = @('A05:2021-Security Misconfiguration')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/693.html'
 
         # Rule 44: JEA Configuration Vulnerabilities
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3522,6 +3891,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-269')
+        $rule.MitreAttack = @('T1548')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/269.html'
 
         # Rule 45: DSC Security Issues
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3653,6 +4028,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-522')
+        $rule.MitreAttack = @('T1552.001')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/522.html'
 
         # Rule 46: Deprecated Cmdlet Usage
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3826,6 +4207,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-477')
+        $rule.MitreAttack = @()
+        $rule.OWASP = @('A06:2021-Vulnerable and Outdated Components')
+        $rule.HelpUri = 'https://cwe.mitre.org/data/definitions/477.html'
 
         # Rule 47: PowerShell Obfuscation Detection (MITRE ATT&CK: T1027, T1059.001)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -3999,6 +4386,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-506')
+        $rule.MitreAttack = @('T1027', 'T1059.001')
+        $rule.OWASP = @('A04:2021-Insecure Design')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1027/'
 
         # Rule 48: Download Cradle Detection (MITRE ATT&CK: T1105, T1059.001, T1204.002)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -4167,6 +4560,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-494')
+        $rule.MitreAttack = @('T1105', 'T1059.001', 'T1204.002')
+        $rule.OWASP = @('A08:2021-Software and Data Integrity Failures')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1105/'
 
         # Rule 49: Persistence Mechanism Detection (MITRE ATT&CK: T1547, T1053, T1546)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -4323,6 +4722,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-284')
+        $rule.MitreAttack = @('T1547', 'T1053', 'T1546')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/tactics/TA0003/'
 
         # Rule 50: Credential Harvesting Detection (MITRE ATT&CK: T1003, T1555, T1552)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -4501,6 +4906,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-522')
+        $rule.MitreAttack = @('T1003', 'T1555')
+        $rule.OWASP = @('A02:2021-Cryptographic Failures')
+        $rule.HelpUri = 'https://attack.mitre.org/techniques/T1003/'
 
         # Rule 51: Lateral Movement Detection (MITRE ATT&CK: T1021, T1570, T1135)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -4688,6 +5099,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-284')
+        $rule.MitreAttack = @('T1021', 'T1570')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/tactics/TA0008/'
 
         # Rule 52: Data Exfiltration Detection (MITRE ATT&CK: T1048, T1041, T1567)
         $this.SecurityRules.Add([SecurityRule]::new(
@@ -4918,6 +5335,12 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+        # Add metadata
+        $rule = $this.SecurityRules[-1]
+        $rule.CWE = @('CWE-200')
+        $rule.MitreAttack = @('T1041', 'T1567')
+        $rule.OWASP = @('A01:2021-Broken Access Control')
+        $rule.HelpUri = 'https://attack.mitre.org/tactics/TA0010/'
     }
 
     [PSCustomObject] AnalyzeScript([string]$ScriptPath) {
