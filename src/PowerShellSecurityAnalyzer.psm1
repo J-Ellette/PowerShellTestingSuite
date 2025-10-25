@@ -2361,6 +2361,1471 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+
+        # Rule 36: Azure Entra ID Privileged Operations
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureEntraIDPrivilegedOperations",
+            "Detects dangerous Azure Entra ID (Azure AD) privileged operations",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Add-AzureADDirectoryRoleMember with Global Admin/Privileged roles
+                $addRoleCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Add-AzureADDirectoryRoleMember' -or
+                     $args[0].GetCommandName() -eq 'Add-MgDirectoryRoleMember')
+                }, $true)
+                
+                foreach ($call in $addRoleCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'global.*admin|company.*admin|privileged.*role|user.*admin|security.*admin') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEntraIDPrivilegedOperations",
+                            "Adding member to privileged Azure AD role detected. Requires approval and justification.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: Set-AzureADUser with privileged account modifications
+                $setUserCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Set-AzureADUser' -or
+                     $args[0].GetCommandName() -eq 'Update-MgUser')
+                }, $true)
+                
+                foreach ($call in $setUserCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'admin|privileged|global|security') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEntraIDPrivilegedOperations",
+                            "Modifying privileged user account detected. Ensure proper authorization.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: New-AzureADApplication with excessive permissions
+                $newAppCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'New-AzureADApplication' -or
+                     $args[0].GetCommandName() -eq 'New-MgApplication')
+                }, $true)
+                
+                foreach ($call in $newAppCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'RequiredResourceAccess' -or
+                             $element.ParameterName -eq 'AppRoles')) {
+                            $violations += [SecurityViolation]::new(
+                                "AzureEntraIDPrivilegedOperations",
+                                "Creating Azure AD application with resource access permissions. Review for excessive permissions.",
+                                [SecuritySeverity]::High,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                # Pattern 4: Remove-AzureADUser bulk operations without confirmation
+                $removeUserCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Remove-AzureADUser' -or
+                     $args[0].GetCommandName() -eq 'Remove-MgUser')
+                }, $true)
+                
+                foreach ($call in $removeUserCalls) {
+                    # Check if it's in a loop or has wildcard/array
+                    $parent = $call.Parent
+                    $isInLoop = $false
+                    while ($parent) {
+                        if ($parent -is [LoopStatementAst] -or $parent -is [ForEachStatementAst]) {
+                            $isInLoop = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($isInLoop) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEntraIDPrivilegedOperations",
+                            "Bulk user deletion detected. Ensure proper confirmation and backup procedures.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Set-AzureADPolicy bypassing security policies
+                $setPolicyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzureADPolicy'
+                }, $true)
+                
+                foreach ($call in $setPolicyCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureEntraIDPrivilegedOperations",
+                        "Modifying Azure AD policy detected. Ensure compliance with security standards.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 37: Azure Data Exfiltration
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureDataExfiltration",
+            "Detects potential data exfiltration attempts from Azure services",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Start-AzStorageBlobCopy to external accounts
+                $blobCopyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Start-AzStorageBlobCopy' -or
+                     $args[0].GetCommandName() -eq 'Start-AzureStorageBlobCopy')
+                }, $true)
+                
+                foreach ($call in $blobCopyCalls) {
+                    # Check for external destination
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'DestinationUri' -or
+                             $element.ParameterName -eq 'AbsoluteUri')) {
+                            $violations += [SecurityViolation]::new(
+                                "AzureDataExfiltration",
+                                "Blob copy to external URI detected. Verify destination is authorized.",
+                                [SecuritySeverity]::Critical,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                # Pattern 2: Export-AzSqlDatabase to public storage
+                $exportDbCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Export-AzSqlDatabase'
+                }, $true)
+                
+                foreach ($call in $exportDbCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureDataExfiltration",
+                        "SQL Database export detected. Ensure destination storage is secured and authorized.",
+                        [SecuritySeverity]::Critical,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: Get-AzKeyVaultSecret with bulk retrieval
+                $getSecretCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Get-AzKeyVaultSecret' -or
+                     $args[0].GetCommandName() -eq 'Get-AzureKeyVaultSecret')
+                }, $true)
+                
+                foreach ($call in $getSecretCalls) {
+                    # Check if it's in a loop (bulk retrieval)
+                    $parent = $call.Parent
+                    $isInLoop = $false
+                    while ($parent) {
+                        if ($parent -is [LoopStatementAst] -or $parent -is [ForEachStatementAst]) {
+                            $isInLoop = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($isInLoop) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureDataExfiltration",
+                            "Bulk Key Vault secret retrieval detected. Ensure proper authorization and monitoring.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Export-AzResourceGroup with sensitive resources
+                $exportRgCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Export-AzResourceGroup'
+                }, $true)
+                
+                foreach ($call in $exportRgCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureDataExfiltration",
+                        "Resource group export detected. May contain sensitive configuration data.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 5: Backup-AzKeyVault to uncontrolled locations
+                $backupKvCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Backup-AzKeyVault'
+                }, $true)
+                
+                foreach ($call in $backupKvCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureDataExfiltration",
+                        "Key Vault backup detected. Ensure backup location is secure and properly monitored.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 38: Azure Logging Disabled
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureLoggingDisabled",
+            "Detects attempts to disable Azure logging and monitoring",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Set-AzDiagnosticSetting with disabled categories
+                $diagCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzDiagnosticSetting'
+                }, $true)
+                
+                foreach ($call in $diagCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match '\$false|-enabled:\$false|enabled\s*=\s*\$false') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureLoggingDisabled",
+                            "Azure diagnostic setting being disabled. Logging should always be enabled for compliance.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: Remove-AzLogProfile
+                $removeLogCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Remove-AzLogProfile'
+                }, $true)
+                
+                foreach ($call in $removeLogCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureLoggingDisabled",
+                        "Removing Azure log profile. This disables activity log collection.",
+                        [SecuritySeverity]::Critical,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: Set-AzSecurityContact with disabled notifications
+                $secContactCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzSecurityContact'
+                }, $true)
+                
+                foreach ($call in $secContactCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'AlertsToAdmins' -or
+                             $element.ParameterName -eq 'AlertNotifications')) {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match '\$false|Off') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureLoggingDisabled",
+                                    "Security contact notifications being disabled. Keep enabled for security alerts.",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 4: Disable-AzActivityLogAlert
+                $disableAlertCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Disable-AzActivityLogAlert'
+                }, $true)
+                
+                foreach ($call in $disableAlertCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureLoggingDisabled",
+                        "Disabling activity log alert. Maintain alerts for security monitoring.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 5: Set-AzMonitorLogProfile with insufficient retention
+                $logProfileCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzMonitorLogProfile'
+                }, $true)
+                
+                foreach ($call in $logProfileCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'RetentionInDays') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement -is [ConstantExpressionAst]) {
+                                $days = [int]$nextElement.Value
+                                if ($days -lt 90) {
+                                    $violations += [SecurityViolation]::new(
+                                        "AzureLoggingDisabled",
+                                        "Log retention set to less than 90 days ($days). Increase for compliance requirements.",
+                                        [SecuritySeverity]::Medium,
+                                        $call.Extent.StartLineNumber,
+                                        $call.Extent.Text
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 39: Azure Subscription Management
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureSubscriptionManagement",
+            "Detects unsafe Azure subscription management operations",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Set-AzContext with production subscription switching
+                $setContextCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzContext'
+                }, $true)
+                
+                foreach ($call in $setContextCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'prod|production') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureSubscriptionManagement",
+                            "Switching to production subscription detected. Ensure proper authorization.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: New-AzRoleDefinition with overly broad permissions
+                $newRoleCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzRoleDefinition'
+                }, $true)
+                
+                foreach ($call in $newRoleCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'Actions') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            $actionsText = $nextElement.Extent.Text
+                            if ($actionsText -match '\*|Microsoft\.\*/') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureSubscriptionManagement",
+                                    "Creating role definition with wildcard permissions (*). Use least privilege principle.",
+                                    [SecuritySeverity]::Critical,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 3: Remove-AzRoleAssignment bulk operations
+                $removeRoleCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Remove-AzRoleAssignment'
+                }, $true)
+                
+                foreach ($call in $removeRoleCalls) {
+                    # Check if it's in a loop
+                    $parent = $call.Parent
+                    $isInLoop = $false
+                    while ($parent) {
+                        if ($parent -is [LoopStatementAst] -or $parent -is [ForEachStatementAst]) {
+                            $isInLoop = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($isInLoop) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureSubscriptionManagement",
+                            "Bulk role assignment removal detected. Verify authorization and backup.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Set-AzSubscription policy modifications
+                $setSubCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzSubscription'
+                }, $true)
+                
+                foreach ($call in $setSubCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureSubscriptionManagement",
+                        "Modifying subscription settings detected. Ensure change management approval.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 5: Move-AzResource cross-subscription without validation
+                $moveResourceCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Move-AzResource'
+                }, $true)
+                
+                foreach ($call in $moveResourceCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'DestinationSubscriptionId') {
+                            $violations += [SecurityViolation]::new(
+                                "AzureSubscriptionManagement",
+                                "Cross-subscription resource move detected. Verify security implications.",
+                                [SecuritySeverity]::High,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 40: Azure Compute Security Violations
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureComputeSecurityViolations",
+            "Detects insecure Azure VM and container configurations",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: New-AzVm with public IP and RDP/SSH open
+                $newVmCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'New-AzVm' -or
+                     $args[0].GetCommandName() -eq 'New-AzVM')
+                }, $true)
+                
+                foreach ($call in $newVmCalls) {
+                    $hasPublicIp = $false
+                    $hasOpenRdpSsh = $false
+                    
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst]) {
+                            if ($element.ParameterName -eq 'PublicIpAddressName' -or
+                                $element.ParameterName -eq 'PublicIpAddress') {
+                                $hasPublicIp = $true
+                            }
+                            if ($element.ParameterName -eq 'OpenPorts') {
+                                $nextElement = $call.CommandElements[$i + 1]
+                                $portsText = $nextElement.Extent.Text
+                                if ($portsText -match '22|3389|rdp|ssh') {
+                                    $hasOpenRdpSsh = $true
+                                }
+                            }
+                        }
+                    }
+                    
+                    if ($hasPublicIp -and $hasOpenRdpSsh) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureComputeSecurityViolations",
+                            "VM with public IP and open RDP/SSH ports detected. Use Azure Bastion or VPN instead.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: Set-AzVMExtension with custom script execution
+                $vmExtCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzVMExtension'
+                }, $true)
+                
+                foreach ($call in $vmExtCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'ExtensionType') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match 'CustomScript') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureComputeSecurityViolations",
+                                    "Custom script VM extension detected. Ensure script source is trusted and validated.",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 3: Add-AzVMDataDisk without encryption
+                $addDiskCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Add-AzVMDataDisk'
+                }, $true)
+                
+                foreach ($call in $addDiskCalls) {
+                    $hasEncryption = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'DiskEncryptionSetId' -or
+                             $element.ParameterName -eq 'Encryption')) {
+                            $hasEncryption = $true
+                            break
+                        }
+                    }
+                    
+                    if (-not $hasEncryption) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureComputeSecurityViolations",
+                            "Adding VM data disk without encryption. Enable Azure Disk Encryption.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Set-AzVMOperatingSystem with disabled security features
+                $setOsCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzVMOperatingSystem'
+                }, $true)
+                
+                foreach ($call in $setOsCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'DisablePasswordAuthentication') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match '\$false') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureComputeSecurityViolations",
+                                    "Password authentication enabled on Linux VM. Use SSH keys only.",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 5: New-AzContainerGroup with privileged containers
+                $containerCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzContainerGroup'
+                }, $true)
+                
+                foreach ($call in $containerCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'privileged|--privileged') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureComputeSecurityViolations",
+                            "Creating privileged container detected. Avoid privileged mode for security.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 41: Azure DevOps Security Issues
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureDevOpsSecurityIssues",
+            "Detects security issues in Azure DevOps configurations",
+            [SecuritySeverity]::Medium,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Set-AzDevOpsVariable with secrets in plaintext
+                $setVarCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzDevOpsVariable'
+                }, $true)
+                
+                foreach ($call in $setVarCalls) {
+                    $hasSecret = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'IsSecret') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match '\$false') {
+                                $hasSecret = $true
+                            }
+                        }
+                    }
+                    
+                    $callText = $call.Extent.Text.ToLower()
+                    if (($callText -match 'password|secret|key|token|credential') -and -not $hasSecret) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureDevOpsSecurityIssues",
+                            "Azure DevOps variable containing sensitive data not marked as secret.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: New-AzDevOpsPipeline with elevated permissions
+                $newPipelineCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzDevOpsPipeline'
+                }, $true)
+                
+                foreach ($call in $newPipelineCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'admin|elevated|privileged') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureDevOpsSecurityIssues",
+                            "Pipeline with elevated permissions detected. Use least privilege principle.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: Add-AzDevOpsServiceConnection with broad access
+                $svcConnCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Add-AzDevOpsServiceConnection'
+                }, $true)
+                
+                foreach ($call in $svcConnCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzureDevOpsSecurityIssues",
+                        "Service connection creation detected. Ensure proper scope and access controls.",
+                        [SecuritySeverity]::Medium,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 4: Set-AzDevOpsRepositoryPolicy disabling security checks
+                $setPolicyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzDevOpsRepositoryPolicy'
+                }, $true)
+                
+                foreach ($call in $setPolicyCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'Enabled') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match '\$false') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureDevOpsSecurityIssues",
+                                    "Repository policy being disabled. Maintain security checks for code quality.",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 5: Grant-AzDevOpsPermission with excessive scope
+                $grantPermCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Grant-AzDevOpsPermission'
+                }, $true)
+                
+                foreach ($call in $grantPermCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'allow.*all|administrator|full.*control') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureDevOpsSecurityIssues",
+                            "Granting excessive Azure DevOps permissions. Apply least privilege principle.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 42: Azure Encryption Bypass
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureEncryptionBypass",
+            "Detects attempts to disable encryption on Azure resources",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Set-AzStorageAccount with encryption disabled
+                $storageAcctCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzStorageAccount'
+                }, $true)
+                
+                foreach ($call in $storageAcctCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'EnableEncryptionService' -or
+                             $element.ParameterName -eq 'RequireInfrastructureEncryption')) {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match '\$false|None') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureEncryptionBypass",
+                                    "Storage account encryption being disabled. Encryption is required for data protection.",
+                                    [SecuritySeverity]::Critical,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 2: New-AzDisk without encryption
+                $newDiskCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzDisk'
+                }, $true)
+                
+                foreach ($call in $newDiskCalls) {
+                    $hasEncryption = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'DiskEncryptionSetId' -or
+                             $element.ParameterName -eq 'EncryptionType')) {
+                            $hasEncryption = $true
+                            break
+                        }
+                    }
+                    
+                    if (-not $hasEncryption) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEncryptionBypass",
+                            "Creating disk without encryption. Enable encryption at rest.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: Set-AzSqlDatabase with TDE disabled
+                $sqlDbCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Set-AzSqlDatabase' -or
+                     $args[0].GetCommandName() -eq 'Set-AzSqlDatabaseTransparentDataEncryption')
+                }, $true)
+                
+                foreach ($call in $sqlDbCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'State') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match 'Disabled') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureEncryptionBypass",
+                                    "SQL Database Transparent Data Encryption (TDE) being disabled. Keep enabled for compliance.",
+                                    [SecuritySeverity]::Critical,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 4: New-AzVirtualMachine without disk encryption
+                $newVmCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzVirtualMachine'
+                }, $true)
+                
+                foreach ($call in $newVmCalls) {
+                    $hasEncryption = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -match 'Encryption') {
+                            $hasEncryption = $true
+                            break
+                        }
+                    }
+                    
+                    if (-not $hasEncryption) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEncryptionBypass",
+                            "VM created without disk encryption. Enable Azure Disk Encryption (ADE).",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Set-AzKeyVault without HSM protection in production
+                $kvCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Set-AzKeyVault' -or
+                     $args[0].GetCommandName() -eq 'New-AzKeyVault')
+                }, $true)
+                
+                foreach ($call in $kvCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    $hasHsm = $callText -match 'enablehsmprotection|sku.*premium'
+                    $isProd = $callText -match 'prod|production'
+                    
+                    if ($isProd -and -not $hasHsm) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureEncryptionBypass",
+                            "Production Key Vault without HSM protection. Use Premium SKU with HSM for production.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 43: Azure Policy and Compliance
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzurePolicyAndCompliance",
+            "Detects modifications to Azure policy and compliance settings",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Remove-AzPolicyAssignment
+                $removePolicyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Remove-AzPolicyAssignment'
+                }, $true)
+                
+                foreach ($call in $removePolicyCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzurePolicyAndCompliance",
+                        "Removing Azure policy assignment. Ensure compliance requirements are maintained.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 2: Set-AzPolicyDefinition with weakened controls
+                $setPolicyDefCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzPolicyDefinition'
+                }, $true)
+                
+                foreach ($call in $setPolicyDefCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'disabled|audit.*only|deny.*false') {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePolicyAndCompliance",
+                            "Modifying policy definition to weaken controls. Review for compliance impact.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: New-AzPolicyExemption without justification
+                $exemptionCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzPolicyExemption'
+                }, $true)
+                
+                foreach ($call in $exemptionCalls) {
+                    $hasDescription = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'Description') {
+                            $hasDescription = $true
+                            break
+                        }
+                    }
+                    
+                    if (-not $hasDescription) {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePolicyAndCompliance",
+                            "Policy exemption without description/justification. Document reason for exemption.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Disable-AzSecurityContact
+                $disableSecCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Disable-AzSecurityContact'
+                }, $true)
+                
+                foreach ($call in $disableSecCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "AzurePolicyAndCompliance",
+                        "Disabling security contact. Maintain active security contacts for incident response.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 5: Set-AzSecurityPricing to free tier in production
+                $pricingCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzSecurityPricing'
+                }, $true)
+                
+                foreach ($call in $pricingCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'PricingTier') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match 'Free') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzurePolicyAndCompliance",
+                                    "Setting Security Center to Free tier. Use Standard tier for production environments.",
+                                    [SecuritySeverity]::Medium,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 44: JEA Configuration Vulnerabilities
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "JEAConfigurationVulnerabilities",
+            "Detects security vulnerabilities in JEA (Just Enough Administration) configurations",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Role capability files with wildcard cmdlets
+                $roleCapabilityStrings = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and
+                    $args[0].Value -match 'VisibleCmdlets.*\*|VisibleFunctions.*\*|VisibleAliases.*\*'
+                }, $true)
+                
+                foreach ($string in $roleCapabilityStrings) {
+                    $violations += [SecurityViolation]::new(
+                        "JEAConfigurationVulnerabilities",
+                        "JEA role capability using wildcards (*) for visible cmdlets/functions. Use explicit cmdlet lists.",
+                        [SecuritySeverity]::High,
+                        $string.Extent.StartLineNumber,
+                        $string.Extent.Text
+                    )
+                }
+                
+                # Pattern 2: Session configuration without transcript logging
+                $sessionConfigCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Register-PSSessionConfiguration'
+                }, $true)
+                
+                foreach ($call in $sessionConfigCalls) {
+                    $hasTranscript = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'TranscriptDirectory') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -notmatch '\$null') {
+                                $hasTranscript = $true
+                            }
+                        }
+                    }
+                    
+                    if (-not $hasTranscript) {
+                        $violations += [SecurityViolation]::new(
+                            "JEAConfigurationVulnerabilities",
+                            "JEA session configuration without transcript logging. Enable TranscriptDirectory for auditing.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: RunAsCredential instead of virtual account
+                foreach ($call in $sessionConfigCalls) {
+                    $hasRunAsCred = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'RunAsCredential') {
+                            $hasRunAsCred = $true
+                            break
+                        }
+                    }
+                    
+                    if ($hasRunAsCred) {
+                        $violations += [SecurityViolation]::new(
+                            "JEAConfigurationVulnerabilities",
+                            "JEA using RunAsCredential instead of RunAsVirtualAccount. Use virtual accounts for better security.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Role capabilities allowing dangerous cmdlets
+                $dangerousCmdlets = @('Invoke-Expression', 'Invoke-Command', 'Enter-PSSession', 'Add-Type', 'New-Object')
+                foreach ($cmdlet in $dangerousCmdlets) {
+                    $dangerousRoles = $Ast.FindAll({
+                        $args[0] -is [StringConstantExpressionAst] -and
+                        $args[0].Value -match "VisibleCmdlets.*$cmdlet"
+                    }, $true)
+                    
+                    foreach ($role in $dangerousRoles) {
+                        $violations += [SecurityViolation]::new(
+                            "JEAConfigurationVulnerabilities",
+                            "JEA role capability includes dangerous cmdlet: $cmdlet. Remove or restrict carefully.",
+                            [SecuritySeverity]::Critical,
+                            $role.Extent.StartLineNumber,
+                            $role.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Session configuration with full language mode
+                foreach ($call in $sessionConfigCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'SessionType') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match 'Default') {
+                                $violations += [SecurityViolation]::new(
+                                    "JEAConfigurationVulnerabilities",
+                                    "JEA session using Default (full language) mode. Use RestrictedRemoteServer for JEA.",
+                                    [SecuritySeverity]::Critical,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 6: Execution policy bypass in JEA
+                foreach ($call in $sessionConfigCalls) {
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            $element.ParameterName -eq 'ExecutionPolicy') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement.Extent.Text -match 'Bypass|Unrestricted') {
+                                $violations += [SecurityViolation]::new(
+                                    "JEAConfigurationVulnerabilities",
+                                    "JEA session with Bypass/Unrestricted execution policy. Use RemoteSigned or AllSigned.",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 45: DSC Security Issues
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "DSCSecurityIssues",
+            "Detects security issues in DSC (Desired State Configuration) scripts",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Unsafe Configuration data handling with plaintext credentials
+                $configCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Configuration'
+                }, $true)
+                
+                foreach ($call in $configCalls) {
+                    # Look for PsDscAllowPlainTextPassword in ConfigurationData
+                    $parent = $call.Parent
+                    $scriptText = if ($parent) { $parent.Extent.Text } else { $call.Extent.Text }
+                    if ($scriptText -match 'PsDscAllowPlainTextPassword\s*=\s*\$true') {
+                        $violations += [SecurityViolation]::new(
+                            "DSCSecurityIssues",
+                            "DSC Configuration allows plaintext passwords (PsDscAllowPlainTextPassword). Use certificates for credential encryption.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: MOF file credential exposure
+                $exportCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -match 'Export.*MOF|Start-DscConfiguration')
+                }, $true)
+                
+                foreach ($call in $exportCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'password|credential' -and $callText -notmatch 'pscredential') {
+                        $violations += [SecurityViolation]::new(
+                            "DSCSecurityIssues",
+                            "DSC MOF export may contain credentials. Ensure proper encryption is configured.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: DSC credential storage issues - ConvertTo-SecureString in DSC
+                $dscSecureStringCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -eq 'ConvertTo-SecureString'
+                }, $true)
+                
+                foreach ($call in $dscSecureStringCalls) {
+                    # Check if we're in a DSC Configuration block
+                    $parent = $call.Parent
+                    $inDscConfig = $false
+                    while ($parent) {
+                        if ($parent -is [CommandAst] -and $parent.GetCommandName() -eq 'Configuration') {
+                            $inDscConfig = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($inDscConfig) {
+                        # Check for AsPlainText
+                        $hasAsPlainText = $false
+                        foreach ($element in $call.CommandElements) {
+                            if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'AsPlainText') {
+                                $hasAsPlainText = $true
+                                break
+                            }
+                        }
+                        
+                        if ($hasAsPlainText) {
+                            $violations += [SecurityViolation]::new(
+                                "DSCSecurityIssues",
+                                "DSC Configuration using ConvertTo-SecureString -AsPlainText. Use certificate-based credential encryption.",
+                                [SecuritySeverity]::Critical,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 4: DSC without CertificateId for credential encryption
+                foreach ($call in $configCalls) {
+                    $scriptBlock = $call.Parent
+                    if ($scriptBlock) {
+                        $blockText = $scriptBlock.Extent.Text
+                        $hasCredential = $blockText -match '\[PSCredential\]|\$Credential'
+                        $hasCertConfig = $blockText -match 'CertificateId|CertificateFile'
+                        
+                        if ($hasCredential -and -not $hasCertConfig) {
+                            $violations += [SecurityViolation]::new(
+                                "DSCSecurityIssues",
+                                "DSC Configuration uses credentials without certificate encryption (CertificateId). Configure credential encryption.",
+                                [SecuritySeverity]::High,
+                                $call.Extent.StartLineNumber,
+                                $call.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 5: Unsafe DSC resource parameters
+                $resourceCalls = $Ast.FindAll({
+                    $args[0] -is [DynamicKeywordStatementAst]
+                }, $true)
+                
+                foreach ($call in $resourceCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'script\s*{' -or $callText -match 'getscript\s*=\s*{.*invoke-expression') {
+                        $violations += [SecurityViolation]::new(
+                            "DSCSecurityIssues",
+                            "DSC Script resource with potentially unsafe script blocks. Review for injection risks.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 46: Deprecated Cmdlet Usage
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "DeprecatedCmdletUsage",
+            "Detects usage of deprecated cmdlets and methods that have security or compatibility issues",
+            [SecuritySeverity]::Medium,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: New-Object System.Net.WebClient (deprecated - use Invoke-RestMethod/Invoke-WebRequest)
+                $webClientCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].CommandElements.Count -ge 2 -and
+                    $args[0].CommandElements[0].Value -eq 'New-Object' -and
+                    $args[0].CommandElements[1].Value -match 'System\.Net\.WebClient'
+                }, $true)
+                
+                foreach ($call in $webClientCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "Using deprecated System.Net.WebClient. Use Invoke-RestMethod or Invoke-WebRequest instead.",
+                        [SecuritySeverity]::Medium,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 2: Send-MailMessage (deprecated - security issues)
+                $mailCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Send-MailMessage'
+                }, $true)
+                
+                foreach ($call in $mailCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "Send-MailMessage is deprecated and has security issues. Use MailKit or Microsoft.Graph instead.",
+                        [SecuritySeverity]::High,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: WMI cmdlets (deprecated - use CIM cmdlets)
+                $wmiCmdlets = @('Get-WmiObject', 'Set-WmiInstance', 'Invoke-WmiMethod', 'Remove-WmiObject', 'Register-WmiEvent')
+                foreach ($cmdlet in $wmiCmdlets) {
+                    $wmiCalls = $Ast.FindAll({
+                        $args[0] -is [CommandAst] -and 
+                        $args[0].GetCommandName() -eq $cmdlet
+                    }, $true)
+                    
+                    foreach ($call in $wmiCalls) {
+                        $cimEquivalent = $cmdlet -replace 'Wmi', 'Cim'
+                        $violations += [SecurityViolation]::new(
+                            "DeprecatedCmdletUsage",
+                            "Using deprecated WMI cmdlet '$cmdlet'. Use CIM cmdlet '$cimEquivalent' instead.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Deprecated security protocols (SSL3, TLS 1.0, TLS 1.1)
+                $securityProtocolAssignments = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst] -and
+                    $args[0].Left.Extent.Text -match 'SecurityProtocol'
+                }, $true)
+                
+                foreach ($assignment in $securityProtocolAssignments) {
+                    $rightSide = $assignment.Right.Extent.Text
+                    if ($rightSide -match 'Ssl3|Tls\]|Tls11') {
+                        $violations += [SecurityViolation]::new(
+                            "DeprecatedCmdletUsage",
+                            "Using deprecated security protocol (SSL3/TLS1.0/TLS1.1). Use TLS 1.2 or higher.",
+                            [SecuritySeverity]::High,
+                            $assignment.Extent.StartLineNumber,
+                            $assignment.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Out-Printer (deprecated)
+                $printerCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Out-Printer'
+                }, $true)
+                
+                foreach ($call in $printerCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "Out-Printer is deprecated. Use Start-Process with -Verb Print instead.",
+                        [SecuritySeverity]::Low,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 6: New-WebServiceProxy (deprecated)
+                $webServiceCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-WebServiceProxy'
+                }, $true)
+                
+                foreach ($call in $webServiceCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "New-WebServiceProxy is deprecated. Use Invoke-RestMethod for REST APIs or modern SOAP clients.",
+                        [SecuritySeverity]::Medium,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 7: Export-Console (deprecated)
+                $exportConsoleCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Export-Console'
+                }, $true)
+                
+                foreach ($call in $exportConsoleCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "Export-Console is deprecated. Use PowerShell modules instead of PSSnapins.",
+                        [SecuritySeverity]::Low,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                # Pattern 8: Read-Host for passwords without -AsSecureString
+                $readHostCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Read-Host'
+                }, $true)
+                
+                foreach ($call in $readHostCalls) {
+                    $callText = $call.Extent.Text.ToLower()
+                    $isSensitive = $callText -match 'password|secret|key|token|credential|pin'
+                    $hasAsSecureString = $callText -match '-assecurestring'
+                    
+                    if ($isSensitive -and -not $hasAsSecureString) {
+                        $violations += [SecurityViolation]::new(
+                            "DeprecatedCmdletUsage",
+                            "Read-Host for sensitive data without -AsSecureString. Use -AsSecureString for passwords.",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 9: [System.Web.Security.Membership]::GeneratePassword (deprecated)
+                $generatePasswordCalls = $Ast.FindAll({
+                    $args[0] -is [InvokeMemberExpressionAst] -and
+                    $args[0].Expression.TypeName.Name -match 'System\.Web\.Security\.Membership' -and
+                    $args[0].Member.Value -eq 'GeneratePassword'
+                }, $true)
+                
+                foreach ($call in $generatePasswordCalls) {
+                    $violations += [SecurityViolation]::new(
+                        "DeprecatedCmdletUsage",
+                        "[System.Web.Security.Membership]::GeneratePassword is deprecated. Use Get-Random or cryptographic RNG.",
+                        [SecuritySeverity]::Medium,
+                        $call.Extent.StartLineNumber,
+                        $call.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
     }
 
     [PSCustomObject] AnalyzeScript([string]$ScriptPath) {
