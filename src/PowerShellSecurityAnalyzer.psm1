@@ -3826,6 +3826,1098 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+
+        # Rule 47: PowerShell Obfuscation Detection (MITRE ATT&CK: T1027, T1059.001)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PowerShellObfuscationDetection",
+            "Detects obfuscation techniques commonly used in malicious PowerShell scripts",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Base64 encoded commands (-EncodedCommand, -enc, -e)
+                $base64Patterns = $Ast.FindAll({
+                    $args[0] -is [CommandParameterAst] -and
+                    ($args[0].ParameterName -match '^(EncodedCommand|enc|e)$')
+                }, $true)
+                
+                foreach ($pattern in $base64Patterns) {
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellObfuscationDetection",
+                        "Base64 encoded command detected. This is often used to hide malicious payloads. MITRE ATT&CK: T1027 (Obfuscated Files or Information), T1059.001 (PowerShell).",
+                        [SecuritySeverity]::Critical,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                # Check for FromBase64String method calls
+                $base64DecodePatterns = $Ast.FindAll({
+                    $args[0] -is [InvokeMemberExpressionAst] -and
+                    $args[0].Member.Value -eq 'FromBase64String'
+                }, $true)
+                
+                foreach ($pattern in $base64DecodePatterns) {
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellObfuscationDetection",
+                        "Base64 decoding detected with FromBase64String. Review for potential payload obfuscation. MITRE ATT&CK: T1027.",
+                        [SecuritySeverity]::High,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                # Pattern 2: Suspicious string concatenation obfuscation
+                # Look for excessive string concatenation (split commands)
+                $stringConcats = $Ast.FindAll({
+                    $args[0] -is [BinaryExpressionAst] -and
+                    $args[0].Operator -eq 'Plus' -and
+                    (($args[0].Left -is [StringConstantExpressionAst] -or 
+                      $args[0].Left -is [ExpandableStringExpressionAst]) -and
+                     ($args[0].Right -is [StringConstantExpressionAst] -or 
+                      $args[0].Right -is [ExpandableStringExpressionAst] -or
+                      $args[0].Right -is [BinaryExpressionAst]))
+                }, $true)
+                
+                # Count concatenations - if >5 in a row, likely obfuscation
+                $concatGroups = @{}
+                foreach ($concat in $stringConcats) {
+                    $lineNum = $concat.Extent.StartLineNumber
+                    if (-not $concatGroups.ContainsKey($lineNum)) {
+                        $concatGroups[$lineNum] = 0
+                    }
+                    $concatGroups[$lineNum]++
+                }
+                
+                foreach ($lineNum in $concatGroups.Keys) {
+                    if ($concatGroups[$lineNum] -ge 5) {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellObfuscationDetection",
+                            "Excessive string concatenation detected (possible command obfuscation). MITRE ATT&CK: T1027.",
+                            [SecuritySeverity]::High,
+                            $lineNum,
+                            "Multiple string concatenations on line $lineNum"
+                        )
+                    }
+                }
+                
+                # Pattern 3: Character code conversion ([char]XX patterns)
+                $charCodePatterns = $Ast.FindAll({
+                    $args[0] -is [TypeExpressionAst] -and
+                    $args[0].TypeName.Name -eq 'char'
+                }, $true)
+                
+                # Multiple char conversions suggest obfuscation
+                if ($charCodePatterns.Count -ge 5) {
+                    $firstPattern = $charCodePatterns[0]
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellObfuscationDetection",
+                        "Multiple character code conversions detected ($($charCodePatterns.Count) instances). This pattern is used for string obfuscation. MITRE ATT&CK: T1027.",
+                        [SecuritySeverity]::High,
+                        $firstPattern.Extent.StartLineNumber,
+                        "Multiple [char] conversions detected"
+                    )
+                }
+                
+                # Pattern 4: Format string obfuscation (-f operator with suspicious patterns)
+                $formatOperators = $Ast.FindAll({
+                    $args[0] -is [BinaryExpressionAst] -and
+                    $args[0].Operator -eq 'Format'
+                }, $true)
+                
+                foreach ($formatOp in $formatOperators) {
+                    $leftText = $formatOp.Left.Extent.Text
+                    # Check for format strings with multiple placeholders (common in obfuscation)
+                    $placeholderCount = ([regex]::Matches($leftText, '\{[0-9]+\}')).Count
+                    if ($placeholderCount -ge 5) {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellObfuscationDetection",
+                            "Suspicious format string with $placeholderCount placeholders. This pattern is used for command obfuscation. MITRE ATT&CK: T1027.",
+                            [SecuritySeverity]::High,
+                            $formatOp.Extent.StartLineNumber,
+                            $formatOp.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Reversed strings ([char[]]$string -join '' or -split '' | Reverse)
+                $reversePatterns = $Ast.FindAll({
+                    ($args[0] -is [MemberExpressionAst] -and
+                     $args[0].Member.Value -match '^(ToCharArray|Reverse)$') -or
+                    ($args[0] -is [InvokeMemberExpressionAst] -and
+                     $args[0].Member.Value -match '^(ToCharArray|Reverse)$')
+                }, $true)
+                
+                foreach ($pattern in $reversePatterns) {
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellObfuscationDetection",
+                        "String reversal detected. This technique is used to obfuscate malicious commands. MITRE ATT&CK: T1027.",
+                        [SecuritySeverity]::High,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                # Pattern 6: -join with char arrays (common obfuscation)
+                $joinPatterns = $Ast.FindAll({
+                    $args[0] -is [BinaryExpressionAst] -and
+                    $args[0].Operator -eq 'Join'
+                }, $true)
+                
+                foreach ($pattern in $joinPatterns) {
+                    $leftText = $pattern.Left.Extent.Text
+                    # Check if joining char arrays
+                    if ($leftText -match '\[char\]' -or $leftText -match 'ToCharArray') {
+                        $violations += [SecurityViolation]::new(
+                            "PowerShellObfuscationDetection",
+                            "Character array join detected. Often used to reconstruct obfuscated commands. MITRE ATT&CK: T1027.",
+                            [SecuritySeverity]::High,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 7: Replace operator with suspicious patterns (often used for de-obfuscation)
+                $replacePatterns = $Ast.FindAll({
+                    $args[0] -is [BinaryExpressionAst] -and
+                    $args[0].Operator -eq 'Replace'
+                }, $true)
+                
+                if ($replacePatterns.Count -ge 3) {
+                    $firstPattern = $replacePatterns[0]
+                    $violations += [SecurityViolation]::new(
+                        "PowerShellObfuscationDetection",
+                        "Multiple string replacements detected ($($replacePatterns.Count) instances). This pattern suggests obfuscated payload reconstruction. MITRE ATT&CK: T1027.",
+                        [SecuritySeverity]::Medium,
+                        $firstPattern.Extent.StartLineNumber,
+                        "Multiple -replace operators detected"
+                    )
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 48: Download Cradle Detection (MITRE ATT&CK: T1105, T1059.001, T1204.002)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "DownloadCradleDetection",
+            "Detects download cradles that fetch and execute remote code without touching disk",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Classic IEX (New-Object Net.WebClient).DownloadString(...)
+                $webClientDownloads = $Ast.FindAll({
+                    $args[0] -is [InvokeMemberExpressionAst] -and
+                    $args[0].Member.Value -match '^Download(String|Data|File)$' -and
+                    $args[0].Expression.Extent.Text -match 'WebClient'
+                }, $true)
+                
+                foreach ($download in $webClientDownloads) {
+                    # Check if wrapped in IEX/Invoke-Expression
+                    $parent = $download.Parent
+                    $isExecuted = $false
+                    while ($parent -and -not $isExecuted) {
+                        if (($parent -is [CommandAst] -and 
+                             $parent.GetCommandName() -match '^(Invoke-Expression|IEX|iex)$') -or
+                            ($parent -is [InvokeMemberExpressionAst] -and 
+                             $parent.Member.Value -eq 'Invoke')) {
+                            $isExecuted = $true
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    $severity = if ($isExecuted) { [SecuritySeverity]::Critical } else { [SecuritySeverity]::High }
+                    $message = if ($isExecuted) {
+                        "Download cradle with immediate execution detected (IEX/Invoke). This downloads and runs code from a remote URL without disk access. MITRE ATT&CK: T1105 (Ingress Tool Transfer), T1059.001 (PowerShell), T1204.002 (Malicious File)."
+                    } else {
+                        "Remote download via WebClient detected. Verify the source is trusted. MITRE ATT&CK: T1105 (Ingress Tool Transfer)."
+                    }
+                    
+                    $violations += [SecurityViolation]::new(
+                        "DownloadCradleDetection",
+                        $message,
+                        $severity,
+                        $download.Extent.StartLineNumber,
+                        $download.Extent.Text
+                    )
+                }
+                
+                # Pattern 2: Invoke-WebRequest/Invoke-RestMethod with IEX
+                $webRequestCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Invoke-WebRequest|Invoke-RestMethod|iwr|irm|wget|curl)$'
+                }, $true)
+                
+                foreach ($call in $webRequestCalls) {
+                    # Check if piped to IEX or wrapped in IEX
+                    $parent = $call.Parent
+                    $isExecuted = $false
+                    
+                    # Check for pipeline
+                    if ($parent -is [PipelineAst]) {
+                        foreach ($element in $parent.PipelineElements) {
+                            if ($element -is [CommandAst] -and
+                                $element.GetCommandName() -match '^(Invoke-Expression|IEX|iex)$') {
+                                $isExecuted = $true
+                            }
+                        }
+                    }
+                    
+                    # Check if wrapped in IEX
+                    while ($parent -and -not $isExecuted) {
+                        if ($parent -is [CommandAst] -and 
+                            $parent.GetCommandName() -match '^(Invoke-Expression|IEX|iex)$') {
+                            $isExecuted = $true
+                        }
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($isExecuted) {
+                        $violations += [SecurityViolation]::new(
+                            "DownloadCradleDetection",
+                            "Download cradle detected using Invoke-WebRequest/RestMethod with execution. This is a common malware delivery technique. MITRE ATT&CK: T1105, T1059.001, T1204.002.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: BitsTransfer + execution chains
+                $bitsTransferCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Start-BitsTransfer|Import-BitsTransfer)$'
+                }, $true)
+                
+                foreach ($call in $bitsTransferCalls) {
+                    # Look for subsequent execution in the same script
+                    $scriptText = $Ast.Extent.Text
+                    $callPosition = $call.Extent.StartOffset
+                    $remainingScript = $scriptText.Substring($callPosition)
+                    
+                    # Check if followed by execution commands within 500 characters
+                    if ($remainingScript.Length -gt 0 -and $remainingScript.Substring(0, [Math]::Min(500, $remainingScript.Length)) -match 
+                        '(Invoke-Expression|IEX|Start-Process|\.\\|Invoke-Item|&\s*\$)') {
+                        $violations += [SecurityViolation]::new(
+                            "DownloadCradleDetection",
+                            "BitsTransfer download followed by execution pattern detected. This technique is used to evade detection. MITRE ATT&CK: T1105, T1197 (BITS Jobs).",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Memory-only execution patterns (Reflection.Assembly Load)
+                $assemblyLoadPatterns = $Ast.FindAll({
+                    $args[0] -is [InvokeMemberExpressionAst] -and
+                    $args[0].Member.Value -match '^(Load|LoadFile|LoadFrom)$' -and
+                    $args[0].Expression.Extent.Text -match 'Reflection\.Assembly'
+                }, $true)
+                
+                foreach ($pattern in $assemblyLoadPatterns) {
+                    # Check if loading from web or memory
+                    $fullText = $pattern.Parent.Extent.Text
+                    if ($fullText -match 'http|Download|WebClient|WebRequest') {
+                        $violations += [SecurityViolation]::new(
+                            "DownloadCradleDetection",
+                            "Assembly loading from remote source detected. This technique loads .NET assemblies directly into memory without disk access. MITRE ATT&CK: T1027.004 (Compile After Delivery), T1620 (Reflective Code Loading).",
+                            [SecuritySeverity]::Critical,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: .Content access with Invoke-WebRequest (fileless download)
+                $contentAccessPatterns = $Ast.FindAll({
+                    $args[0] -is [MemberExpressionAst] -and
+                    $args[0].Member.Value -eq 'Content'
+                }, $true)
+                
+                foreach ($pattern in $contentAccessPatterns) {
+                    $parent = $pattern.Parent
+                    $isFromWebRequest = $false
+                    $checkDepth = 0
+                    
+                    while ($parent -and $checkDepth -lt 10) {
+                        if ($parent.Extent.Text -match '(Invoke-WebRequest|Invoke-RestMethod|iwr|irm)') {
+                            $isFromWebRequest = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                        $checkDepth++
+                    }
+                    
+                    if ($isFromWebRequest) {
+                        $violations += [SecurityViolation]::new(
+                            "DownloadCradleDetection",
+                            "Direct content access from web request detected. Review for potential fileless download pattern. MITRE ATT&CK: T1105.",
+                            [SecuritySeverity]::High,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 49: Persistence Mechanism Detection (MITRE ATT&CK: T1547, T1053, T1546)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "PersistenceMechanismDetection",
+            "Detects persistence mechanisms that allow malware to survive system reboots",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Registry Run keys (HKLM/HKCU\Software\Microsoft\Windows\CurrentVersion\Run)
+                $registryPersistence = @(
+                    'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+                    'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+                    'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce',
+                    'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce',
+                    'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices',
+                    'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce',
+                    'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders',
+                    'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders'
+                )
+                
+                $registryCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(New-ItemProperty|Set-ItemProperty|New-Item|Set-Item)$'
+                }, $true)
+                
+                foreach ($cmd in $registryCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    foreach ($persistPath in $registryPersistence) {
+                        if ($cmdText -match [regex]::Escape($persistPath)) {
+                            $violations += [SecurityViolation]::new(
+                                "PersistenceMechanismDetection",
+                                "Registry persistence mechanism detected: modifying $persistPath. This is a common technique for maintaining access. MITRE ATT&CK: T1547.001 (Registry Run Keys / Startup Folder).",
+                                [SecuritySeverity]::Critical,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 2: Scheduled task creation
+                $scheduledTaskCmds = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(New-ScheduledTask|Register-ScheduledTask|New-ScheduledTaskAction|schtasks)$'
+                }, $true)
+                
+                foreach ($cmd in $scheduledTaskCmds) {
+                    $violations += [SecurityViolation]::new(
+                        "PersistenceMechanismDetection",
+                        "Scheduled task creation detected. Verify this is legitimate - scheduled tasks are used for persistence. MITRE ATT&CK: T1053.005 (Scheduled Task).",
+                        [SecuritySeverity]::High,
+                        $cmd.Extent.StartLineNumber,
+                        $cmd.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: WMI Event Subscriptions (extremely suspicious)
+                $wmiEventCmds = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Register-WmiEvent|Register-CimIndicationEvent|Set-WmiInstance)$'
+                }, $true)
+                
+                foreach ($cmd in $wmiEventCmds) {
+                    # Check if creating event consumers or filters
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(EventConsumer|EventFilter|FilterToConsumerBinding|__EventFilter|__EventConsumer|CommandLineEventConsumer|ActiveScriptEventConsumer)') {
+                        $violations += [SecurityViolation]::new(
+                            "PersistenceMechanismDetection",
+                            "WMI event subscription detected. This is an advanced persistence technique often used by malware. MITRE ATT&CK: T1546.003 (Windows Management Instrumentation Event Subscription).",
+                            [SecuritySeverity]::Critical,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Look for WMI classes associated with persistence
+                $wmiClasses = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and
+                    $args[0].Value -match '__(EventConsumer|EventFilter|FilterToConsumerBinding)'
+                }, $true)
+                
+                foreach ($class in $wmiClasses) {
+                    $violations += [SecurityViolation]::new(
+                        "PersistenceMechanismDetection",
+                        "WMI persistence class reference detected: $($class.Value). This is highly suspicious. MITRE ATT&CK: T1546.003.",
+                        [SecuritySeverity]::Critical,
+                        $class.Extent.StartLineNumber,
+                        $class.Extent.Text
+                    )
+                }
+                
+                # Pattern 4: PowerShell profile modifications
+                $profilePaths = @('$PROFILE', '$profile', 'Microsoft.PowerShell_profile.ps1', 'profile.ps1')
+                
+                $profileModifications = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Add-Content|Set-Content|Out-File|New-Item)$'
+                }, $true)
+                
+                foreach ($cmd in $profileModifications) {
+                    $cmdText = $cmd.Extent.Text
+                    foreach ($profilePath in $profilePaths) {
+                        if ($cmdText -match [regex]::Escape($profilePath)) {
+                            $violations += [SecurityViolation]::new(
+                                "PersistenceMechanismDetection",
+                                "PowerShell profile modification detected. Malware uses this to execute on every PowerShell session. MITRE ATT&CK: T1546.013 (PowerShell Profile).",
+                                [SecuritySeverity]::High,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 5: Startup folder modifications
+                $startupPatterns = $Ast.FindAll({
+                    ($args[0] -is [CommandAst] -and
+                     $args[0].GetCommandName() -match '^(Copy-Item|Move-Item|New-Item)$') -or
+                    ($args[0] -is [StringConstantExpressionAst] -and
+                     $args[0].Value -match 'Startup')
+                }, $true)
+                
+                foreach ($pattern in $startupPatterns) {
+                    if ($pattern.Extent.Text -match '(\\Startup\\|\\Start Menu\\Programs\\Startup)') {
+                        $violations += [SecurityViolation]::new(
+                            "PersistenceMechanismDetection",
+                            "Startup folder modification detected. Files in Startup folder execute on logon. MITRE ATT&CK: T1547.001 (Registry Run Keys / Startup Folder).",
+                            [SecuritySeverity]::High,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 6: Service creation/modification
+                $serviceCmds = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(New-Service|Set-Service|sc\.exe)$'
+                }, $true)
+                
+                foreach ($cmd in $serviceCmds) {
+                    $violations += [SecurityViolation]::new(
+                        "PersistenceMechanismDetection",
+                        "Windows service creation/modification detected. Services are used for system-level persistence. MITRE ATT&CK: T1543.003 (Windows Service).",
+                        [SecuritySeverity]::High,
+                        $cmd.Extent.StartLineNumber,
+                        $cmd.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 50: Credential Harvesting Detection (MITRE ATT&CK: T1003, T1555, T1552)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "CredentialHarvestingDetection",
+            "Detects credential harvesting and password dumping techniques",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Mimikatz patterns and keywords
+                $mimikatzKeywords = @(
+                    'mimikatz', 'sekurlsa', 'logonpasswords', 'privilege::debug',
+                    'lsadump', 'kerberos::golden', 'kerberos::silver', 'token::elevate',
+                    'gentilkiwi', 'benjamin delpy'
+                )
+                
+                $stringConstants = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst]
+                }, $true)
+                
+                foreach ($string in $stringConstants) {
+                    $value = $string.Value.ToLower()
+                    foreach ($keyword in $mimikatzKeywords) {
+                        if ($value -match $keyword) {
+                            $violations += [SecurityViolation]::new(
+                                "CredentialHarvestingDetection",
+                                "Mimikatz-related keyword detected: '$keyword'. This tool is used for credential dumping. MITRE ATT&CK: T1003.001 (LSASS Memory).",
+                                [SecuritySeverity]::Critical,
+                                $string.Extent.StartLineNumber,
+                                $string.Extent.Text
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                # Pattern 2: LSASS process dumping
+                $lsassPatterns = @(
+                    'lsass', 'lsass.exe', 'Local Security Authority'
+                )
+                
+                # Check for process dumping commands
+                $dumpCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Out-Minidump|MiniDumpWriteDump|procdump|rundll32)$'
+                }, $true)
+                
+                foreach ($cmd in $dumpCommands) {
+                    $cmdText = $cmd.Extent.Text.ToLower()
+                    foreach ($pattern in $lsassPatterns) {
+                        if ($cmdText -match $pattern) {
+                            $violations += [SecurityViolation]::new(
+                                "CredentialHarvestingDetection",
+                                "LSASS process dumping detected. This extracts credentials from memory. MITRE ATT&CK: T1003.001 (LSASS Memory).",
+                                [SecuritySeverity]::Critical,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Check Get-Process targeting lsass
+                $processCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Get-Process|ps)$'
+                }, $true)
+                
+                foreach ($cmd in $processCommands) {
+                    $cmdText = $cmd.Extent.Text.ToLower()
+                    if ($cmdText -match 'lsass') {
+                        # Check if followed by dumping operations
+                        $parent = $cmd.Parent
+                        if ($parent -and $parent.Extent.Text -match '(dump|export|out-file|memory)') {
+                            $violations += [SecurityViolation]::new(
+                                "CredentialHarvestingDetection",
+                                "LSASS process access with potential dumping operation detected. MITRE ATT&CK: T1003.001.",
+                                [SecuritySeverity]::Critical,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 3: Browser credential extraction
+                $browserPaths = @(
+                    'AppData\\Local\\Google\\Chrome\\User Data',
+                    'AppData\\Local\\Microsoft\\Edge\\User Data',
+                    'AppData\\Roaming\\Mozilla\\Firefox\\Profiles',
+                    'Login Data', 'logins.json', 'cookies.sqlite'
+                )
+                
+                foreach ($path in $browserPaths) {
+                    $pathPatterns = $Ast.FindAll({
+                        $args[0] -is [StringConstantExpressionAst] -and
+                        $args[0].Value -match [regex]::Escape($path)
+                    }, $true)
+                    
+                    foreach ($pattern in $pathPatterns) {
+                        $violations += [SecurityViolation]::new(
+                            "CredentialHarvestingDetection",
+                            "Browser credential store access detected: $path. This is used to extract saved passwords. MITRE ATT&CK: T1555.003 (Credentials from Web Browsers).",
+                            [SecuritySeverity]::High,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: WiFi password dumping
+                $wifiCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    ($args[0].GetCommandName() -eq 'netsh' -or
+                     $args[0].Extent.Text -match 'netsh.*wlan.*show.*profile.*key=clear')
+                }, $true)
+                
+                foreach ($cmd in $wifiCommands) {
+                    $cmdText = $cmd.Extent.Text.ToLower()
+                    if ($cmdText -match 'wlan.*show.*profile' -and $cmdText -match 'key=clear') {
+                        $violations += [SecurityViolation]::new(
+                            "CredentialHarvestingDetection",
+                            "WiFi password extraction detected (netsh wlan show profile key=clear). MITRE ATT&CK: T1552.001 (Credentials In Files).",
+                            [SecuritySeverity]::High,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: SAM/SYSTEM/SECURITY registry hive dumping
+                $registryHives = @('SAM', 'SYSTEM', 'SECURITY')
+                
+                $regSaveCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    ($args[0].GetCommandName() -match '^(reg\.exe|reg)$' -or
+                     $args[0].Extent.Text -match 'reg\s+save')
+                }, $true)
+                
+                foreach ($cmd in $regSaveCommands) {
+                    $cmdText = $cmd.Extent.Text.ToUpper()
+                    foreach ($hive in $registryHives) {
+                        if ($cmdText -match "HKLM\\$hive" -or $cmdText -match "\\$hive") {
+                            $violations += [SecurityViolation]::new(
+                                "CredentialHarvestingDetection",
+                                "Registry hive extraction detected: $hive. This is used for offline credential cracking. MITRE ATT&CK: T1003.002 (Security Account Manager).",
+                                [SecuritySeverity]::Critical,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 6: Credential Manager access
+                $credManagerPatterns = $Ast.FindAll({
+                    ($args[0] -is [CommandAst] -and
+                     $args[0].GetCommandName() -match '^(Get-Credential|cmdkey|vaultcmd)$') -or
+                    ($args[0] -is [StringConstantExpressionAst] -and
+                     $args[0].Value -match 'Windows\\(Vault|Credentials)')
+                }, $true)
+                
+                foreach ($pattern in $credManagerPatterns) {
+                    if ($pattern.Extent.Text -match '(Vault|Credentials|cmdkey\s+/list|vaultcmd)') {
+                        $violations += [SecurityViolation]::new(
+                            "CredentialHarvestingDetection",
+                            "Windows Credential Manager access detected. Review for potential credential theft. MITRE ATT&CK: T1555.004 (Windows Credential Manager).",
+                            [SecuritySeverity]::High,
+                            $pattern.Extent.StartLineNumber,
+                            $pattern.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 51: Lateral Movement Detection (MITRE ATT&CK: T1021, T1570, T1135)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "LateralMovementDetection",
+            "Detects lateral movement techniques used to spread across networks",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: WMI/CIM remote execution
+                $wmiRemoteCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Invoke-WmiMethod|Invoke-CimMethod|Get-WmiObject|Get-CimInstance|wmic)$'
+                }, $true)
+                
+                foreach ($cmd in $wmiRemoteCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    # Check for remote execution indicators
+                    if ($cmdText -match '(-ComputerName|-CimSession|-Credential)') {
+                        # Check for execution methods
+                        if ($cmdText -match '(Win32_Process|Create|Invoke)') {
+                            $violations += [SecurityViolation]::new(
+                                "LateralMovementDetection",
+                                "Remote WMI/CIM execution detected. This is used to run commands on remote systems. MITRE ATT&CK: T1021.006 (Remote Services: Windows Remote Management).",
+                                [SecuritySeverity]::Critical,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        } else {
+                            $violations += [SecurityViolation]::new(
+                                "LateralMovementDetection",
+                                "Remote WMI/CIM query detected. Verify this is legitimate reconnaissance. MITRE ATT&CK: T1047 (Windows Management Instrumentation).",
+                                [SecuritySeverity]::High,
+                                $cmd.Extent.StartLineNumber,
+                                $cmd.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 2: Remote scheduled tasks (highly suspicious)
+                $remoteTaskCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Register-ScheduledTask|New-ScheduledTask|schtasks)$'
+                }, $true)
+                
+                foreach ($cmd in $remoteTaskCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(-ComputerName|-CimSession|\\\\|/s\s+)') {
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "Remote scheduled task creation detected. This technique is used for remote code execution and persistence. MITRE ATT&CK: T1053.005 (Scheduled Task), T1021 (Remote Services).",
+                            [SecuritySeverity]::Critical,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: SMB share enumeration
+                $smbCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Get-SmbShare|Get-SmbMapping|net\.exe|net)$'
+                }, $true)
+                
+                foreach ($cmd in $smbCommands) {
+                    $cmdText = $cmd.Extent.Text.ToLower()
+                    if ($cmdText -match '(net\s+view|net\s+share|net\s+use|\\\\)') {
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "SMB share enumeration detected. This is used to discover network shares for lateral movement. MITRE ATT&CK: T1135 (Network Share Discovery).",
+                            [SecuritySeverity]::High,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: PSRemoting/PSSession with credentials
+                $psRemotingCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(New-PSSession|Enter-PSSession|Invoke-Command|New-CimSession)$'
+                }, $true)
+                
+                foreach ($cmd in $psRemotingCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(-ComputerName|-ConnectionUri)') {
+                        $severity = if ($cmdText -match '-Credential') {
+                            [SecuritySeverity]::Critical
+                        } else {
+                            [SecuritySeverity]::High
+                        }
+                        
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "PowerShell remoting to remote systems detected. Verify this is authorized. MITRE ATT&CK: T1021.006 (Windows Remote Management).",
+                            $severity,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Pass-the-Hash indicators
+                $pthPatterns = @(
+                    'Invoke-Mimikatz.*pth',
+                    'sekurlsa::pth',
+                    'Invoke-SMBExec',
+                    'Invoke-WMIExec',
+                    'Invoke-PSExec'
+                )
+                
+                foreach ($pattern in $pthPatterns) {
+                    $matches = $Ast.FindAll({
+                        $args[0].Extent.Text -match $pattern
+                    }, $true)
+                    
+                    foreach ($match in $matches) {
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "Pass-the-Hash technique detected: $pattern. This is an advanced attack for lateral movement. MITRE ATT&CK: T1550.002 (Pass the Hash).",
+                            [SecuritySeverity]::Critical,
+                            $match.Extent.StartLineNumber,
+                            $match.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 6: Remote service creation
+                $serviceCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    ($args[0].GetCommandName() -match '^(New-Service|sc\.exe|sc)$' -or
+                     $args[0].Extent.Text -match 'sc.*\\\\')
+                }, $true)
+                
+                foreach ($cmd in $serviceCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(\\\\[^\s]+|sc\s+\\\\)') {
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "Remote service creation detected. Services are used to execute code on remote systems. MITRE ATT&CK: T1543.003 (Windows Service), T1021.002 (SMB/Windows Admin Shares).",
+                            [SecuritySeverity]::Critical,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 7: Remote registry access
+                $remoteRegistryCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Get-ItemProperty|Set-ItemProperty|New-ItemProperty|reg\.exe|reg)$'
+                }, $true)
+                
+                foreach ($cmd in $remoteRegistryCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(\\\\[^\s]+\\|reg\s+query\s+\\\\|reg\s+add\s+\\\\)') {
+                        $violations += [SecurityViolation]::new(
+                            "LateralMovementDetection",
+                            "Remote registry access detected. This can be used for reconnaissance and persistence. MITRE ATT&CK: T1021.002 (SMB/Windows Admin Shares).",
+                            [SecuritySeverity]::High,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 8: PsExec-like patterns
+                $psexecPatterns = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and
+                    $args[0].Value -match '(psexec|paexec|remcom)'
+                }, $true)
+                
+                foreach ($pattern in $psexecPatterns) {
+                    $violations += [SecurityViolation]::new(
+                        "LateralMovementDetection",
+                        "PsExec-style tool reference detected. These tools enable remote command execution. MITRE ATT&CK: T1569.002 (Service Execution).",
+                        [SecuritySeverity]::Critical,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 52: Data Exfiltration Detection (MITRE ATT&CK: T1048, T1041, T1567)
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "DataExfiltrationDetection",
+            "Detects data exfiltration techniques that send data to external locations",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: DNS tunneling indicators
+                $dnsCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Resolve-DnsName|nslookup|dig)$'
+                }, $true)
+                
+                foreach ($cmd in $dnsCommands) {
+                    # Check for suspicious patterns: long strings, encoding, loops
+                    $parent = $cmd.Parent
+                    $hasLoop = $false
+                    $depth = 0
+                    
+                    while ($parent -and $depth -lt 10) {
+                        if ($parent -is [LoopStatementAst] -or 
+                            $parent -is [ForEachStatementAst]) {
+                            $hasLoop = $true
+                            break
+                        }
+                        $parent = $parent.Parent
+                        $depth++
+                    }
+                    
+                    if ($hasLoop) {
+                        $violations += [SecurityViolation]::new(
+                            "DataExfiltrationDetection",
+                            "DNS query in loop detected. This pattern is used for DNS tunneling to exfiltrate data. MITRE ATT&CK: T1048.003 (Exfiltration Over Alternative Protocol: DNS).",
+                            [SecuritySeverity]::Critical,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: Large HTTP POST requests
+                $webCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Invoke-WebRequest|Invoke-RestMethod|iwr|irm)$'
+                }, $true)
+                
+                foreach ($cmd in $webCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    # Check for POST method with data
+                    if ($cmdText -match '-Method\s+(POST|Put|Patch)' -and 
+                        $cmdText -match '(-Body|-InFile)') {
+                        $violations += [SecurityViolation]::new(
+                            "DataExfiltrationDetection",
+                            "HTTP POST with data detected. Review destination and content for potential data exfiltration. MITRE ATT&CK: T1048.003 (Exfiltration Over Web Service), T1041 (Exfiltration Over C2 Channel).",
+                            [SecuritySeverity]::High,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: Pastebin and code sharing sites
+                $pastebinSites = @(
+                    'pastebin\.com',
+                    'paste\.ee',
+                    'hastebin\.com',
+                    'dpaste\.com',
+                    'ghostbin\.com',
+                    'gist\.github\.com',
+                    'github\.com/.*\.txt',
+                    'raw\.githubusercontent\.com',
+                    'privatebin\.net',
+                    'pastelink\.net'
+                )
+                
+                $urlStrings = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and
+                    $args[0].Value -match 'http'
+                }, $true)
+                
+                foreach ($urlString in $urlStrings) {
+                    $url = $urlString.Value
+                    foreach ($site in $pastebinSites) {
+                        if ($url -match $site) {
+                            # Check if data is being sent (POST/PUT or if in upload context)
+                            $parent = $urlString.Parent
+                            $context = $parent.Extent.Text
+                            
+                            $severity = if ($context -match '(-Method\s+(POST|Put)|Upload|Body)') {
+                                [SecuritySeverity]::Critical
+                            } else {
+                                [SecuritySeverity]::High
+                            }
+                            
+                            $violations += [SecurityViolation]::new(
+                                "DataExfiltrationDetection",
+                                "Code sharing/paste service detected: $url. This is commonly used for data exfiltration. MITRE ATT&CK: T1567.001 (Exfiltration to Code Repository).",
+                                $severity,
+                                $urlString.Extent.StartLineNumber,
+                                $urlString.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 4: Cloud storage uploads
+                $cloudStoragePatterns = @(
+                    'dropbox\.com',
+                    'drive\.google\.com',
+                    'onedrive\.live\.com',
+                    'box\.com',
+                    'mega\.nz',
+                    'mediafire\.com',
+                    '\.s3\.amazonaws\.com',
+                    'storage\.googleapis\.com',
+                    'blob\.core\.windows\.net',
+                    'transfer\.sh'
+                )
+                
+                foreach ($urlString in $urlStrings) {
+                    $url = $urlString.Value
+                    foreach ($pattern in $cloudStoragePatterns) {
+                        if ($url -match $pattern) {
+                            $parent = $urlString.Parent
+                            $context = $parent.Extent.Text
+                            
+                            # Higher severity for upload operations
+                            $severity = if ($context -match '(Upload|Put|POST|-InFile|-Body)') {
+                                [SecuritySeverity]::Critical
+                            } else {
+                                [SecuritySeverity]::High
+                            }
+                            
+                            $violations += [SecurityViolation]::new(
+                                "DataExfiltrationDetection",
+                                "Cloud storage service detected: $url. Review for potential data exfiltration. MITRE ATT&CK: T1567.002 (Exfiltration to Cloud Storage).",
+                                $severity,
+                                $urlString.Extent.StartLineNumber,
+                                $urlString.Extent.Text
+                            )
+                        }
+                    }
+                }
+                
+                # Pattern 5: Email with attachments
+                $emailCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Send-MailMessage|Send-Mail)$'
+                }, $true)
+                
+                foreach ($cmd in $emailCommands) {
+                    $cmdText = $cmd.Extent.Text
+                    if ($cmdText -match '(-Attachment|-Body)') {
+                        $violations += [SecurityViolation]::new(
+                            "DataExfiltrationDetection",
+                            "Email with attachment/body detected. Verify recipient is authorized. MITRE ATT&CK: T1048.003 (Exfiltration Over Alternative Protocol: Mail).",
+                            [SecuritySeverity]::High,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 6: FTP/SFTP uploads
+                $ftpPatterns = $Ast.FindAll({
+                    ($args[0] -is [StringConstantExpressionAst] -and
+                     $args[0].Value -match '^(ftp|ftps|sftp)://') -or
+                    ($args[0] -is [CommandAst] -and
+                     $args[0].GetCommandName() -match '^(ftp|WinSCP)$')
+                }, $true)
+                
+                foreach ($pattern in $ftpPatterns) {
+                    $violations += [SecurityViolation]::new(
+                        "DataExfiltrationDetection",
+                        "FTP/SFTP transfer detected. Review for potential data exfiltration. MITRE ATT&CK: T1048.003 (Exfiltration Over Alternative Protocol: FTP).",
+                        [SecuritySeverity]::High,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                # Pattern 7: Large data compression before network operations
+                $compressionCommands = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and
+                    $args[0].GetCommandName() -match '^(Compress-Archive|7z|zip|rar)$'
+                }, $true)
+                
+                foreach ($cmd in $compressionCommands) {
+                    # Check if followed by network operations
+                    $scriptText = $Ast.Extent.Text
+                    $cmdPosition = $cmd.Extent.StartOffset
+                    $remainingScript = $scriptText.Substring($cmdPosition)
+                    
+                    if ($remainingScript.Length -gt 0 -and 
+                        $remainingScript.Substring(0, [Math]::Min(1000, $remainingScript.Length)) -match 
+                        '(Invoke-WebRequest|Invoke-RestMethod|WebClient|Send-Mail|ftp|Upload)') {
+                        $violations += [SecurityViolation]::new(
+                            "DataExfiltrationDetection",
+                            "Data compression followed by network transfer detected. This pattern suggests data exfiltration. MITRE ATT&CK: T1560.001 (Archive Collected Data: Archive via Utility).",
+                            [SecuritySeverity]::Critical,
+                            $cmd.Extent.StartLineNumber,
+                            $cmd.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 8: Suspicious outbound connections on non-standard ports
+                $socketPatterns = $Ast.FindAll({
+                    ($args[0] -is [CommandAst] -and
+                     $args[0].GetCommandName() -match '^(New-Object.*TcpClient|System\.Net\.Sockets)$') -or
+                    ($args[0] -is [TypeExpressionAst] -and
+                     $args[0].TypeName.Name -match 'TcpClient|UdpClient|Socket')
+                }, $true)
+                
+                foreach ($pattern in $socketPatterns) {
+                    $violations += [SecurityViolation]::new(
+                        "DataExfiltrationDetection",
+                        "Raw socket communication detected. Review for potential custom exfiltration channel. MITRE ATT&CK: T1041 (Exfiltration Over C2 Channel).",
+                        [SecuritySeverity]::High,
+                        $pattern.Extent.StartLineNumber,
+                        $pattern.Extent.Text
+                    )
+                }
+                
+                return $violations
+            }
+        ))
     }
 
     [PSCustomObject] AnalyzeScript([string]$ScriptPath) {
