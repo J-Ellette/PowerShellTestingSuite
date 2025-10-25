@@ -1,4 +1,4 @@
-PSTS Phase 2: VS Code Extension Implementation
+PowerShield Phase 2: VS Code Extension Implementation
 Phase 2: VS Code Extension with Multi-AI Auto-Fix (Weeks 5-8)
 2.1 Extension Core Architecture
 
@@ -37,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Show welcome message on first install
     await showWelcomeMessage();
     
-    console.log('PSTS PowerShell Security Analyzer activated');
+    console.log('PowerShield PowerShell Security Analyzer activated');
 }
 
 async function initializeServices() {
@@ -171,7 +171,7 @@ async function analyzeCurrentFile() {
 async function analyzeWorkspace() {
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "PSTS: Analyzing workspace...",
+        title: "PowerShield: Analyzing workspace...",
         cancellable: true
     }, async (progress, token) => {
         const files = await vscode.workspace.findFiles('**/*.{ps1,psm1,psd1}', '**/node_modules/**');
@@ -210,7 +210,7 @@ async function analyzeDocument(document: vscode.TextDocument): Promise<void> {
         telemetryService.trackAnalysis(document.uri.fsPath, violations.length);
     } catch (error) {
         console.error('Analysis failed:', error);
-        vscode.window.showErrorMessage(`PSTS analysis failed: ${error}`);
+        vscode.window.showErrorMessage(`PowerShield analysis failed: ${error}`);
     }
 }
 
@@ -284,7 +284,7 @@ async function autoFixOnSave(document: vscode.TextDocument) {
 async function configureAI() {
     const panel = vscode.window.createWebviewPanel(
         'pstsAIConfig',
-        'PSTS AI Configuration',
+        'PowerShield AI Configuration',
         vscode.ViewColumn.One,
         {
             enableScripts: true,
@@ -312,7 +312,7 @@ async function configureAI() {
 async function showSecurityReport() {
     const panel = vscode.window.createWebviewPanel(
         'pstsSecurityReport',
-        'PSTS Security Report',
+        'PowerShield Security Report',
         vscode.ViewColumn.One,
         {
             enableScripts: true,
@@ -339,7 +339,7 @@ async function showWelcomeMessage() {
     
     if (!hasShownWelcome) {
         const result = await vscode.window.showInformationMessage(
-            'Welcome to PSTS PowerShell Security Analyzer! Would you like to configure AI providers for auto-fixes?',
+            'Welcome to PowerShield PowerShell Security Analyzer! Would you like to configure AI providers for auto-fixes?',
             'Configure AI',
             'Maybe Later',
             "Don't Show Again"
@@ -1350,7 +1350,7 @@ The confidence should be a number between 0 and 1, where 1 means you're complete
         return apiKey;
     }
 }
-This completes Phase 2 of the PSTS implementation - a comprehensive VS Code extension with multi-AI provider support for automated PowerShell security fixes. The extension supports GitHub Copilot, OpenAI GPT-4, and Anthropic Claude, with fallback to local models.
+This completes Phase 2 of the PowerShield implementation - a comprehensive VS Code extension with multi-AI provider support for automated PowerShell security fixes. The extension supports GitHub Copilot, OpenAI GPT-4, and Anthropic Claude, with fallback to local models.
 Key features implemented:
 
 Real-time security analysis

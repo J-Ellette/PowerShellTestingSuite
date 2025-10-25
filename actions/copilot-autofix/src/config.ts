@@ -1,5 +1,5 @@
 /**
- * PSTS Configuration System
+ * PowerShield Configuration System
  * Provides hierarchical configuration loading and validation
  */
 
@@ -71,7 +71,7 @@ export interface EnterpriseConfig {
     policy_enforcement: boolean;
 }
 
-export interface PSSTConfig {
+export interface PowerShieldConfig {
     version: string;
     analysis: AnalysisConfig;
     rules: { [ruleId: string]: RuleConfig };
@@ -86,7 +86,7 @@ export interface PSSTConfig {
 /**
  * Default configuration
  */
-export const DEFAULT_CONFIG: PSSTConfig = {
+export const DEFAULT_CONFIG: PowerShieldConfig = {
     version: '1.0',
     analysis: {
         severity_threshold: 'Medium',
@@ -145,7 +145,7 @@ export const DEFAULT_CONFIG: PSSTConfig = {
     },
     reporting: {
         formats: ['sarif', 'json', 'markdown'],
-        output_dir: '.psts-reports',
+        output_dir: '.powershield-reports',
         sarif: {
             include_code_flows: true,
             include_fixes: true
@@ -159,7 +159,7 @@ export const DEFAULT_CONFIG: PSSTConfig = {
         fail_on: ['Critical', 'High'],
         max_warnings: 50,
         baseline_mode: false,
-        baseline_file: '.psts-baseline.sarif'
+        baseline_file: '.powershield-baseline.sarif'
     }
 };
 
@@ -167,18 +167,18 @@ export const DEFAULT_CONFIG: PSSTConfig = {
  * Configuration loader with hierarchical support
  */
 export class ConfigLoader {
-    private static CONFIG_FILENAMES = ['.psts.yml', '.psts.yaml', 'psts.yml', 'psts.yaml'];
+    private static CONFIG_FILENAMES = ['.powershield.yml', '.powershield.yaml', 'powershield.yml', 'powershield.yaml'];
 
     /**
      * Load configuration from file system with hierarchical merging
      */
-    static loadConfig(workspacePath: string = '.'): PSSTConfig {
-        const configs: Partial<PSSTConfig>[] = [];
+    static loadConfig(workspacePath: string = '.'): PowerShieldConfig {
+        const configs: Partial<PowerShieldConfig>[] = [];
 
         // 1. Start with default config
         configs.push(DEFAULT_CONFIG);
 
-        // 2. Look for global config (~/.psts.yml)
+        // 2. Look for global config (~/.powershield.yml)
         const globalConfig = this.loadGlobalConfig();
         if (globalConfig) {
             configs.push(globalConfig);
@@ -203,7 +203,7 @@ export class ConfigLoader {
     /**
      * Load global configuration from user home directory
      */
-    private static loadGlobalConfig(): Partial<PSSTConfig> | null {
+    private static loadGlobalConfig(): Partial<PowerShieldConfig> | null {
         const homeDir = process.env.HOME || process.env.USERPROFILE;
         if (!homeDir) return null;
 
@@ -219,7 +219,7 @@ export class ConfigLoader {
     /**
      * Load project configuration from workspace root
      */
-    private static loadProjectConfig(workspacePath: string): Partial<PSSTConfig> | null {
+    private static loadProjectConfig(workspacePath: string): Partial<PowerShieldConfig> | null {
         for (const filename of this.CONFIG_FILENAMES) {
             const configPath = path.join(workspacePath, filename);
             const config = this.loadConfigFile(configPath);
@@ -230,10 +230,10 @@ export class ConfigLoader {
     }
 
     /**
-     * Load local configuration (e.g., .psts.local.yml)
+     * Load local configuration (e.g., .powershield.local.yml)
      */
-    private static loadLocalConfig(workspacePath: string): Partial<PSSTConfig> | null {
-        const localFilenames = ['.psts.local.yml', '.psts.local.yaml'];
+    private static loadLocalConfig(workspacePath: string): Partial<PowerShieldConfig> | null {
+        const localFilenames = ['.powershield.local.yml', '.powershield.local.yaml'];
         
         for (const filename of localFilenames) {
             const configPath = path.join(workspacePath, filename);
@@ -247,14 +247,14 @@ export class ConfigLoader {
     /**
      * Load a single configuration file
      */
-    private static loadConfigFile(filePath: string): Partial<PSSTConfig> | null {
+    private static loadConfigFile(filePath: string): Partial<PowerShieldConfig> | null {
         try {
             if (!fs.existsSync(filePath)) {
                 return null;
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
-            const config = yaml.load(content) as Partial<PSSTConfig>;
+            const config = yaml.load(content) as Partial<PowerShieldConfig>;
 
             console.log(`Loaded configuration from: ${filePath}`);
             return config;
@@ -267,7 +267,7 @@ export class ConfigLoader {
     /**
      * Deep merge multiple configuration objects
      */
-    private static mergeConfigs(configs: Partial<PSSTConfig>[]): PSSTConfig {
+    private static mergeConfigs(configs: Partial<PowerShieldConfig>[]): PowerShieldConfig {
         const result = { ...DEFAULT_CONFIG };
 
         for (const config of configs) {
@@ -325,7 +325,7 @@ export class ConfigLoader {
     /**
      * Validate configuration
      */
-    static validateConfig(config: PSSTConfig): { valid: boolean; errors: string[] } {
+    static validateConfig(config: PowerShieldConfig): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
         // Validate version
@@ -373,7 +373,7 @@ export class ConfigLoader {
     /**
      * Save configuration to file
      */
-    static saveConfig(config: PSSTConfig, filePath: string): void {
+    static saveConfig(config: PowerShieldConfig, filePath: string): void {
         const yamlContent = yaml.dump(config, {
             indent: 2,
             lineWidth: 120,
@@ -388,7 +388,7 @@ export class ConfigLoader {
      * Create example configuration file
      */
     static createExampleConfig(outputPath: string): void {
-        const exampleConfig: PSSTConfig = {
+        const exampleConfig: PowerShieldConfig = {
             ...DEFAULT_CONFIG,
             // Add comments via custom formatting
         };
@@ -402,8 +402,8 @@ export class ConfigLoader {
      * Generate example YAML with comments
      */
     private static generateExampleYaml(): string {
-        return `# PSTS Configuration
-# Complete configuration reference for PowerShell Testing Suite
+        return `# PowerShield Configuration
+# Complete configuration reference for PowerShield
 
 version: "1.0"
 
@@ -472,7 +472,7 @@ suppressions:
 # Reporting
 reporting:
   formats: ["sarif", "json", "markdown"]
-  output_dir: ".psts-reports"
+  output_dir: ".powershield-reports"
   
   sarif:
     include_code_flows: true
@@ -487,7 +487,7 @@ ci:
   fail_on: ["Critical", "High"]
   max_warnings: 50
   baseline_mode: false
-  baseline_file: ".psts-baseline.sarif"
+  baseline_file: ".powershield-baseline.sarif"
 
 # Webhooks (optional)
 # webhooks:

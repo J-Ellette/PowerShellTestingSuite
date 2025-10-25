@@ -1,12 +1,12 @@
-# PSTS Configuration Guide
+# PowerShield Configuration Guide
 
 ## Overview
 
-PSTS (PowerShell Testing Suite) supports flexible, hierarchical configuration through `.psts.yml` files. Configuration can be defined at multiple levels:
+PowerShield (Comprehensive PowerShell Security Platform) supports flexible, hierarchical configuration through `.powershield.yml` files. Configuration can be defined at multiple levels:
 
-1. **Global**: `~/.psts.yml` (user home directory)
-2. **Project**: `.psts.yml` in repository root
-3. **Local**: `.psts.local.yml` in repository root (gitignored)
+1. **Global**: `~/.powershield.yml` (user home directory)
+2. **Project**: `.powershield.yml` in repository root
+3. **Local**: `.powershield.local.yml` in repository root (gitignored)
 
 Later configurations override earlier ones, allowing for flexible customization.
 
@@ -17,12 +17,12 @@ Later configurations override earlier ones, allowing for flexible customization.
 Copy the example configuration:
 
 ```bash
-cp .psts.yml.example .psts.yml
+cp .powershield.yml.example .powershield.yml
 ```
 
 ### 2. Customize for Your Project
 
-Edit `.psts.yml` to match your requirements:
+Edit `.powershield.yml` to match your requirements:
 
 ```yaml
 version: "1.0"
@@ -49,7 +49,7 @@ autofix:
 
 ### Analysis Settings
 
-Controls how PSTS analyzes your code:
+Controls how PowerShield analyzes your code:
 
 ```yaml
 analysis:
@@ -115,4 +115,4 @@ suppressions:
 
 See [SUPPRESSION_GUIDE.md](SUPPRESSION_GUIDE.md) for usage.
 
-For complete documentation, see the example configuration file: `.psts.yml.example`
+For complete documentation, see the example configuration file: `.powershield.yml.example`

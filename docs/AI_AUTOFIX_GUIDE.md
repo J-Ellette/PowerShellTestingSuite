@@ -1,8 +1,8 @@
-# PSTS AI Auto-Fix Guide
+# PowerShield AI Auto-Fix Guide
 
 ## Overview
 
-PSTS uses AI to automatically generate and apply security fixes for detected violations. The system supports multiple AI providers with automatic fallback to template-based fixes.
+PowerShield uses AI to automatically generate and apply security fixes for detected violations. The system supports multiple AI providers with automatic fallback to template-based fixes.
 
 ## Supported Providers
 
@@ -181,7 +181,7 @@ autofix:
   uses: ./actions/copilot-autofix
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    violations-file: psts-results.json
+    violations-file: powershield-results.json
     apply-fixes: true  # or false for preview
     max-fixes: 10
     confidence-threshold: 0.8
@@ -192,7 +192,7 @@ autofix:
 ```bash
 # Generate fixes without applying
 node actions/copilot-autofix/dist/index.js \
-  --violations-file psts-results.json \
+  --violations-file powershield-results.json \
   --apply-fixes false
 ```
 
@@ -201,7 +201,7 @@ node actions/copilot-autofix/dist/index.js \
 ```bash
 # Apply fixes automatically
 node actions/copilot-autofix/dist/index.js \
-  --violations-file psts-results.json \
+  --violations-file powershield-results.json \
   --apply-fixes true \
   --max-fixes 5 \
   --confidence-threshold 0.85
@@ -393,7 +393,7 @@ If fixes have low confidence:
 1. **Check provider configuration**: Verify API keys and endpoints
 2. **Enable fallback**: `fallback_to_templates: true`
 3. **Check rule enabled**: Verify `rule_fixes` configuration
-4. **Review violations file**: Ensure `psts-results.json` has violations
+4. **Review violations file**: Ensure `powershield-results.json` has violations
 
 ### Fixes Not Applied
 
@@ -434,12 +434,12 @@ Always validate AI-generated fixes:
 
 1. Review changes in PR
 2. Run tests
-3. Re-analyze with PSTS
+3. Re-analyze with PowerShield
 4. Manual code review for critical changes
 
 ## See Also
 
 - [Configuration Guide](CONFIGURATION_GUIDE.md) - Configure auto-fix settings
 - [README.md](../README.md) - Main documentation
-- [.psts.yml.example](../.psts.yml.example) - Example configuration
+- [.powershield.yml.example](../.powershield.yml.example) - Example configuration
 - [GitHub Models Documentation](https://github.com/marketplace/models)

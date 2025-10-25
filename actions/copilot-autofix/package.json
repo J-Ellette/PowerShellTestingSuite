@@ -1,7 +1,7 @@
 {
-  "name": "psts-copilot-autofix",
+  "name": "powershield-copilot-autofix",
   "version": "1.0.0",
-  "description": "GitHub Action for PSTS AI-powered auto-fix",
+  "description": "GitHub Action for PowerShield AI-powered auto-fix",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
@@ -13,7 +13,7 @@
     "security",
     "copilot"
   ],
-  "author": "PSTS Project",
+  "author": "PowerShield Project",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.10.1",

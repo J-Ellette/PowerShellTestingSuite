@@ -1,4 +1,4 @@
-PSTS (PowerShellTestingSuite) - Complete Implementation Plan
+PowerShield (PowerShellTestingSuite) - Complete Implementation Plan
 Technical Plan
 Phase 1: GitHub Workflow Integration (Weeks 1-4)
 Objective: Create a comprehensive GitHub Actions workflow with GitHub Copilot integration for automated PowerShell security analysis and fixes.

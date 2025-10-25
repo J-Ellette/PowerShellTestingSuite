@@ -30225,7 +30225,7 @@ exports.AIProviderFactory = AIProviderFactory;
 "use strict";
 
 /**
- * PSTS Configuration System
+ * PowerShield Configuration System
  * Provides hierarchical configuration loading and validation
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -30328,7 +30328,7 @@ exports.DEFAULT_CONFIG = {
     },
     reporting: {
         formats: ['sarif', 'json', 'markdown'],
-        output_dir: '.psts-reports',
+        output_dir: '.powershield-reports',
         sarif: {
             include_code_flows: true,
             include_fixes: true
@@ -30342,7 +30342,7 @@ exports.DEFAULT_CONFIG = {
         fail_on: ['Critical', 'High'],
         max_warnings: 50,
         baseline_mode: false,
-        baseline_file: '.psts-baseline.sarif'
+        baseline_file: '.powershield-baseline.sarif'
     }
 };
 /**
@@ -30356,7 +30356,7 @@ class ConfigLoader {
         const configs = [];
         // 1. Start with default config
         configs.push(exports.DEFAULT_CONFIG);
-        // 2. Look for global config (~/.psts.yml)
+        // 2. Look for global config (~/.powershield.yml)
         const globalConfig = this.loadGlobalConfig();
         if (globalConfig) {
             configs.push(globalConfig);
@@ -30402,10 +30402,10 @@ class ConfigLoader {
         return null;
     }
     /**
-     * Load local configuration (e.g., .psts.local.yml)
+     * Load local configuration (e.g., .powershield.local.yml)
      */
     static loadLocalConfig(workspacePath) {
-        const localFilenames = ['.psts.local.yml', '.psts.local.yaml'];
+        const localFilenames = ['.powershield.local.yml', '.powershield.local.yaml'];
         for (const filename of localFilenames) {
             const configPath = path.join(workspacePath, filename);
             const config = this.loadConfigFile(configPath);
@@ -30550,8 +30550,8 @@ class ConfigLoader {
      * Generate example YAML with comments
      */
     static generateExampleYaml() {
-        return `# PSTS Configuration
-# Complete configuration reference for PowerShell Testing Suite
+        return `# PowerShield Configuration
+# Complete configuration reference for PowerShield
 
 version: "1.0"
 
@@ -30620,7 +30620,7 @@ suppressions:
 # Reporting
 reporting:
   formats: ["sarif", "json", "markdown"]
-  output_dir: ".psts-reports"
+  output_dir: ".powershield-reports"
   
   sarif:
     include_code_flows: true
@@ -30635,7 +30635,7 @@ ci:
   fail_on: ["Critical", "High"]
   max_warnings: 50
   baseline_mode: false
-  baseline_file: ".psts-baseline.sarif"
+  baseline_file: ".powershield-baseline.sarif"
 
 # Webhooks (optional)
 # webhooks:
@@ -30652,7 +30652,7 @@ ci:
     }
 }
 exports.ConfigLoader = ConfigLoader;
-ConfigLoader.CONFIG_FILENAMES = ['.psts.yml', '.psts.yaml', 'psts.yml', 'psts.yaml'];
+ConfigLoader.CONFIG_FILENAMES = ['.powershield.yml', '.powershield.yaml', 'powershield.yml', 'powershield.yaml'];
 
 
 /***/ }),
@@ -30889,7 +30889,7 @@ async function run() {
     try {
         // Load configuration
         const workspacePath = process.env.GITHUB_WORKSPACE || '.';
-        core.info('Loading PSTS configuration...');
+        core.info('Loading PowerShield configuration...');
         const config = config_1.ConfigLoader.loadConfig(workspacePath);
         // Validate configuration
         const validation = config_1.ConfigLoader.validateConfig(config);
@@ -30912,7 +30912,7 @@ async function run() {
         // Override config with inputs
         config.autofix.max_fixes = maxFixes;
         config.autofix.confidence_threshold = confidenceThreshold;
-        core.info(`PSTS Auto-Fix Action`);
+        core.info(`PowerShield Auto-Fix Action`);
         core.info(`Violations file: ${violationsFile}`);
         core.info(`Apply fixes: ${applyFixes}`);
         // Read violations
@@ -30956,7 +30956,7 @@ async function run() {
                 core.info(`✅ Applied ${result.count} fixes successfully`);
                 // Create summary
                 core.summary
-                    .addHeading('🤖 PSTS Auto-Fix Results')
+                    .addHeading('🤖 PowerShield Auto-Fix Results')
                     .addTable([
                     [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                     ['Provider', config.autofix.provider],
@@ -30993,7 +30993,7 @@ async function run() {
             }
             // Create preview summary
             core.summary
-                .addHeading('🤖 PSTS Auto-Fix Preview')
+                .addHeading('🤖 PowerShield Auto-Fix Preview')
                 .addTable([
                 [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                 ['Provider', config.autofix.provider],

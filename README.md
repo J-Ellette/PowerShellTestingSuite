@@ -1,13 +1,14 @@
-# PSTS - PowerShell Testing Suite
+# PowerShield - Comprehensive PowerShell Security Platform
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/J-Ellette/PowerShellTestingSuite/powershell-security.yml?branch=main)
 ![License](https://img.shields.io/github/license/J-Ellette/PowerShellTestingSuite)
 ![Version](https://img.shields.io/badge/version-1.1.0-blue) <br>
-[![PSTS - PowerShell Security Analysis](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml/badge.svg)](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml) <br>
+[![PowerShield - PowerShell Security Analysis](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml/badge.svg)](https://github.com/J-Ellette/PowerShellTestingSuite/actions/workflows/powershell-security.yml) <br>
 ![Static Badge](https://img.shields.io/badge/Language-PowerShell-blue) ![Static Badge](https://img.shields.io/badge/Language-TypeScript-blue)
 
+> **📢 Rebranded from PSTS:** PowerShell Testing Suite (PSTS) is now **PowerShield**. All references, configuration files, and outputs have been updated. See [Migration Guide](docs/MIGRATION_GUIDE.md) for details.
 
-**PSTS (PowerShell Testing Suite)** is a comprehensive security analysis tool for PowerShell scripts that integrates with GitHub Actions, provides AI-powered auto-fixes, and offers multiple deployment options.
+**PowerShield** is a comprehensive security analysis platform for PowerShell scripts that integrates with GitHub Actions, provides AI-powered auto-fixes, and offers multiple deployment options.
 
 ## ✨ What's New in v1.1.0
 
@@ -18,7 +19,7 @@
 - **Configurable per Rule**: Enable/disable auto-fix for specific rules
 
 ### ⚙️ Configuration System
-- **Hierarchical Configuration**: Global → Project → Local `.psts.yml` files
+- **Hierarchical Configuration**: Global → Project → Local `.powershield.yml` files
 - **Rule Customization**: Enable/disable rules, override severity levels
 - **Flexible Analysis**: Configure thresholds, exclusions, timeouts
 - **CI/CD Integration**: Fail pipelines on specific severities
@@ -69,23 +70,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Run PSTS Analysis
+    - name: Run PowerShield Analysis
       shell: pwsh
       run: |
         Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
         $result = Invoke-WorkspaceAnalysis -WorkspacePath "."
         
         # Export results
-        $result | ConvertTo-Json -Depth 10 | Out-File 'psts-results.json'
+        $result | ConvertTo-Json -Depth 10 | Out-File 'powershield-results.json'
         
         # Generate SARIF
         . ./scripts/Convert-ToSARIF.ps1
-        Convert-ToSARIF -InputFile 'psts-results.json' -OutputFile 'psts-results.sarif'
+        Convert-ToSARIF -InputFile 'powershield-results.json' -OutputFile 'powershield-results.sarif'
     
     - name: Upload SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: psts-results.sarif
+        sarif_file: powershield-results.sarif
 ```
 
 ### 2. Analyze Local Scripts
@@ -110,17 +111,17 @@ $result = Invoke-SecurityAnalysis -ScriptPath "./MyScript.ps1" -EnableSuppressio
 
 ## 📖 Documentation
 
-- **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configure PSTS with `.psts.yml`
+- **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configure PowerShield with `.powershield.yml`
 - **[AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md)** - Setup and use AI-powered fixes
 - **[Suppression Guide](docs/SUPPRESSION_GUIDE.md)** - Document security exceptions
-- **[Example Configuration](.psts.yml.example)** - Complete configuration template
+- **[Example Configuration](.powershield.yml.example)** - Complete configuration template
 
 ## 🔧 Configuration
 
-PSTS supports flexible configuration through `.psts.yml` files:
+PowerShield supports flexible configuration through `.powershield.yml` files:
 
 ```yaml
-# .psts.yml
+# .powershield.yml
 version: "1.0"
 
 analysis:
@@ -153,15 +154,15 @@ suppressions:
 
 **Configuration Hierarchy** (later overrides earlier):
 1. Default configuration
-2. Global: `~/.psts.yml`
-3. Project: `.psts.yml`
-4. Local: `.psts.local.yml`
+2. Global: `~/.powershield.yml`
+3. Project: `.powershield.yml`
+4. Local: `.powershield.local.yml`
 
 See [Configuration Guide](docs/CONFIGURATION_GUIDE.md) for details.
 
 ## 🤖 AI Auto-Fix
 
-PSTS can automatically fix security violations using AI:
+PowerShield can automatically fix security violations using AI:
 
 ### Supported Providers
 
@@ -181,14 +182,14 @@ PSTS can automatically fix security violations using AI:
   uses: ./actions/copilot-autofix
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    violations-file: psts-results.json
+    violations-file: powershield-results.json
     apply-fixes: true  # or false for preview
 ```
 
 ```powershell
 # Command line preview
 node actions/copilot-autofix/dist/index.js \
-  --violations-file psts-results.json \
+  --violations-file powershield-results.json \
   --apply-fixes false
 ```
 
@@ -199,19 +200,19 @@ See [AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md) for complete setup.
 Document and track security exceptions with suppression comments:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
 $hash = Get-FileHash -Path "file.txt" -Algorithm MD5
 
 # Inline suppression
-$password = "test" # PSTS-SUPPRESS: CredentialExposure - Test credential
+$password = "test" # POWERSHIELD-SUPPRESS: CredentialExposure - Test credential
 
 # Block suppression
-# PSTS-SUPPRESS-START: CommandInjection - Validated input only
+# POWERSHIELD-SUPPRESS-START: CommandInjection - Validated input only
 Invoke-Expression $validatedCommand
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 
 # With expiry date
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration (2025-12-31)
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration (2025-12-31)
 $hash = Get-FileHash -Algorithm SHA1 "data.bin"
 ```
 
@@ -361,14 +362,14 @@ For detailed examples of all rules, see the [test scripts](tests/TestScripts/) o
 
 ## 🤖 AI Auto-Fix
 
-PSTS includes an AI-powered auto-fix action that can automatically remediate security violations:
+PowerShield includes an AI-powered auto-fix action that can automatically remediate security violations:
 
 ```yaml
 - name: Apply AI Fixes
   uses: ./actions/copilot-autofix
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    violations-file: 'psts-results.json'
+    violations-file: 'powershield-results.json'
     apply-fixes: true
     confidence-threshold: 0.8
 ```
@@ -381,7 +382,7 @@ PSTS includes an AI-powered auto-fix action that can automatically remediate sec
 
 ## 📊 SARIF Integration
 
-PSTS generates SARIF (Static Analysis Results Interchange Format) output that integrates with GitHub's Security tab:
+PowerShield generates SARIF (Static Analysis Results Interchange Format) output that integrates with GitHub's Security tab:
 
 1. Results appear in the **Security** → **Code scanning** tab
 2. Violations are annotated directly in pull requests
@@ -390,11 +391,11 @@ PSTS generates SARIF (Static Analysis Results Interchange Format) output that in
 
 ## ⚙️ Configuration
 
-PSTS includes configurable options for customizing analysis behavior.
+PowerShield includes configurable options for customizing analysis behavior.
 
 ### Excluded Paths
 
-By default, PSTS excludes test scripts from workspace analysis to avoid flagging intentional violations used for testing:
+By default, PowerShield excludes test scripts from workspace analysis to avoid flagging intentional violations used for testing:
 
 ```powershell
 # Default exclusions
@@ -471,7 +472,7 @@ npm run build
 
 ## 🔐 Security
 
-PSTS is designed with security in mind:
+PowerShield is designed with security in mind:
 - No external dependencies for core analysis
 - Runs in isolated containers (Phase 3)
 - No data sent to external services

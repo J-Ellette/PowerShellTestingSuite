@@ -1,4 +1,4 @@
-name: PSTS - PowerShell Security Analysis
+name: PowerShield - PowerShell Security Analysis
 
 on:
   push:
@@ -19,8 +19,8 @@ on:
         - Critical
 
 env:
-  PSTS_VERSION: '1.1.0'
-  PSTS_IGNORE: '.github/,scripts/,src/'
+  PowerShield_VERSION: '1.1.0'
+  PowerShield_IGNORE: '.github/,scripts/,src/'
 
 permissions:
   contents: read
@@ -59,8 +59,8 @@ jobs:
         Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
 
         try {
-          Write-Host "Starting PSTS security analysis..."
-          Write-Host "Configuration: Loading from .psts.yml if present"
+          Write-Host "Starting PowerShield security analysis..."
+          Write-Host "Configuration: Loading from .powershield.yml if present"
           Write-Host "Suppressions: Enabled"
           
           # Use new analyzer with config and suppression support
@@ -79,7 +79,7 @@ jobs:
           Write-Host "Analysis completed. Files analyzed: $($result.FilesAnalyzed)"
           Write-Host "Total violations: $($result.TotalViolations)"
 
-          # Severity threshold from env (can be overridden by .psts.yml)
+          # Severity threshold from env (can be overridden by .powershield.yml)
           $severityThreshold = $env:SEVERITY_THRESHOLD
           if (-not $severityThreshold) { $severityThreshold = 'Medium' }
           Write-Host "Severity threshold: $severityThreshold"
@@ -95,17 +95,17 @@ jobs:
           # Ensure no null entries
           $allViolations = @($allViolations | Where-Object { $_ -ne $null })
 
-          # --- Begin: PSTS path-ignore processing ---
-          # Build ignore patterns from .pstsignore and PSTS_IGNORE env var
+          # --- Begin: PowerShield path-ignore processing ---
+          # Build ignore patterns from .powershieldignore and PowerShield_IGNORE env var
           $ignorePatterns = @('.github/', '.github/workflows/', '.git/', 'scripts/', 'tools/', 'src/PowerShellSecurityAnalyzer.psm1')
 
-          if (Test-Path '.pstsignore') {
-            $filePatterns = Get-Content '.pstsignore' | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
+          if (Test-Path '.powershieldignore') {
+            $filePatterns = Get-Content '.powershieldignore' | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
             $ignorePatterns += $filePatterns
           }
 
-          if ($env:PSTS_IGNORE) {
-            $envPatterns = $env:PSTS_IGNORE -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          if ($env:PowerShield_IGNORE) {
+            $envPatterns = $env:PowerShield_IGNORE -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
             $ignorePatterns += $envPatterns
           }
 
@@ -141,7 +141,7 @@ jobs:
 
             -not (Should-IgnorePath $p $ignorePatterns)
           })
-          # --- End: PSTS path-ignore processing ---
+          # --- End: PowerShield path-ignore processing ---
 
           # Map severities to numeric values safely
           $severityMap = @{ 'Low' = 1; 'Medium' = 2; 'High' = 3; 'Critical' = 4 }
@@ -175,7 +175,7 @@ jobs:
           # Prepare export data (use env vars for GitHub context)
           $exportData = @{
             metadata = @{
-              version = $env:PSTS_VERSION
+              version = $env:PowerShield_VERSION
               timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
               repository = $env:GITHUB_REPOSITORY
               ref = $env:GITHUB_REF
@@ -186,46 +186,46 @@ jobs:
           }
 
           # Export results
-          $exportData | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
-          Write-Host "Results exported to psts-results.json"
+          $exportData | ConvertTo-Json -Depth 10 | Out-File -FilePath 'powershield-results.json' -Encoding UTF8
+          Write-Host "Results exported to powershield-results.json"
 
           # Generate SARIF using converter if present; fallback to minimal SARIF if conversion fails
           if (Test-Path ./scripts/Convert-ToSARIF.ps1) {
             . ./scripts/Convert-ToSARIF.ps1
             try {
-              Convert-ToSARIF -InputFile 'psts-results.json' -OutputFile 'psts-results.sarif' -ErrorAction Stop
+              Convert-ToSARIF -InputFile 'powershield-results.json' -OutputFile 'powershield-results.sarif' -ErrorAction Stop
             } catch {
               Write-Warning "Convert-ToSARIF failed: $_. Creating minimal SARIF."
-              @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+              @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File powershield-results.sarif -Encoding UTF8
             }
           } else {
             Write-Warning "Convert-ToSARIF.ps1 not found. Creating minimal SARIF."
-            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File powershield-results.sarif -Encoding UTF8
           }
 
           # Generate human-readable report; fallback if generator missing/fails
           if (Test-Path ./scripts/Generate-SecurityReport.ps1) {
             . ./scripts/Generate-SecurityReport.ps1
             try {
-              Generate-SecurityReport -InputFile 'psts-results.json' -OutputFile 'security-report.md' -ErrorAction Stop
+              Generate-SecurityReport -InputFile 'powershield-results.json' -OutputFile 'security-report.md' -ErrorAction Stop
             } catch {
               Write-Warning "Generate-SecurityReport failed: $_. Creating fallback report."
-              "## PSTS Security Analysis`n`nReport generation failed or no data." | Out-File security-report.md -Encoding UTF8
+              "## PowerShield Security Analysis`n`nReport generation failed or no data." | Out-File security-report.md -Encoding UTF8
             }
           } else {
-            "## PSTS Security Analysis`n`nNo report generator found." | Out-File security-report.md -Encoding UTF8
+            "## PowerShield Security Analysis`n`nNo report generator found." | Out-File security-report.md -Encoding UTF8
           }
 
           # Ensure SARIF/JSON/report exist (extra safety)
-          if (-not (Test-Path 'psts-results.sarif')) {
-            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+          if (-not (Test-Path 'powershield-results.sarif')) {
+            @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File powershield-results.sarif -Encoding UTF8
           }
-          if (-not (Test-Path 'psts-results.json')) {
-            @{ metadata = @{ version = $env:PSTS_VERSION }; summary = @{}; violations = @() } |
-              ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+          if (-not (Test-Path 'powershield-results.json')) {
+            @{ metadata = @{ version = $env:PowerShield_VERSION }; summary = @{}; violations = @() } |
+              ConvertTo-Json -Depth 10 | Out-File -FilePath 'powershield-results.json' -Encoding UTF8
           }
           if (-not (Test-Path 'security-report.md')) {
-            "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
+            "## PowerShield Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
           }
 
           # Set outputs for the step
@@ -234,7 +234,7 @@ jobs:
 
           # Display summary
           Write-Host ""
-          Write-Host "=== PSTS Analysis Summary ==="
+          Write-Host "=== PowerShield Analysis Summary ==="
           Write-Host "Total Violations: $totalCount"
           Write-Host "Critical: $criticalCount"
           Write-Host "High: $(@($filteredViolations | Where-Object { $_.Severity -eq 'High' }).Count)"
@@ -257,7 +257,7 @@ jobs:
           # Create fallback outputs so upload steps have files to work with
           $fallback = @{
             metadata = @{
-              version = $env:PSTS_VERSION
+              version = $env:PowerShield_VERSION
               timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
               repository = $env:GITHUB_REPOSITORY
               ref = $env:GITHUB_REF
@@ -266,11 +266,11 @@ jobs:
             summary = @{}
             violations = @()
           }
-          $fallback | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+          $fallback | ConvertTo-Json -Depth 10 | Out-File -FilePath 'powershield-results.json' -Encoding UTF8
 
-          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File psts-results.sarif -Encoding UTF8
+          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File powershield-results.sarif -Encoding UTF8
 
-          "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File security-report.md -Encoding UTF8
+          "## PowerShield Security Analysis`n`nAnalysis failed or no report generated." | Out-File security-report.md -Encoding UTF8
 
           "violations-count=0" >> $env:GITHUB_OUTPUT
           "critical-count=0" >> $env:GITHUB_OUTPUT
@@ -284,26 +284,26 @@ jobs:
       shell: pwsh
       run: |
         Write-Host "Ensuring analysis artifacts exist..."
-        if (-not (Test-Path 'psts-results.json')) {
-          Write-Host "psts-results.json missing — creating fallback."
-          @{ metadata = @{ version = $env:PSTS_VERSION; timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }; summary = @{}; violations = @() } |
-            ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.json' -Encoding UTF8
+        if (-not (Test-Path 'powershield-results.json')) {
+          Write-Host "powershield-results.json missing — creating fallback."
+          @{ metadata = @{ version = $env:PowerShield_VERSION; timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }; summary = @{}; violations = @() } |
+            ConvertTo-Json -Depth 10 | Out-File -FilePath 'powershield-results.json' -Encoding UTF8
         }
-        if (-not (Test-Path 'psts-results.sarif')) {
-          Write-Host "psts-results.sarif missing — creating minimal SARIF."
-          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File -FilePath 'psts-results.sarif' -Encoding UTF8
+        if (-not (Test-Path 'powershield-results.sarif')) {
+          Write-Host "powershield-results.sarif missing — creating minimal SARIF."
+          @{ version = "2.1.0"; runs = @() } | ConvertTo-Json -Depth 10 | Out-File -FilePath 'powershield-results.sarif' -Encoding UTF8
         }
         if (-not (Test-Path 'security-report.md')) {
           Write-Host "security-report.md missing — creating fallback report."
-          "## PSTS Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
+          "## PowerShield Security Analysis`n`nAnalysis failed or no report generated." | Out-File -FilePath 'security-report.md' -Encoding UTF8
         }
 
     - name: Upload SARIF Results
       if: always()
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: psts-results.sarif
-        category: 'PSTS-Security-Analysis'
+        sarif_file: powershield-results.sarif
+        category: 'PowerShield-Security-Analysis'
 
     - name: Upload Analysis Artifacts
       if: always()
@@ -311,8 +311,8 @@ jobs:
       with:
         name: psts-analysis-results
         path: |
-          psts-results.json
-          psts-results.sarif
+          powershield-results.json
+          powershield-results.sarif
           security-report.md
         retention-days: 30
 
@@ -328,14 +328,14 @@ jobs:
           try {
             reportContent = fs.readFileSync('security-report.md', 'utf8');
           } catch (error) {
-            reportContent = '## PSTS Security Analysis\n\nAnalysis failed or no report generated.';
+            reportContent = '## PowerShield Security Analysis\n\nAnalysis failed or no report generated.';
           }
           
           const violations = '${{ steps.analyze.outputs.violations-count }}';
           const critical = '${{ steps.analyze.outputs.critical-count }}';
           
           // Generate summary comment
-          let comment = `## 🔒 PSTS Security Analysis Results\n\n`;
+          let comment = `## 🔒 PowerShield Security Analysis Results\n\n`;
           
           if (critical > 0) {
             comment += `⚠️ **${critical} Critical Security Issues Found!**\n\n`;
@@ -380,7 +380,7 @@ jobs:
     - name: Test Security Analyzer
       shell: pwsh
       run: |
-        Write-Host "Testing PSTS Security Analyzer..."
+        Write-Host "Testing PowerShield Security Analyzer..."
         
         # Import module
         Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force

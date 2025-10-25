@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-**PSTS (PowerShell Testing Suite)** is a comprehensive security analysis tool for PowerShell scripts with three development phases:
+**PowerShield (Comprehensive PowerShell Security Platform)** is a comprehensive security analysis tool for PowerShell scripts with three development phases:
 
 1. **Phase 1 (Complete)**: GitHub Actions workflow integration with automated security analysis and AI-powered auto-fix
 2. **Phase 2 (Planned)**: VS Code extension with real-time analysis and multi-AI provider support
@@ -112,7 +112,7 @@ npm run build  # Compiles to dist/index.js using @vercel/ncc
 
 **Inputs**:
 - `github-token`: GitHub token (required)
-- `violations-file`: Path to violations JSON (default: psts-results.json)
+- `violations-file`: Path to violations JSON (default: powershield-results.json)
 - `max-fixes`: Maximum fixes to apply (default: 10)
 - `confidence-threshold`: Minimum confidence 0-1 (default: 0.8)
 - `apply-fixes`: Whether to modify files (default: false)
@@ -126,7 +126,7 @@ npm run build  # Compiles to dist/index.js using @vercel/ncc
 ### 4. Supporting Scripts
 
 **Convert-ToSARIF.ps1**:
-- Converts PSTS JSON results to SARIF 2.1.0 format
+- Converts PowerShield JSON results to SARIF 2.1.0 format
 - Enables GitHub Security tab integration
 - Handles null values gracefully (important!)
 
@@ -229,13 +229,13 @@ Export-ModuleMember: The Export-ModuleMember cmdlet can only be called from insi
 
 ### Error 5: Test Artifacts in Repository
 
-**Problem**: During testing, generated files (psts-results.json, test-results.sarif, etc.) were accidentally committed.
+**Problem**: During testing, generated files (powershield-results.json, test-results.sarif, etc.) were accidentally committed.
 
 **Solution**: 
 1. Created `.gitignore` at repository root with patterns:
 ```gitignore
-psts-results.json
-psts-results.sarif
+powershield-results.json
+powershield-results.sarif
 security-report.md
 test-*.json
 test-*.sarif
@@ -436,7 +436,7 @@ Remove-Item test-results.* -Force
 
 1. **Technical Plan**: `buildplans/TechnicalPlan.md` - Overall architecture
 2. **Implementation Summary**: `IMPLEMENTATION_SUMMARY.md` - What was built
-3. **User README**: `README.md` - How users interact with PSTS
+3. **User README**: `README.md` - How users interact with PowerShield
 4. **Original Guide**: `copilot.md` - Implementation planning notes
 
 ## Contact and Resources

@@ -289,7 +289,7 @@ async function run(): Promise<void> {
         const confidenceThreshold = parseFloat(core.getInput('confidence-threshold') || '0.8');
         const applyFixes = core.getBooleanInput('apply-fixes');
 
-        core.info(`PSTS Auto-Fix Action`);
+        core.info(`PowerShield Auto-Fix Action`);
         core.info(`Violations file: ${violationsFile}`);
         core.info(`Max fixes: ${maxFixes}`);
         core.info(`Confidence threshold: ${confidenceThreshold}`);
@@ -345,7 +345,7 @@ async function run(): Promise<void> {
             if (result.count > 0) {
                 core.info(`✅ Applied ${result.count} fixes successfully`);
                 core.summary
-                    .addHeading('🤖 PSTS Auto-Fix Results')
+                    .addHeading('🤖 PowerShield Auto-Fix Results')
                     .addTable([
                         [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                         ['Fixes Applied', result.count.toString()],
