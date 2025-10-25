@@ -23,6 +23,7 @@ class PowerShieldConfiguration {
     [hashtable]$CI
     [array]$Webhooks
     [hashtable]$Enterprise
+    [hashtable]$Hooks
 
     PowerShieldConfiguration() {
         $this.Version = '1.0'
@@ -78,6 +79,12 @@ class PowerShieldConfiguration {
             baseline_mode = $false
             baseline_file = '.powershield-baseline.sarif'
         }
+        $this.Hooks = @{
+            enabled = $true
+            block_on = @('Critical', 'High')
+            auto_fix = $false
+            skip_on_no_violations = $true
+        }
     }
 
     [void] Merge([hashtable]$other) {
@@ -89,6 +96,7 @@ class PowerShieldConfiguration {
         if ($other.ContainsKey('ci')) { $this.CI = $this.MergeHashtables($this.CI, $other.ci) }
         if ($other.ContainsKey('webhooks')) { $this.Webhooks = $other.webhooks }
         if ($other.ContainsKey('enterprise')) { $this.Enterprise = $other.enterprise }
+        if ($other.ContainsKey('hooks')) { $this.Hooks = $this.MergeHashtables($this.Hooks, $other.hooks) }
         
         # Merge rules specially to preserve per-rule config
         if ($other.ContainsKey('rules')) {
@@ -125,6 +133,7 @@ class PowerShieldConfiguration {
             ci = $this.CI
             webhooks = $this.Webhooks
             enterprise = $this.Enterprise
+            hooks = $this.Hooks
         }
     }
 }
