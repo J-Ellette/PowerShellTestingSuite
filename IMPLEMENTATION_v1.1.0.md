@@ -1,11 +1,11 @@
-# PSTS v1.1.0 - Implementation Complete
+# PowerShield v1.1.0 - Implementation Complete
 
 ## 🎉 Summary
 
-Successfully implemented all critical priority features for PSTS (PowerShell Testing Suite):
+Successfully implemented all critical priority features for PowerShield (Comprehensive PowerShell Security Platform):
 
 1. ✅ **Real AI Auto-Fix Implementation**
-2. ✅ **Configuration System (.psts.yml)**
+2. ✅ **Configuration System (.powershield.yml)**
 3. ✅ **Suppression Comment System**
 
 ## 📦 What Was Delivered
@@ -35,7 +35,7 @@ Successfully implemented all critical priority features for PSTS (PowerShell Tes
 
 **Hierarchical Configuration**:
 ```
-Default → Global (~/.psts.yml) → Project (.psts.yml) → Local (.psts.local.yml)
+Default → Global (~/.powershield.yml) → Project (.powershield.yml) → Local (.powershield.local.yml)
 ```
 
 **Configuration Sections**:
@@ -49,17 +49,17 @@ Default → Global (~/.psts.yml) → Project (.psts.yml) → Local (.psts.local.
 **Files**:
 - `actions/copilot-autofix/src/config.ts` - TypeScript config schema
 - `src/ConfigLoader.psm1` - PowerShell config loader
-- `.psts.yml.example` - Complete example configuration
+- `.powershield.yml.example` - Complete example configuration
 
 ### 3. Suppression Comment System
 
 **Suppression Formats**:
 ```powershell
-# PSTS-SUPPRESS-NEXT: RuleId - Justification
-# PSTS-SUPPRESS: RuleId - Justification (inline)
-# PSTS-SUPPRESS-START: RuleId - Justification
-# PSTS-SUPPRESS-END
-# PSTS-SUPPRESS-NEXT: RuleId - Justification (2025-12-31)
+# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification
+# POWERSHIELD-SUPPRESS: RuleId - Justification (inline)
+# POWERSHIELD-SUPPRESS-START: RuleId - Justification
+# POWERSHIELD-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification (2025-12-31)
 ```
 
 **Features**:
@@ -171,7 +171,7 @@ rules:
 
 ### Suppressions
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy requirement (2025-12-31)
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy requirement (2025-12-31)
 $hash = Get-FileHash -Algorithm MD5 $file
 ```
 
@@ -186,7 +186,7 @@ $result = Invoke-WorkspaceAnalysis -WorkspacePath "." -EnableSuppressions
 ### Use Configuration
 ```bash
 # Create configuration
-cp .psts.yml.example .psts.yml
+cp .powershield.yml.example .powershield.yml
 
 # Configuration loads automatically
 pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1; 
@@ -199,7 +199,7 @@ pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1;
   uses: ./actions/copilot-autofix
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    violations-file: psts-results.json
+    violations-file: powershield-results.json
     apply-fixes: true
 ```
 
@@ -231,7 +231,7 @@ pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1;
 
 2. **Add Configuration** (15 minutes):
    ```bash
-   cp .psts.yml.example .psts.yml
+   cp .powershield.yml.example .powershield.yml
    # Edit to customize
    ```
 
@@ -244,7 +244,7 @@ pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1;
 4. **Add Suppressions** (ongoing):
    ```powershell
    # Document exceptions
-   # PSTS-SUPPRESS-NEXT: RuleId - Reason
+   # POWERSHIELD-SUPPRESS-NEXT: RuleId - Reason
    ```
 
 ### For Contributors
@@ -275,7 +275,7 @@ pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1;
 - ✅ `docs/MIGRATION_GUIDE.md` - Migration instructions
 
 ### Configuration & Examples
-- ✅ `.psts.yml.example` - Example configuration
+- ✅ `.powershield.yml.example` - Example configuration
 - ✅ `README.md` - Updated with new features
 
 ### Tests
@@ -314,7 +314,7 @@ All requirements from the problem statement:
 
 ## 🎉 Conclusion
 
-PSTS v1.1.0 is **complete** and **production-ready** with:
+PowerShield v1.1.0 is **complete** and **production-ready** with:
 
 - ✅ All critical features implemented
 - ✅ Comprehensive testing passed

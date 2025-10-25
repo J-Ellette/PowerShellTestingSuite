@@ -1,5 +1,5 @@
-# PSTS Configuration
-# Complete configuration reference for PowerShell Testing Suite
+# PowerShield Configuration
+# Complete configuration reference for PowerShield - Comprehensive PowerShell Security Platform
 
 version: "1.0"
 
@@ -68,7 +68,7 @@ suppressions:
 # Reporting
 reporting:
   formats: ["sarif", "json", "markdown"]
-  output_dir: ".psts-reports"
+  output_dir: ".powershield-reports"
   
   sarif:
     include_code_flows: true
@@ -83,7 +83,7 @@ ci:
   fail_on: ["Critical", "High"]
   max_warnings: 50
   baseline_mode: false
-  baseline_file: ".psts-baseline.sarif"
+  baseline_file: ".powershield-baseline.sarif"
 
 # Webhooks (optional)
 # webhooks:

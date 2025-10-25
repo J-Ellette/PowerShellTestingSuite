@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Converts PSTS results to SARIF format for GitHub Security tab integration.
+    Converts PowerShield results to SARIF format for GitHub Security tab integration.
 .DESCRIPTION
     Converts PowerShell Security Analyzer JSON results to SARIF 2.1.0 format.
 .PARAMETER InputFile
-    Path to the PSTS JSON results file
+    Path to the PowerShield JSON results file
 .PARAMETER OutputFile
     Path where the SARIF file should be written
 .EXAMPLE
@@ -33,7 +33,7 @@ function Convert-ToSARIF {
         runs = @(@{
             tool = @{
                 driver = @{
-                    name = 'PSTS (PowerShell Testing Suite)'
+                    name = 'PowerShield (Comprehensive PowerShell Security Platform)'
                     version = $results.metadata.version
                     informationUri = 'https://github.com/J-Ellette/PowerShellTestingSuite'
                     semanticVersion = $results.metadata.version

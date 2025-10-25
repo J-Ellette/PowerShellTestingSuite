@@ -1,7 +1,7 @@
-# PSTS (PowerShellTestingSuite) - Copilot Implementation Guide
+# PowerShield (PowerShellTestingSuite) - Copilot Implementation Guide
 
 ## Overview
-PSTS is a comprehensive PowerShell security testing suite with three main phases:
+PowerShield is a comprehensive PowerShell security testing suite with three main phases:
 1. **Phase 1**: GitHub Workflow Integration (Weeks 1-4)
 2. **Phase 2**: VS Code Extension (Weeks 5-8)  
 3. **Phase 3**: Standalone Sandbox Application (Weeks 9-12)
@@ -78,7 +78,7 @@ Create a comprehensive GitHub Actions workflow with GitHub Copilot integration f
 ### 4. Supporting Scripts
 
 **File**: `scripts/Convert-ToSARIF.ps1`
-- Converts PSTS JSON results to SARIF format
+- Converts PowerShield JSON results to SARIF format
 - Enables GitHub Security tab integration
 - Maps severity levels to SARIF standards
 

@@ -2,12 +2,12 @@
 
 <#
 .SYNOPSIS
-    Configuration loader for PSTS
+    Configuration loader for PowerShield
 .DESCRIPTION
-    Loads and validates PSTS configuration from .psts.yml files with hierarchical support.
+    Loads and validates PowerShield configuration from .powershield.yml files with hierarchical support.
 .NOTES
     Version: 1.0.0
-    Author: PSTS Project
+    Author: PowerShield Project
 #>
 
 # Check if powershell-yaml module is available
@@ -62,7 +62,7 @@ class PSSTConfiguration {
         }
         $this.Reporting = @{
             formats = @('sarif', 'json', 'markdown')
-            output_dir = '.psts-reports'
+            output_dir = '.powershield-reports'
             sarif = @{
                 include_code_flows = $true
                 include_fixes = $true
@@ -76,7 +76,7 @@ class PSSTConfiguration {
             fail_on = @('Critical', 'High')
             max_warnings = 50
             baseline_mode = $false
-            baseline_file = '.psts-baseline.sarif'
+            baseline_file = '.powershield-baseline.sarif'
         }
     }
 
@@ -142,8 +142,8 @@ function Import-PSSTConfiguration {
     $homeDir = if ($IsWindows) { $env:USERPROFILE } else { $env:HOME }
     if ($homeDir) {
         $globalConfigPaths = @(
-            (Join-Path $homeDir '.psts.yml'),
-            (Join-Path $homeDir '.psts.yaml')
+            (Join-Path $homeDir '.powershield.yml'),
+            (Join-Path $homeDir '.powershield.yaml')
         )
         
         foreach ($path in $globalConfigPaths) {
@@ -160,10 +160,10 @@ function Import-PSSTConfiguration {
 
     # 2. Look for project config
     $projectConfigPaths = @(
-        (Join-Path $WorkspacePath '.psts.yml'),
-        (Join-Path $WorkspacePath '.psts.yaml'),
-        (Join-Path $WorkspacePath 'psts.yml'),
-        (Join-Path $WorkspacePath 'psts.yaml')
+        (Join-Path $WorkspacePath '.powershield.yml'),
+        (Join-Path $WorkspacePath '.powershield.yaml'),
+        (Join-Path $WorkspacePath 'powershield.yml'),
+        (Join-Path $WorkspacePath 'powershield.yaml')
     )
 
     foreach ($path in $projectConfigPaths) {
@@ -179,8 +179,8 @@ function Import-PSSTConfiguration {
 
     # 3. Look for local config
     $localConfigPaths = @(
-        (Join-Path $WorkspacePath '.psts.local.yml'),
-        (Join-Path $WorkspacePath '.psts.local.yaml')
+        (Join-Path $WorkspacePath '.powershield.local.yml'),
+        (Join-Path $WorkspacePath '.powershield.local.yaml')
     )
 
     foreach ($path in $localConfigPaths) {

@@ -1,8 +1,8 @@
-# PSTS Suppression Guide
+# PowerShield Suppression Guide
 
 ## Overview
 
-PSTS supports suppression comments to temporarily or permanently exclude specific violations from analysis. This is useful for:
+PowerShield supports suppression comments to temporarily or permanently exclude specific violations from analysis. This is useful for:
 
 - Known false positives
 - Legacy code requiring security exceptions
@@ -11,45 +11,45 @@ PSTS supports suppression comments to temporarily or permanently exclude specifi
 
 ## Suppression Formats
 
-### 1. PSTS-SUPPRESS-NEXT
+### 1. POWERSHIELD-SUPPRESS-NEXT
 
 Suppresses the violation on the **next line**:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
 $hash = Get-FileHash -Path "file.txt" -Algorithm MD5
 ```
 
-**Syntax**: `# PSTS-SUPPRESS-NEXT: RuleId - Justification`
+**Syntax**: `# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification`
 
-### 2. PSTS-SUPPRESS (Inline)
+### 2. POWERSHIELD-SUPPRESS (Inline)
 
 Suppresses the violation on the **same line**:
 
 ```powershell
-$password = "test123" # PSTS-SUPPRESS: CredentialExposure - Test credential
+$password = "test123" # POWERSHIELD-SUPPRESS: CredentialExposure - Test credential
 ```
 
-**Syntax**: `# PSTS-SUPPRESS: RuleId - Justification`
+**Syntax**: `# POWERSHIELD-SUPPRESS: RuleId - Justification`
 
-### 3. PSTS-SUPPRESS-START/END (Block)
+### 3. POWERSHIELD-SUPPRESS-START/END (Block)
 
 Suppresses violations in a **code block**:
 
 ```powershell
-# PSTS-SUPPRESS-START: CommandInjection - Admin console with validated input
+# POWERSHIELD-SUPPRESS-START: CommandInjection - Admin console with validated input
 $commands = @("Get-Process", "Get-Service")
 foreach ($cmd in $commands) {
     Invoke-Expression $cmd
 }
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 ```
 
 **Syntax**:
 ```powershell
-# PSTS-SUPPRESS-START: RuleId - Justification
+# POWERSHIELD-SUPPRESS-START: RuleId - Justification
 # ... code ...
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 ```
 
 ### 4. Expiring Suppressions
@@ -57,11 +57,11 @@ foreach ($cmd in $commands) {
 Add an expiry date to auto-expire suppressions:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration (2025-12-31)
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration (2025-12-31)
 $hash = Get-FileHash -Path "data.bin" -Algorithm SHA1
 ```
 
-**Syntax**: `# PSTS-SUPPRESS-NEXT: RuleId - Justification (YYYY-MM-DD)`
+**Syntax**: `# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification (YYYY-MM-DD)`
 
 **Benefits**:
 - Prevents forgotten suppressions
@@ -73,13 +73,13 @@ $hash = Get-FileHash -Path "data.bin" -Algorithm SHA1
 Suppress all rules on a line (use sparingly):
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: all - Complex legacy code pending refactor
+# POWERSHIELD-SUPPRESS-NEXT: all - Complex legacy code pending refactor
 $complexLegacyCode = Invoke-ComplexOperation
 ```
 
 ## Configuration
 
-Configure suppression behavior in `.psts.yml`:
+Configure suppression behavior in `.powershield.yml`:
 
 ```yaml
 suppressions:
@@ -94,11 +94,11 @@ When `true`, all suppressions must include a justification:
 
 ```powershell
 # ❌ Invalid - No justification
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms
 $hash = Get-FileHash -Algorithm MD5
 
 # ✅ Valid - Includes justification
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Required for legacy API
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Required for legacy API
 $hash = Get-FileHash -Algorithm MD5
 ```
 
@@ -128,37 +128,37 @@ Good justifications explain **why** the violation is acceptable:
 
 ```powershell
 # ❌ Poor justification
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Required
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Required
 
 # ✅ Good justification
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy API requires MD5 checksums
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy API requires MD5 checksums
 ```
 
 ### 2. Use Expiry Dates for Temporary Issues
 
 ```powershell
 # Migration in progress
-# PSTS-SUPPRESS-NEXT: CredentialExposure - Temp until secret vault ready (2025-06-30)
+# POWERSHIELD-SUPPRESS-NEXT: CredentialExposure - Temp until secret vault ready (2025-06-30)
 $password = Get-LegacyPassword
 ```
 
 ### 3. Prefer Narrow Suppressions
 
-Use `PSTS-SUPPRESS-NEXT` or inline over block suppressions:
+Use `POWERSHIELD-SUPPRESS-NEXT` or inline over block suppressions:
 
 ```powershell
 # ❌ Too broad - Suppresses entire function
-# PSTS-SUPPRESS-START: InsecureHashAlgorithms - Legacy requirement
+# POWERSHIELD-SUPPRESS-START: InsecureHashAlgorithms - Legacy requirement
 function Get-FileChecksum {
     $hash1 = Get-FileHash -Algorithm MD5 "file1.txt"
     $hash2 = Get-FileHash -Algorithm SHA256 "file2.txt"  # Unnecessarily suppressed
     # More code...
 }
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 
 # ✅ Precise - Only suppresses needed line
 function Get-FileChecksum {
-    # PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy API requirement
+    # POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy API requirement
     $hash1 = Get-FileHash -Algorithm MD5 "file1.txt"
     $hash2 = Get-FileHash -Algorithm SHA256 "file2.txt"  # Not suppressed
     # More code...
@@ -183,16 +183,16 @@ Only use `all` for extreme cases:
 
 ```powershell
 # ❌ Avoid - Hides all violations
-# PSTS-SUPPRESS-START: all - Legacy code
+# POWERSHIELD-SUPPRESS-START: all - Legacy code
 # ... risky code ...
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 
 # ✅ Better - Suppress specific rules
-# PSTS-SUPPRESS-START: InsecureHashAlgorithms - Legacy requirement
-# PSTS-SUPPRESS-START: CredentialExposure - Documented exception
+# POWERSHIELD-SUPPRESS-START: InsecureHashAlgorithms - Legacy requirement
+# POWERSHIELD-SUPPRESS-START: CredentialExposure - Documented exception
 # ... risky code ...
-# PSTS-SUPPRESS-END
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 ```
 
 ## Suppression Reports
@@ -292,7 +292,7 @@ $result = Invoke-WorkspaceAnalysis `
 ### Example 1: Legacy System Integration
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy banking API requires MD5
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy banking API requires MD5
 # TODO: Migrate to SHA256 when API v2 available (ETA Q2 2025)
 $checksum = Get-FileHash -Path $file -Algorithm MD5
 ```
@@ -300,28 +300,28 @@ $checksum = Get-FileHash -Path $file -Algorithm MD5
 ### Example 2: Development/Test Credentials
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: CredentialExposure - Test credential, not used in production
+# POWERSHIELD-SUPPRESS-NEXT: CredentialExposure - Test credential, not used in production
 $testPassword = "TestPassword123!"
 
-# PSTS-SUPPRESS-NEXT: CredentialExposure - Dev environment only (2025-06-30)
+# POWERSHIELD-SUPPRESS-NEXT: CredentialExposure - Dev environment only (2025-06-30)
 $devApiKey = "dev-api-key-12345"
 ```
 
 ### Example 3: Controlled Admin Operations
 
 ```powershell
-# PSTS-SUPPRESS-START: CommandInjection - Admin console with input validation
+# POWERSHIELD-SUPPRESS-START: CommandInjection - Admin console with input validation
 if ($IsAdminSession -and (Test-ValidCommand $command)) {
     Invoke-Expression $command
 }
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 ```
 
 ### Example 4: Certificate Validation Override (Development)
 
 ```powershell
 if ($env:ENVIRONMENT -eq 'Development') {
-    # PSTS-SUPPRESS-NEXT: CertificateValidation - Dev environment only (2025-12-31)
+    # POWERSHIELD-SUPPRESS-NEXT: CertificateValidation - Dev environment only (2025-12-31)
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
 }
 ```
@@ -341,23 +341,23 @@ if ($env:ENVIRONMENT -eq 'Development') {
 Suppress each rule separately:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy requirement
-# PSTS-SUPPRESS-NEXT: CredentialExposure - Test environment
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy requirement
+# POWERSHIELD-SUPPRESS-NEXT: CredentialExposure - Test environment
 $result = Get-LegacyHash -Password "test" -Algorithm MD5
 ```
 
 ### Block Suppression Not Ending
 
-Ensure `PSTS-SUPPRESS-END` is present:
+Ensure `POWERSHIELD-SUPPRESS-END` is present:
 
 ```powershell
-# PSTS-SUPPRESS-START: RuleId - Reason
+# POWERSHIELD-SUPPRESS-START: RuleId - Reason
 # ... code ...
-# PSTS-SUPPRESS-END  # Must have this!
+# POWERSHIELD-SUPPRESS-END  # Must have this!
 ```
 
 ## See Also
 
 - [Configuration Guide](CONFIGURATION_GUIDE.md) - Configure suppression behavior
 - [README.md](../README.md) - Main documentation
-- [.psts.yml.example](../.psts.yml.example) - Example configuration
+- [.powershield.yml.example](../.powershield.yml.example) - Example configuration

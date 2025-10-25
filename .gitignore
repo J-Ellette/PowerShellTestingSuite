@@ -1,10 +1,13 @@
 # Generated files
-psts-results.json
-psts-results.sarif
+powershield-results.json
+powershield-results.sarif
 security-report.md
 test-*.json
 test-*.sarif
 test-*.md
+# Legacy filenames (for backward compatibility during transition)
+psts-results.json
+psts-results.sarif
 
 # Node
 node_modules/

@@ -249,7 +249,7 @@ async function run(): Promise<void> {
     try {
         // Load configuration
         const workspacePath = process.env.GITHUB_WORKSPACE || '.';
-        core.info('Loading PSTS configuration...');
+        core.info('Loading PowerShield configuration...');
         const config = ConfigLoader.loadConfig(workspacePath);
 
         // Validate configuration
@@ -277,7 +277,7 @@ async function run(): Promise<void> {
         config.autofix.max_fixes = maxFixes;
         config.autofix.confidence_threshold = confidenceThreshold;
 
-        core.info(`PSTS Auto-Fix Action`);
+        core.info(`PowerShield Auto-Fix Action`);
         core.info(`Violations file: ${violationsFile}`);
         core.info(`Apply fixes: ${applyFixes}`);
 
@@ -333,7 +333,7 @@ async function run(): Promise<void> {
                 
                 // Create summary
                 core.summary
-                    .addHeading('🤖 PSTS Auto-Fix Results')
+                    .addHeading('🤖 PowerShield Auto-Fix Results')
                     .addTable([
                         [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                         ['Provider', config.autofix.provider],
@@ -371,7 +371,7 @@ async function run(): Promise<void> {
 
             // Create preview summary
             core.summary
-                .addHeading('🤖 PSTS Auto-Fix Preview')
+                .addHeading('🤖 PowerShield Auto-Fix Preview')
                 .addTable([
                     [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                     ['Provider', config.autofix.provider],

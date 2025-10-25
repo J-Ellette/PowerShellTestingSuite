@@ -1,8 +1,8 @@
-# Test Scripts for PSTS (PowerShell Testing Suite)
+# Test Scripts for PowerShield (Comprehensive PowerShell Security Platform)
 
 ## ⚠️ IMPORTANT: Intentional Security Violations & Fake Credentials
 
-This directory contains test scripts with **intentional security violations** used to validate the PSTS security analyzer. 
+This directory contains test scripts with **intentional security violations** used to validate the PowerShield security analyzer. 
 
 **ALL CREDENTIALS, KEYS, AND SECRETS IN THESE FILES ARE FAKE EXAMPLES AND NOT REAL.**
 
@@ -128,7 +128,7 @@ These test scripts are automatically tested by the GitHub Actions workflow in th
 
 **These test files are excluded from security scanning through multiple mechanisms:**
 
-1. **PSTS Analyzer Exclusion**: Files in `tests/TestScripts/` are automatically excluded from workspace-level security scans via the analyzer's default exclusion paths:
+1. **PowerShield Analyzer Exclusion**: Files in `tests/TestScripts/` are automatically excluded from workspace-level security scans via the analyzer's default exclusion paths:
    ```powershell
    ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*')
    ```
@@ -141,7 +141,7 @@ This ensures that intentional violations in test scripts don't appear as real se
 
 ## Adding New Test Scripts
 
-When adding new security rules to PSTS:
+When adding new security rules to PowerShield:
 
 1. Create a test script in the appropriate subdirectory based on the rule category
 2. Include both **violation examples** (marked with ❌) and **safe examples** (marked with ✅)

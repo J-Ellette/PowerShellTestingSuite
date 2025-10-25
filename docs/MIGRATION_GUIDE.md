@@ -1,15 +1,15 @@
-# PSTS v1.1.0 Migration Guide
+# PowerShield v1.1.0 Migration Guide
 
 ## Overview
 
-PSTS v1.1.0 introduces significant new features while maintaining backward compatibility. This guide helps you migrate from v1.0.0 to v1.1.0 and take advantage of the new capabilities.
+PowerShield v1.1.0 introduces significant new features while maintaining backward compatibility. This guide helps you migrate from v1.0.0 to v1.1.0 and take advantage of the new capabilities.
 
 ## What's New
 
 ### Major Features
 
 1. **Real AI Auto-Fix**: Multi-provider AI integration for automatic security fixes
-2. **Configuration System**: Flexible `.psts.yml` configuration with hierarchical support
+2. **Configuration System**: Flexible `.powershield.yml` configuration with hierarchical support
 3. **Suppression Comments**: Document and track security exceptions with expiry dates
 
 ## Breaking Changes
@@ -28,14 +28,14 @@ Update version badges in README (optional):
 
 ### Step 2: Add Configuration File (Optional)
 
-Create `.psts.yml` in your repository root to customize behavior:
+Create `.powershield.yml` in your repository root to customize behavior:
 
 ```bash
 # Copy example configuration
-cp .psts.yml.example .psts.yml
+cp .powershield.yml.example .powershield.yml
 
 # Edit to match your needs
-vim .psts.yml
+vim .powershield.yml
 ```
 
 **Basic configuration**:
@@ -61,7 +61,7 @@ Update your GitHub Actions workflow to enable suppression support:
 
 **Before** (v1.0.0):
 ```yaml
-- name: Run PSTS Analysis
+- name: Run PowerShield Analysis
   shell: pwsh
   run: |
     Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
@@ -70,7 +70,7 @@ Update your GitHub Actions workflow to enable suppression support:
 
 **After** (v1.1.0):
 ```yaml
-- name: Run PSTS Analysis
+- name: Run PowerShield Analysis
   shell: pwsh
   run: |
     Import-Module ./src/PowerShellSecurityAnalyzer.psm1 -Force
@@ -83,7 +83,7 @@ Add suppression comments to document known exceptions:
 
 ```powershell
 # Legacy API requirement
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Required by legacy banking API (2025-06-30)
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Required by legacy banking API (2025-06-30)
 $hash = Get-FileHash -Path $file -Algorithm MD5
 ```
 
@@ -96,7 +96,7 @@ Add auto-fix step to your workflow:
   uses: ./actions/copilot-autofix
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    violations-file: psts-results.json
+    violations-file: powershield-results.json
     apply-fixes: false  # Start with preview mode
     max-fixes: 5
     confidence-threshold: 0.85
@@ -114,7 +114,7 @@ Add auto-fix step to your workflow:
 
 #### No Configuration (v1.0.0 behavior)
 
-If you don't create `.psts.yml`, PSTS uses default configuration identical to v1.0.0:
+If you don't create `.powershield.yml`, PowerShield uses default configuration identical to v1.0.0:
 
 - Severity threshold: Medium
 - All rules enabled
@@ -124,7 +124,7 @@ If you don't create `.psts.yml`, PSTS uses default configuration identical to v1
 #### Add Basic Configuration
 
 ```yaml
-# .psts.yml
+# .powershield.yml
 version: "1.0"
 
 analysis:
@@ -187,7 +187,7 @@ See [AI Auto-Fix Guide](AI_AUTOFIX_GUIDE.md) for details.
 For known legacy issues requiring exceptions:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy MD5 requirement
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy MD5 requirement
 # TODO: Migrate to SHA256 when API v2 available
 $hash = Get-FileHash -Algorithm MD5 $file
 ```
@@ -197,7 +197,7 @@ $hash = Get-FileHash -Algorithm MD5 $file
 For test credentials and fixtures:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: CredentialExposure - Test credential, not production
+# POWERSHIELD-SUPPRESS-NEXT: CredentialExposure - Test credential, not production
 $testPassword = "TestPassword123!"
 ```
 
@@ -206,27 +206,27 @@ $testPassword = "TestPassword123!"
 For temporary exceptions:
 
 ```powershell
-# PSTS-SUPPRESS-NEXT: CommandInjection - Until refactor complete (2025-03-31)
+# POWERSHIELD-SUPPRESS-NEXT: CommandInjection - Until refactor complete (2025-03-31)
 Invoke-Expression $validatedCommand
 ```
 
 ## Common Migration Scenarios
 
-### Scenario 1: Currently Using .pstsignore
+### Scenario 1: Currently Using .powershieldignore
 
-If you're using `.pstsignore` to exclude files:
+If you're using `.powershieldignore` to exclude files:
 
 **Before**:
 ```
-# .pstsignore
+# .powershieldignore
 vendor/
 build/
 *.tests.ps1
 ```
 
-**After** (migrate to `.psts.yml`):
+**After** (migrate to `.powershield.yml`):
 ```yaml
-# .psts.yml
+# .powershield.yml
 version: "1.0"
 
 analysis:
@@ -237,14 +237,14 @@ analysis:
     - "*.tests.ps1"
 ```
 
-**Note**: `.pstsignore` still works, but `.psts.yml` is recommended for consistency.
+**Note**: `.powershieldignore` still works, but `.powershield.yml` is recommended for consistency.
 
 ### Scenario 2: Lots of False Positives
 
 If certain rules generate too many false positives:
 
 ```yaml
-# .psts.yml
+# .powershield.yml
 rules:
   # Disable problematic rule temporarily
   SpecificRule:
@@ -259,7 +259,7 @@ rules:
 For enterprise with strict requirements:
 
 ```yaml
-# .psts.yml
+# .powershield.yml
 version: "1.0"
 
 analysis:
@@ -283,7 +283,7 @@ ci:
 For more permissive development:
 
 ```yaml
-# .psts.local.yml (gitignored)
+# .powershield.local.yml (gitignored)
 version: "1.0"
 
 analysis:
@@ -330,11 +330,11 @@ Write-Host "Suppressed: $($result1.TotalViolations - $result2.TotalViolations)"
 # Generate violations file
 pwsh -c "Import-Module ./src/PowerShellSecurityAnalyzer.psm1; 
          \$r = Invoke-WorkspaceAnalysis '.'; 
-         \$r | ConvertTo-Json -Depth 10 | Out-File 'psts-results.json'"
+         \$r | ConvertTo-Json -Depth 10 | Out-File 'powershield-results.json'"
 
 # Preview fixes (doesn't modify files)
 node actions/copilot-autofix/dist/index.js \
-  --violations-file psts-results.json \
+  --violations-file powershield-results.json \
   --apply-fixes false
 ```
 
@@ -345,7 +345,7 @@ If you encounter issues, rolling back is simple:
 ### 1. Remove Configuration File
 
 ```bash
-rm .psts.yml
+rm .powershield.yml
 ```
 
 ### 2. Revert Workflow Changes
@@ -366,8 +366,8 @@ Suppression comments are just comments - they won't affect analysis if suppressi
 **Symptoms**: Configuration changes not taking effect
 
 **Solutions**:
-1. Check file name: `.psts.yml` (not `psts.yml`)
-2. Validate YAML syntax: `yamllint .psts.yml`
+1. Check file name: `.powershield.yml` (not `powershield.yml`)
+2. Validate YAML syntax: `yamllint .powershield.yml`
 3. Check file location (repository root)
 4. Enable verbose mode: `$VerbosePreference = 'Continue'`
 
@@ -415,7 +415,7 @@ If you encounter issues during migration:
 1. Check existing [GitHub Issues](https://github.com/J-Ellette/PowerShellTestingSuite/issues)
 2. Review documentation in `docs/` folder
 3. Open a new issue with:
-   - PSTS version
+   - PowerShield version
    - Configuration file (sanitized)
    - Error messages
    - PowerShell version
@@ -428,7 +428,7 @@ If you encounter issues during migration:
 3. Done - all other features optional
 
 **Recommended Migration** (30 minutes):
-1. Create `.psts.yml` configuration
+1. Create `.powershield.yml` configuration
 2. Enable suppressions in workflow
 3. Add suppression comments to legacy code
 4. Test auto-fix in preview mode
@@ -441,4 +441,4 @@ If you encounter issues during migration:
 4. Set up per-rule configurations
 5. Train team on new features
 
-**Remember**: All new features are optional. PSTS v1.1.0 works exactly like v1.0.0 without any configuration changes.
+**Remember**: All new features are optional. PowerShield v1.1.0 works exactly like v1.0.0 without any configuration changes.

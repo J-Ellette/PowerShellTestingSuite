@@ -218,7 +218,7 @@ class PSSTApplication {
                     },
                     { type: 'separator' },
                     {
-                        label: 'About PSTS',
+                        label: 'About PowerShield',
                         click: () => this.handleAbout()
                     }
                 ]
@@ -309,10 +309,10 @@ class PSSTApplication {
             // Check system requirements
             await this.checkSystemRequirements();
             
-            console.log('PSTS services initialized successfully');
+            console.log('PowerShield services initialized successfully');
         } catch (error) {
             console.error('Failed to initialize services:', error);
-            dialog.showErrorBox('Initialization Error', `Failed to initialize PSTS: ${error}`);
+            dialog.showErrorBox('Initialization Error', `Failed to initialize PowerShield: ${error}`);
         }
     }
 
@@ -452,7 +452,7 @@ class PSSTApplication {
                     const result = await dialog.showMessageBox(this.mainWindow!, {
                         type: 'info',
                         title: 'Update Available',
-                        message: 'A new version of PSTS is available.',
+                        message: 'A new version of PowerShield is available.',
                         detail: 'Would you like to download and install it now?',
                         buttons: ['Update Now', 'Later'],
                         defaultId: 0
@@ -750,7 +750,7 @@ export class SandboxManager {
             const checkResult = await this.executeCommand('docker', ['images', '-q', this.dockerImage]);
             
             if (!checkResult.success || !checkResult.stdout.trim()) {
-                console.log('Building PSTS Docker image...');
+                console.log('Building PowerShield Docker image...');
                 await this.buildDockerImage();
             }
         } catch (error) {
@@ -777,7 +777,7 @@ export class SandboxManager {
             throw new Error(`Docker image build failed: ${result.error}`);
         }
 
-        console.log('PSTS Docker image built successfully');
+        console.log('PowerShield Docker image built successfully');
     }
 
     private async executeCommand(
@@ -1728,7 +1728,7 @@ export const App: React.FC = () => {
         <Layout style={{ height: '100vh' }}>
             <Header style={{ padding: '0 16px', background: '#001529' }}>
                 <div style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-                    PSTS - PowerShell Testing Suite
+                    PowerShield - Comprehensive PowerShell Security Platform
                 </div>
                 <div style={{ float: 'right', color: 'white' }}>
                     <span style={{ marginRight: 16 }}>
@@ -1914,7 +1914,7 @@ RUN pwsh -c "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Insta
 
 RUN mkdir -p /app && chown analyzer:analyzer /app
 
-## Copy PSTS analyzer modules
+## Copy PowerShield analyzer modules
 
 COPY --chown=analyzer:analyzer PowerShellSecurityAnalyzer/ /app/modules/
 COPY --chown=analyzer:analyzer scripts/ /app/
@@ -1962,7 +1962,7 @@ param(
 )
 
 try {
-    Write-Host "PSTS Docker Analyzer Starting..."
+    Write-Host "PowerShield Docker Analyzer Starting..."
     Write-Host "Script: $ScriptPath"
     Write-Host "Output: $OutputPath"
 
@@ -1979,7 +1979,7 @@ try {
         throw "Script path outside allowed workspace: $resolvedScriptPath"
     }
     
-    # Import PSTS analyzer
+    # Import PowerShield analyzer
     Import-Module "/app/modules/PowerShellSecurityAnalyzer.psd1" -Force
     
     Write-Host "Modules imported successfully"
@@ -2114,7 +2114,7 @@ try {
     $outputJson | Out-File -FilePath $OutputPath -Encoding UTF8 -Force
     
     Write-Host "Results written to: $OutputPath"
-    Write-Host "PSTS Docker Analyzer completed successfully"
+    Write-Host "PowerShield Docker Analyzer completed successfully"
     
     exit 0
     
@@ -2135,7 +2135,7 @@ try {
     exit 1
 }
 
-    Write-Error "PSTS Docker Analyzer failed: $($_.Exception.Message)"
+    Write-Error "PowerShield Docker Analyzer failed: $($_.Exception.Message)"
     exit 1
 }
 
@@ -2463,7 +2463,7 @@ export class SecurityPolicyManager {
         };
     }
 }
-This completes Phase 3 of the PSTS implementation - a comprehensive standalone sandbox application with:
+This completes Phase 3 of the PowerShield implementation - a comprehensive standalone sandbox application with:
 Key Features Implemented:
 
 Electron-based desktop application with security hardening

@@ -2,12 +2,12 @@
 
 <#
 .SYNOPSIS
-    PowerShell Security Analyzer Module for PSTS
+    PowerShell Security Analyzer Module for PowerShield
 .DESCRIPTION
     Analyzes PowerShell scripts for security vulnerabilities and provides detailed reports.
 .NOTES
     Version: 1.0.0
-    Author: PSTS Project
+    Author: PowerShield Project
 #>
 
 using namespace System.Management.Automation.Language
@@ -98,7 +98,7 @@ class PowerShellSecurityAnalyzer {
         $this.CodingRules = [List[SecurityRule]]::new()
         $this.PSSTConfig = $pstsConfig
         
-        # Merge PSTS config into legacy Configuration
+        # Merge PowerShield config into legacy Configuration
         $this.Configuration = @{
             EnableParallelAnalysis = $pstsConfig.Analysis.parallel_analysis
             MaxFileSize = $pstsConfig.Analysis.max_file_size
@@ -140,10 +140,10 @@ class PowerShellSecurityAnalyzer {
                 $this.Configuration.TimeoutSeconds = $this.PSSTConfig.Analysis.timeout_seconds
                 $this.Configuration.ExcludedPaths = $this.PSSTConfig.Analysis.exclude_paths
                 
-                Write-Verbose "Loaded PSTS configuration from $workspacePath"
+                Write-Verbose "Loaded PowerShield configuration from $workspacePath"
             }
         } catch {
-            Write-Warning "Failed to load PSTS configuration: $_"
+            Write-Warning "Failed to load PowerShield configuration: $_"
         }
     }
 

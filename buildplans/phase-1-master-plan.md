@@ -1,4 +1,4 @@
-# PSTS Phase 1 Master Plan
+# PowerShield Phase 1 Master Plan
 ## The Definitive PowerShell Security Platform Roadmap
 
 > **Last Updated**: October 24, 2025
@@ -65,7 +65,7 @@ model: "gpt-4o-mini"
 
 **Secondary Providers**: OpenAI, Azure OpenAI, Anthropic Claude
 
-**Configuration** (.psts.yml):
+**Configuration** (.powershield.yml):
 ```yaml
 autofix:
   provider: "github-models"  # github-models, openai, azure, claude
@@ -92,18 +92,18 @@ autofix:
 
 ---
 
-### ✅  2. Configuration System (.psts.yml) ⚙️
+### ✅  2. Configuration System (.powershield.yml) ⚙️
 **Current**: Hardcoded configuration  
 **Target**: Flexible, hierarchical configuration  
 **Impact**: HIGH - Enables enterprise adoption  
 
 #### Comprehensive Configuration File
 
-**Location**: `.psts.yml` (repository root, with global/org level support)
+**Location**: `.powershield.yml` (repository root, with global/org level support)
 
 **Structure**:
 ```yaml
-# PSTS Configuration
+# PowerShield Configuration
 version: "1.0"
 
 # Analysis Settings
@@ -164,7 +164,7 @@ suppressions:
 # Reporting
 reporting:
   formats: ["sarif", "json", "markdown"]
-  output_dir: ".psts-reports"
+  output_dir: ".powershield-reports"
   
   # SARIF settings
   sarif:
@@ -181,7 +181,7 @@ ci:
   fail_on: ["Critical", "High"]
   max_warnings: 50
   baseline_mode: false
-  baseline_file: ".psts-baseline.sarif"
+  baseline_file: ".powershield-baseline.sarif"
 
 # Webhooks (for Slack, Teams, etc.)
 webhooks:
@@ -215,19 +215,19 @@ enterprise:
 
 ```powershell
 # Single line suppression
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Legacy system requirement
 $hash = Get-FileHash -Algorithm MD5 $file
 
 # Inline suppression
-$password = "temp123" # PSTS-SUPPRESS: CredentialExposure - Test credential
+$password = "temp123" # POWERSHIELD-SUPPRESS: CredentialExposure - Test credential
 
 # Block suppression
-# PSTS-SUPPRESS-START: CommandInjection - Validated input only
+# POWERSHIELD-SUPPRESS-START: CommandInjection - Validated input only
 $commands | ForEach-Object { Invoke-Expression $_ }
-# PSTS-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-END
 
 # Expiring suppression
-# PSTS-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration complete (2025-12-31)
+# POWERSHIELD-SUPPRESS-NEXT: InsecureHashAlgorithms - Until migration complete (2025-12-31)
 [System.Security.Cryptography.MD5]::Create()
 ```
 
@@ -765,7 +765,7 @@ rule:
 
 ### Critical Foundation
 1. **Real AI Integration**: GitHub Models API implementation
-2. **Configuration System**: Basic .psts.yml support
+2. **Configuration System**: Basic .powershield.yml support
 3. **Suppression Comments**: Parser and basic functionality
 
 ### Advanced Rules
@@ -808,9 +808,9 @@ rule:
 ---
 
 **Status**: Living document - updated with each phase completion  
-**Owner**: PSTS Core Team  
+**Owner**: PowerShield Core Team  
 **Last Review**: October 24, 2025
 
 ---
 
-*This master plan consolidates insights from multiple planning documents and prioritizes features that will establish PSTS as the #1 PowerShell security testing suite on the market.*
+*This master plan consolidates insights from multiple planning documents and prioritizes features that will establish PowerShield as the #1 PowerShell security testing suite on the market.*

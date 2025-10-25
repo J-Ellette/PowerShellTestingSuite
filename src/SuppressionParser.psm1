@@ -2,21 +2,21 @@
 
 <#
 .SYNOPSIS
-    Suppression Comment Parser for PSTS
+    Suppression Comment Parser for PowerShield
 .DESCRIPTION
     Parses and evaluates suppression comments in PowerShell scripts.
     Supports various suppression formats with justifications and expiry dates.
 .NOTES
     Version: 1.0.0
-    Author: PSTS Project
+    Author: PowerShield Project
 #>
 
 # Suppression comment formats:
-# PSTS-SUPPRESS-NEXT: RuleId - Justification
-# PSTS-SUPPRESS: RuleId - Justification (inline)
-# PSTS-SUPPRESS-START: RuleId - Justification
-# PSTS-SUPPRESS-END
-# PSTS-SUPPRESS-NEXT: RuleId - Justification (YYYY-MM-DD)
+# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification
+# POWERSHIELD-SUPPRESS: RuleId - Justification (inline)
+# POWERSHIELD-SUPPRESS-START: RuleId - Justification
+# POWERSHIELD-SUPPRESS-END
+# POWERSHIELD-SUPPRESS-NEXT: RuleId - Justification (YYYY-MM-DD)
 
 class Suppression {
     [string]$RuleId
@@ -83,8 +83,8 @@ class SuppressionParser {
             $line = $lines[$i]
             $lineNumber = $i + 1
 
-            # Check for PSTS-SUPPRESS-START
-            if ($line -match '#\s*PSTS-SUPPRESS-START:\s*(.+)') {
+            # Check for POWERSHIELD-SUPPRESS-START
+            if ($line -match '#\s*POWERSHIELD-SUPPRESS-START:\s*(.+)') {
                 $parsed = $this.ParseSuppressionComment($matches[1], $lineNumber, 'block')
                 if ($parsed) {
                     $parsed.FilePath = $filePath
@@ -93,8 +93,8 @@ class SuppressionParser {
                 continue
             }
 
-            # Check for PSTS-SUPPRESS-END
-            if ($line -match '#\s*PSTS-SUPPRESS-END') {
+            # Check for POWERSHIELD-SUPPRESS-END
+            if ($line -match '#\s*POWERSHIELD-SUPPRESS-END') {
                 if ($currentBlock) {
                     $currentBlock.SetEndLine($lineNumber - 1)
                     $this.Suppressions.Add($currentBlock)
@@ -103,8 +103,8 @@ class SuppressionParser {
                 continue
             }
 
-            # Check for PSTS-SUPPRESS-NEXT
-            if ($line -match '#\s*PSTS-SUPPRESS-NEXT:\s*(.+)') {
+            # Check for POWERSHIELD-SUPPRESS-NEXT
+            if ($line -match '#\s*POWERSHIELD-SUPPRESS-NEXT:\s*(.+)') {
                 $parsed = $this.ParseSuppressionComment($matches[1], $lineNumber, 'next')
                 if ($parsed) {
                     $parsed.FilePath = $filePath
@@ -114,8 +114,8 @@ class SuppressionParser {
                 continue
             }
 
-            # Check for inline PSTS-SUPPRESS
-            if ($line -match '#\s*PSTS-SUPPRESS:\s*(.+)') {
+            # Check for inline POWERSHIELD-SUPPRESS
+            if ($line -match '#\s*POWERSHIELD-SUPPRESS:\s*(.+)') {
                 $parsed = $this.ParseSuppressionComment($matches[1], $lineNumber, 'inline')
                 if ($parsed) {
                     $parsed.FilePath = $filePath
@@ -239,7 +239,7 @@ class SuppressionParser {
     [string] GenerateSuppressionMarkdown() {
         $report = $this.GenerateSuppressionReport()
         
-        $markdown = "# PSTS Suppression Report`n`n"
+        $markdown = "# PowerShield Suppression Report`n`n"
         $markdown += "## Summary`n`n"
         $markdown += "- **Total Suppressions**: $($report.TotalSuppressions)`n"
         $markdown += "- **Expired**: $($report.ExpiredCount)`n"
