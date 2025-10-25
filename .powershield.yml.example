@@ -85,6 +85,13 @@ ci:
   baseline_mode: false
   baseline_file: ".powershield-baseline.sarif"
 
+# Git Hooks Configuration
+hooks:
+  enabled: true
+  block_on: ["Critical", "High"]  # Severities that block commits
+  auto_fix: false  # Apply fixes automatically before commit (experimental)
+  skip_on_no_violations: true
+
 # Webhooks (optional)
 # webhooks:
 #   - url: "https://hooks.slack.com/..."

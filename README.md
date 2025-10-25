@@ -12,6 +12,13 @@
 
 ## ✨ What's New in v1.2.0
 
+### 🪝 Pre-Commit Hook Integration
+- **Local Security Validation**: Analyze scripts before they're committed
+- **Configurable Blocking**: Block commits based on severity thresholds
+- **Fast Incremental Analysis**: Only analyzes staged files
+- **Easy Installation**: One command to install Git hooks
+- **Bypass Options**: Flexible options for emergency commits
+
 ### 🛡️ Advanced Attack Detection (6 New Rules)
 - **Rule 47: PowerShell Obfuscation Detection**: Detects Base64 encoding, string concatenation, character code conversion, format string obfuscation, and string reversal techniques
 - **Rule 48: Download Cradle Detection**: Identifies download-and-execute patterns including IEX with WebClient, BitsTransfer chains, and reflective assembly loading
@@ -56,6 +63,8 @@
 - **AI-Powered Auto-Fix**: Automatically generates and applies security fixes with multiple AI providers
 - **Configuration System**: Flexible YAML-based configuration with hierarchical support
 - **Suppression Comments**: Document and track security exceptions with expiry dates
+- **Pre-Commit Hooks**: Local validation before commits with configurable blocking
+- **CLI Tools**: Command-line interface for analysis, configuration, and hook management
 - **PR Comments**: Detailed analysis results posted to pull requests
 - **Human-Readable Reports**: Markdown reports with actionable recommendations
 
@@ -124,11 +133,55 @@ Write-Host "Total violations: $($workspaceResult.TotalViolations)"
 $result = Invoke-SecurityAnalysis -ScriptPath "./MyScript.ps1" -EnableSuppressions
 ```
 
+### 3. Use CLI Tools
+
+PowerShield includes a command-line interface for local development:
+
+```bash
+# Analyze files
+pwsh powershield.ps1 analyze ./scripts
+
+# Install pre-commit hook
+pwsh powershield.ps1 install-hooks
+
+# Validate configuration
+pwsh powershield.ps1 config validate
+
+# Show help
+pwsh powershield.ps1 help
+```
+
+### 4. Enable Pre-Commit Hooks
+
+Get immediate feedback before committing:
+
+```bash
+# Install the hook
+pwsh powershield.ps1 install-hooks
+
+# Now commits are automatically checked
+git add script.ps1
+git commit -m "Add script"
+# Hook runs automatically and blocks if violations found
+```
+
+Configure hook behavior in `.powershield.yml`:
+
+```yaml
+hooks:
+  enabled: true
+  block_on: ["Critical", "High"]  # Block commits with these severities
+  auto_fix: false
+```
+
+See [Pre-Commit Hook Guide](docs/PRE_COMMIT_HOOK_GUIDE.md) for details.
+
 ## 📖 Documentation
 
 - **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configure PowerShield with `.powershield.yml`
 - **[AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md)** - Setup and use AI-powered fixes
 - **[Suppression Guide](docs/SUPPRESSION_GUIDE.md)** - Document security exceptions
+- **[Pre-Commit Hook Guide](docs/PRE_COMMIT_HOOK_GUIDE.md)** - Local validation before commits
 - **[Example Configuration](.powershield.yml.example)** - Complete configuration template
 
 ## 🔧 Configuration
@@ -165,6 +218,10 @@ suppressions:
   require_justification: true
   max_duration_days: 90
   allow_permanent: false
+
+hooks:
+  enabled: true
+  block_on: ["Critical", "High"]
 ```
 
 **Configuration Hierarchy** (later overrides earlier):
