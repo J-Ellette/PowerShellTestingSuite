@@ -36,7 +36,9 @@ function Write-Error { param([string]$Message) Write-Host "✗ $Message" -Foregr
 
 # Import modules
 try {
+    # POWERSHIELD-SUPPRESS-NEXT: DangerousModules - Controlled path within repository
     Import-Module "$scriptRoot/src/PowerShellSecurityAnalyzer.psm1" -Force -ErrorAction Stop
+    # POWERSHIELD-SUPPRESS-NEXT: DangerousModules - Controlled path within repository
     Import-Module "$scriptRoot/src/ConfigLoader.psm1" -Force -ErrorAction Stop
 } catch {
     Write-Error "Failed to load PowerShield modules: $_"
@@ -156,6 +158,7 @@ function Invoke-Analyze {
                 Write-Success "Results exported to: $OutputFile"
             }
             'sarif' {
+                # POWERSHIELD-SUPPRESS-NEXT: UnsafeFileInclusion - Controlled path within repository
                 . "$scriptRoot/scripts/Convert-ToSARIF.ps1"
                 $jsonTemp = [System.IO.Path]::GetTempFileName()
                 $result | ConvertTo-Json -Depth 10 | Out-File $jsonTemp
@@ -164,6 +167,7 @@ function Invoke-Analyze {
                 Write-Success "SARIF results exported to: $OutputFile"
             }
             'markdown' {
+                # POWERSHIELD-SUPPRESS-NEXT: UnsafeFileInclusion - Controlled path within repository
                 . "$scriptRoot/scripts/Generate-SecurityReport.ps1"
                 $jsonTemp = [System.IO.Path]::GetTempFileName()
                 $result | ConvertTo-Json -Depth 10 | Out-File $jsonTemp

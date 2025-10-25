@@ -22,7 +22,9 @@ if (-not $repoRoot) {
 
 # Import PowerShield modules
 try {
+    # POWERSHIELD-SUPPRESS-NEXT: DangerousModules - Controlled path within repository
     Import-Module "$repoRoot/src/PowerShellSecurityAnalyzer.psm1" -Force -ErrorAction Stop
+    # POWERSHIELD-SUPPRESS-NEXT: DangerousModules - Controlled path within repository
     Import-Module "$repoRoot/src/ConfigLoader.psm1" -Force -ErrorAction Stop
 } catch {
     Write-Error "Failed to load PowerShield modules: $_"
