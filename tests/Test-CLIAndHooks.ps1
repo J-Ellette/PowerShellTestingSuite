@@ -124,13 +124,16 @@ try {
     $gitDir = git -C $scriptRoot rev-parse --git-dir 2>&1
     if ($LASTEXITCODE -eq 0) {
         # Install hook
-        $output = & pwsh -NoProfile -File (Join-Path $scriptRoot "powershield.ps1") install-hooks -Force 2>&1
+        $output = & pwsh -NoProfile -File (Join-Path $scriptRoot "powershield.ps1") install-hooks -Force 2>&1 | Out-String
+        
+        # Check output for errors
+        $hasError = $output -match "error|failed" -and $output -notmatch "Pre-commit hook installed successfully"
         
         # Check if installed
         $hookPath = Join-Path $scriptRoot ".git/hooks/pre-commit"
         $installed = Test-Path $hookPath
         
-        Write-TestResult "Hook installation works" $installed
+        Write-TestResult "Hook installation works" ($installed -and -not $hasError)
     } else {
         Write-TestResult "Hook installation works" $false "Not a git repository"
     }
@@ -143,13 +146,16 @@ try {
     $gitDir = git -C $scriptRoot rev-parse --git-dir 2>&1
     if ($LASTEXITCODE -eq 0) {
         # Uninstall hook
-        $output = & pwsh -NoProfile -File (Join-Path $scriptRoot "powershield.ps1") uninstall-hooks 2>&1
+        $output = & pwsh -NoProfile -File (Join-Path $scriptRoot "powershield.ps1") uninstall-hooks 2>&1 | Out-String
+        
+        # Check output for errors
+        $hasError = $output -match "error|failed" -and $output -notmatch "uninstalled successfully"
         
         # Check if removed
         $hookPath = Join-Path $scriptRoot ".git/hooks/pre-commit"
         $removed = -not (Test-Path $hookPath)
         
-        Write-TestResult "Hook uninstallation works" $removed
+        Write-TestResult "Hook uninstallation works" ($removed -and -not $hasError)
     } else {
         Write-TestResult "Hook uninstallation works" $false "Not a git repository"
     }
@@ -178,10 +184,17 @@ try {
     Write-TestResult "Configuration has hooks section" $hasHooks
     
     if ($hasHooks) {
-        $hasEnabled = $config.Hooks.ContainsKey('enabled')
-        $hasBlockOn = $config.Hooks.ContainsKey('block_on')
+        # Use property access instead of ContainsKey for more robust checking
+        $hasEnabled = $null -ne $config.Hooks.enabled
+        $hasBlockOn = $null -ne $config.Hooks.block_on
         $bothPresent = $hasEnabled -and $hasBlockOn
-        Write-TestResult "Hook config has required fields" $bothPresent
+        
+        # Also verify they have expected types
+        $enabledIsBoolean = $config.Hooks.enabled -is [bool]
+        $blockOnIsArray = $config.Hooks.block_on -is [array]
+        $typesCorrect = $enabledIsBoolean -and $blockOnIsArray
+        
+        Write-TestResult "Hook config has required fields" ($bothPresent -and $typesCorrect)
     } else {
         Write-TestResult "Hook config has required fields" $false "Hooks section missing"
     }
