@@ -583,14 +583,44 @@ PowerShield includes an AI-powered auto-fix action that can automatically remedi
 - Applies fixes only when confidence threshold is met
 - Creates detailed commit messages
 
-## 📊 SARIF Integration
+## 📊 Enhanced SARIF Integration
 
-PowerShield generates SARIF (Static Analysis Results Interchange Format) output that integrates with GitHub's Security tab:
+PowerShield generates **SARIF 2.1.0** output with comprehensive security metadata that integrates with GitHub's Security tab and other security tools:
 
-1. Results appear in the **Security** → **Code scanning** tab
-2. Violations are annotated directly in pull requests
-3. Track security trends over time
-4. Filter by severity, rule, and file
+### Key Features
+
+1. **Rich Metadata** - Every violation includes:
+   - CWE (Common Weakness Enumeration) IDs
+   - MITRE ATT&CK technique mappings
+   - OWASP Top 10 2021 categories
+   - Help URLs with remediation guidance
+
+2. **Automated Fix Suggestions** - Many rules provide multiple fix alternatives directly in SARIF
+3. **Code Flow Tracking** - Complex vulnerabilities include data flow visualization
+4. **GitHub Integration** - Results appear in Security → Code scanning tab with enhanced categorization
+
+### Example Enhanced Rule
+
+```json
+{
+  "id": "InsecureHashAlgorithms",
+  "helpUri": "https://cwe.mitre.org/data/definitions/327.html",
+  "properties": {
+    "cwe": ["CWE-327", "CWE-328"],
+    "mitreAttack": "T1553.002",
+    "owasp": "A02:2021-Cryptographic Failures"
+  }
+}
+```
+
+### Benefits
+
+- **Better Categorization** - Rules grouped by CWE and OWASP categories
+- **Quick Fixes** - Suggested fixes appear directly in GitHub UI
+- **Threat Context** - MITRE ATT&CK shows real-world attack scenarios
+- **Compliance Ready** - Direct mappings for audit and compliance reports
+
+See [Enhanced SARIF Output Documentation](./docs/Enhanced-SARIF-Output.md) for complete details.
 
 ## ⚙️ Configuration
 

@@ -276,13 +276,25 @@ class PowerShellSecurityAnalyzer {
                     }
                     
                     if ($hasAsPlainText) {
-                        $violations += [SecurityViolation]::new(
+                        $violation = [SecurityViolation]::new(
                             "CredentialExposure",
                             "Plaintext password conversion detected. Use Read-Host -AsSecureString instead.",
                             [SecuritySeverity]::Critical,
                             $call.Extent.StartLineNumber,
                             $call.Extent.Text
                         )
+                        # Add fix suggestion
+                        $violation.Fixes = @(
+                            @{
+                                description = "Use Read-Host -AsSecureString to prompt securely"
+                                replacement = 'Read-Host -Prompt "Enter password" -AsSecureString'
+                            },
+                            @{
+                                description = "Use Get-Credential for credential prompts"
+                                replacement = '$credential = Get-Credential'
+                            }
+                        )
+                        $violations += $violation
                     }
                 }
                 
@@ -296,13 +308,25 @@ class PowerShellSecurityAnalyzer {
                     if ($text -match 'password|pwd|secret|key' -and $literal.Value.Length -gt 8) {
                         $context = $literal.Parent.Extent.Text
                         if ($context -match 'password\s*=|pwd\s*=|secret\s*=') {
-                            $violations += [SecurityViolation]::new(
+                            $violation = [SecurityViolation]::new(
                                 "CredentialExposure",
                                 "Potential hardcoded credential detected",
                                 [SecuritySeverity]::Critical,
                                 $literal.Extent.StartLineNumber,
                                 $literal.Extent.Text
                             )
+                            # Add fix suggestion
+                            $violation.Fixes = @(
+                                @{
+                                    description = "Use environment variable for sensitive data"
+                                    replacement = '$password = $env:SECURE_PASSWORD'
+                                },
+                                @{
+                                    description = "Use Azure Key Vault or secure configuration"
+                                    replacement = '$password = Get-AzKeyVaultSecret -VaultName "MyVault" -Name "MySecret" -AsPlainText'
+                                }
+                            )
+                            $violations += $violation
                         }
                     }
                 }
@@ -338,13 +362,29 @@ class PowerShellSecurityAnalyzer {
                     if ($call.CommandElements.Count -gt 1) {
                         $expression = $call.CommandElements[1].Extent.Text
                         if ($expression -match '\$') {
-                            $violations += [SecurityViolation]::new(
+                            $violation = [SecurityViolation]::new(
                                 "CommandInjection",
                                 "Potential command injection via Invoke-Expression with variables",
                                 [SecuritySeverity]::Critical,
                                 $call.Extent.StartLineNumber,
                                 $call.Extent.Text
                             )
+                            # Add fix suggestions
+                            $violation.Fixes = @(
+                                @{
+                                    description = "Use script blocks and parameter validation instead"
+                                    replacement = '# Refactor to use scriptblocks: & { param($param1) ... } -param1 $value'
+                                },
+                                @{
+                                    description = "Use switch statement for command dispatching"
+                                    replacement = 'switch ($command) { "option1" { ... }; "option2" { ... } }'
+                                },
+                                @{
+                                    description = "Comment out dangerous code for review"
+                                    replacement = '# SECURITY: Invoke-Expression removed - ' + $call.Extent.Text
+                                }
+                            )
+                            $violations += $violation
                         }
                     }
                 }
@@ -1716,21 +1756,56 @@ class PowerShellSecurityAnalyzer {
                 foreach ($call in $sqlCalls) {
                     # Check for string concatenation in SQL queries
                     $hasConcat = $false
+                    $concatElements = @()
                     foreach ($element in $call.CommandElements) {
                         if ($element -is [BinaryExpressionAst] -and
                             $element.Operator -eq 'Plus') {
                             $hasConcat = $true
+                            $concatElements += $element
                         }
                     }
                     
                     if ($hasConcat) {
-                        $violations += [SecurityViolation]::new(
+                        $violation = [SecurityViolation]::new(
                             "SQLInjection",
                             "String concatenation in SQL command detected. Use parameterized queries.",
                             [SecuritySeverity]::Critical,
                             $call.Extent.StartLineNumber,
                             $call.Extent.Text
                         )
+                        
+                        # Add fix suggestions
+                        $violation.Fixes = @(
+                            @{
+                                description = "Use parameterized query with -Variable parameter"
+                                replacement = 'Invoke-Sqlcmd -Query "SELECT * FROM Users WHERE Name = @username" -Variable @("username=''$userInput''")'
+                            },
+                            @{
+                                description = "Use SQL parameters with SqlCommand"
+                                replacement = '$cmd = New-Object System.Data.SqlClient.SqlCommand("SELECT * FROM Users WHERE Name = @username"); $cmd.Parameters.AddWithValue("@username", $userInput)'
+                            }
+                        )
+                        
+                        # Add code flow to show data flow from user input to SQL
+                        $violation.CodeFlows = @(
+                            @{
+                                message = "Untrusted data flows into SQL query"
+                                locations = @(
+                                    @{
+                                        lineNumber = $call.Extent.StartLineNumber
+                                        message = "User input variable used here"
+                                        filePath = $FilePath
+                                    },
+                                    @{
+                                        lineNumber = $call.Extent.StartLineNumber
+                                        message = "SQL query executed with concatenated string"
+                                        filePath = $FilePath
+                                    }
+                                )
+                            }
+                        )
+                        
+                        $violations += $violation
                     }
                 }
                 
