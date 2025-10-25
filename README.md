@@ -135,20 +135,39 @@ $result = Invoke-SecurityAnalysis -ScriptPath "./MyScript.ps1" -EnableSuppressio
 
 ### 3. Use CLI Tools
 
-PowerShield includes a command-line interface for local development:
+PowerShield includes a comprehensive command-line interface (`psts`) for local development:
 
 ```bash
+# Quick start - Interactive mode
+./psts interactive
+
 # Analyze files
-pwsh powershield.ps1 analyze ./scripts
+./psts analyze ./scripts
+./psts analyze --format sarif --output results.sarif
+
+# Baseline management - Track new issues
+./psts baseline create
+./psts baseline compare
+
+# Fix management - Preview and apply security fixes
+./psts fix preview
+./psts fix apply --confidence 0.8
+
+# Configuration
+./psts config validate
+./psts config init
+./psts config show
 
 # Install pre-commit hook
-pwsh powershield.ps1 install-hooks
-
-# Validate configuration
-pwsh powershield.ps1 config validate
+./psts install-hooks
 
 # Show help
-pwsh powershield.ps1 help
+./psts help
+```
+
+**Alternative invocation (if `./psts` doesn't work):**
+```bash
+pwsh psts.ps1 <command> [options]
 ```
 
 ### 4. Enable Pre-Commit Hooks
@@ -157,7 +176,7 @@ Get immediate feedback before committing:
 
 ```bash
 # Install the hook
-pwsh powershield.ps1 install-hooks
+./psts install-hooks
 
 # Now commits are automatically checked
 git add script.ps1
@@ -176,12 +195,102 @@ hooks:
 
 See [Pre-Commit Hook Guide](docs/PRE_COMMIT_HOOK_GUIDE.md) for details.
 
+## 🛠️ PSTS CLI Reference
+
+The PowerShield Testing Suite (PSTS) CLI provides comprehensive security analysis tools:
+
+### Analysis Commands
+
+```bash
+# Analyze current directory
+./psts analyze
+
+# Analyze specific path
+./psts analyze ./src
+
+# Output formats
+./psts analyze --format json --output results.json
+./psts analyze --format sarif --output results.sarif
+./psts analyze --format markdown --output report.md
+
+# Compare with baseline
+./psts analyze --baseline .powershield-baseline.json
+```
+
+### Baseline Management
+
+Track new violations over time:
+
+```bash
+# Create baseline from current state
+./psts baseline create
+
+# Create baseline for specific path
+./psts baseline create ./src
+
+# Compare current state with baseline
+./psts baseline compare
+
+# Custom baseline file
+./psts baseline create --output custom-baseline.json
+./psts baseline compare --output custom-baseline.json
+```
+
+### Fix Management
+
+Preview and apply security fixes:
+
+```bash
+# Preview available fixes
+./psts fix preview
+
+# Preview with higher confidence threshold
+./psts fix preview --confidence 0.9
+
+# Apply fixes (requires AI configuration)
+./psts fix apply --confidence 0.8
+```
+
+### Configuration Management
+
+```bash
+# Validate current configuration
+./psts config validate
+
+# Show current configuration (JSON)
+./psts config show
+
+# Create default configuration file
+./psts config init
+```
+
+### Interactive Mode
+
+Run PowerShield with guided prompts:
+
+```bash
+# Start interactive mode
+./psts interactive
+
+# Or just run without arguments
+./psts
+```
+
+Interactive mode provides a menu-driven interface for:
+- Running security analysis
+- Creating and managing baselines
+- Previewing fixes
+- Configuring PowerShield
+- Installing pre-commit hooks
+
 ## 📖 Documentation
 
+- **[CLI Usage Guide](docs/CLI_USAGE_GUIDE.md)** - Complete reference for the PSTS command-line interface
 - **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configure PowerShield with `.powershield.yml`
 - **[AI Auto-Fix Guide](docs/AI_AUTOFIX_GUIDE.md)** - Setup and use AI-powered fixes
 - **[Suppression Guide](docs/SUPPRESSION_GUIDE.md)** - Document security exceptions
 - **[Pre-Commit Hook Guide](docs/PRE_COMMIT_HOOK_GUIDE.md)** - Local validation before commits
+- **[Advanced Attack Detection](docs/ADVANCED_ATTACK_DETECTION.md)** - Security rules and patterns reference
 - **[Example Configuration](.powershield.yml.example)** - Complete configuration template
 
 ## 🔧 Configuration
