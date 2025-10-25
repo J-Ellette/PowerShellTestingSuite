@@ -1,4 +1,5 @@
 # PowerShield Phase 1 Master Plan
+
 ## The Definitive PowerShell Security Platform Roadmap
 
 > **Last Updated**: October 24, 2025
@@ -10,6 +11,7 @@
 ## 📊 Current State
 
 ### ✅ Phase 1 Complete (v1.0.0)
+
 - **4 core security rules** (InsecureHashAlgorithms, CredentialExposure, CommandInjection, CertificateValidation)
 - **GitHub Actions workflow** with SARIF upload and PR comments
 - **Basic auto-fix action** (rule-based, mock AI integration)
@@ -17,21 +19,32 @@
 - **Supporting scripts** (SARIF converter, report generator)
 
 ### ✅ Phase 1.5A-B Complete (v1.5.0)
+
 - **16 PowerShell-specific rules** (ExecutionPolicyBypass, ScriptBlockLogging, PSRemoting, etc.)
 - **14 general security rules** (Network: HTTP/TLS, FileSystem: Permissions/PathTraversal, Registry: Credentials, Data: SQL/LDAP injection)
 - **30 total security rules implemented**
 
 ### ✅ Phase 1.5C-A Complete (v1.5.1)
+
 - **3 advanced PowerShell rules** (AMSIEvasion, ETWEvasion, EnhancedPowerShell2Detection)
 - **33 total security rules** - detecting modern attack vectors
 - **Market leadership** in PowerShell security rule coverage
+
+### ✅ Phase 1.5C-B In Progress (v1.5.2)
+
+- **2 Azure security rules** (AzurePowerShellCredentialLeaks, AzureResourceExposure)
+- **35 total security rules implemented**
+- **Enhanced auto-fix action** with Azure-specific templates
+- **Comprehensive Azure test coverage** (20+ violations detected)
 
 ---
 
 ## 🎯 Strategic Vision
 
 ### Market Position Goal
+
 **Be THE definitive PowerShell security platform** that:
+
 1. **Detects 95%+ of real-world PowerShell attacks**
 2. **Provides AI-powered intelligent auto-fixes**
 3. **Integrates seamlessly into enterprise workflows**
@@ -39,6 +52,7 @@
 5. **Sets the industry standard for PowerShell security**
 
 ### Core Differentiators
+
 - ✅ **Most comprehensive rule coverage** (33+ rules, targeting 40+)
 - ⚡ **Modern threat detection** (AMSI/ETW evasion, supply chain attacks)
 - 🤖 **Real AI-powered fixes** (not mock implementations)
@@ -50,6 +64,7 @@
 ## 🔥 ✅  CRITICAL PRIORITY (Implement Immediately)
 
 ### ✅ 1. Real AI Auto-Fix Implementation 🤖
+
 **Current**: Mock implementation with template-based fixes  
 **Target**: Production-ready AI integration  
 **Impact**: CRITICAL - Core value proposition  
@@ -57,6 +72,7 @@
 #### Solution: Multi-Provider AI Integration
 
 **Primary: GitHub Models API** (Free tier with GPT-4o-mini)
+
 ```typescript
 // Use existing GITHUB_TOKEN
 endpoint: "https://models.inference.ai.azure.com/chat/completions"
@@ -66,6 +82,7 @@ model: "gpt-4o-mini"
 **Secondary Providers**: OpenAI, Azure OpenAI, Anthropic Claude
 
 **Configuration** (.powershield.yml):
+
 ```yaml
 autofix:
   provider: "github-models"  # github-models, openai, azure, claude
@@ -76,6 +93,7 @@ autofix:
 ```
 
 **Features**:
+
 - Context-aware fixes (understand broader script purpose)
 - Multi-line complex fixes
 - Fix validation (re-run analysis to verify)
@@ -83,16 +101,18 @@ autofix:
 - Learning from accepted/rejected fixes
 
 **Deliverables**:
-- [ ] Replace mock Copilot API calls with real GitHub Models integration
-- [ ] Add multi-provider configuration system
-- [ ] Implement template-based fallback
-- [ ] Add fix validation and re-analysis
-- [ ] Create comprehensive fix tests
-- [ ] Update documentation with AI setup
+
+- ✅ Replace mock Copilot API calls with real GitHub Models integration
+- ✅ Add multi-provider configuration system
+- ✅ Implement template-based fallback
+- ✅ Add fix validation and re-analysis
+- ✅ Create comprehensive fix tests
+- ✅ Update documentation with AI setup
 
 ---
 
 ### ✅  2. Configuration System (.powershield.yml) ⚙️
+
 **Current**: Hardcoded configuration  
 **Target**: Flexible, hierarchical configuration  
 **Impact**: HIGH - Enables enterprise adoption  
@@ -102,6 +122,7 @@ autofix:
 **Location**: `.powershield.yml` (repository root, with global/org level support)
 
 **Structure**:
+
 ```yaml
 # PowerShield Configuration
 version: "1.0"
@@ -197,16 +218,18 @@ enterprise:
 ```
 
 **Deliverables**:
-- [ ] Create configuration schema and validator
-- [ ] Implement hierarchical config loading (global → org → project → local)
-- [ ] Wire configuration to analyzer engine
-- [ ] Add config validation CLI command
-- [ ] Document configuration options
-- [ ] Provide example templates for common scenarios
+
+- ✅ Create configuration schema and validator
+- ✅ Implement hierarchical config loading (global → org → project → local)
+- ✅ Wire configuration to analyzer engine
+- ✅ Add config validation CLI command
+- ✅ Document configuration options
+- ✅ Provide example templates for common scenarios
 
 ---
 
 ### ✅  3. Suppression Comment System 🔕
+
 **Current**: No suppression mechanism  
 **Target**: Flexible, auditable suppression system  
 **Impact**: HIGH - Reduces false positive friction  
@@ -232,6 +255,7 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 ```
 
 **Features**:
+
 - Require justification (configurable)
 - Expiry dates with automatic alerts
 - Suppression tracking and reporting
@@ -239,22 +263,25 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Team review workflow for suppressions
 
 **Deliverables**:
-- [ ] Implement suppression comment parser
-- [ ] Add expiry date checking and warnings
-- [ ] Create suppression report generator
-- [ ] Add suppression audit log
-- [ ] Document suppression best practices
+
+- ✅ Implement suppression comment parser
+- ✅ Add expiry date checking and warnings
+- ✅ Create suppression report generator
+- ✅ Add suppression audit log
+- ✅ Document suppression best practices
 
 ---
 
-### 4. Phase 1.5C-B: High-Priority Advanced Rules ⚡
+### ✅ 4. Phase 1.5C-B: High-Priority Advanced Rules ⚡
+
 **Current**: 33 rules implemented  
 **Target**: 37 rules (add 4 critical advanced rules)  
 **Impact**: HIGH - Enterprise cloud security  
 
 #### Azure & Cloud Security Rules
 
-**Rule 34: AzurePowerShellCredentialLeaks** (CRITICAL)
+**✅ Rule 34: AzurePowerShellCredentialLeaks** (CRITICAL)
+
 ```powershell
 # Detect:
 - Connect-AzAccount with plaintext passwords
@@ -264,7 +291,8 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Storage account key hardcoding
 ```
 
-**Rule 35: PowerShellGallerySecurity** (HIGH)
+**✅ Rule 35: PowerShellGallerySecurity** (HIGH)
+
 ```powershell
 # Detect:
 - Install-Module without -Scope CurrentUser
@@ -274,7 +302,8 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Known malicious module patterns
 ```
 
-**Rule 36: CertificateStoreManipulation** (HIGH)
+**✅ Rule 36: CertificateStoreManipulation** (HIGH)
+
 ```powershell
 # Detect:
 - Certificate private key extraction
@@ -283,7 +312,8 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Certificate export to insecure locations
 ```
 
-**Rule 37: ActiveDirectoryDangerousOperations** (HIGH)
+**✅ Rule 37: ActiveDirectoryDangerousOperations** (HIGH)
+
 ```powershell
 # Detect:
 - Unsafe LDAP filters in Get-ADUser
@@ -294,32 +324,103 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 ```
 
 **Deliverables**:
-- [ ] Implement 4 high-priority rules with test scripts
-- [ ] Add comprehensive test coverage
-- [ ] Update documentation and examples
-- [ ] Generate fix templates for each rule
+
+- ✅ Implement 4 high-priority rules with test scripts
+- ✅ Add comprehensive test coverage
+- ✅ Update documentation and examples
+- ✅ Generate fix templates for each rule
 
 ---
 
 ## ⚡ HIGH PRIORITY (Phase 1.5C-C)
 
 ### 5. Enhanced Rule Coverage - Phase 1.5C-C 📋
+
 **Target**: 40+ total security rules  
 **Impact**: HIGH - Comprehensive coverage  
 
+#### High-Priority Azure Security Extensions
+
+**Rule 38: AzureEntraIDPrivilegedOperations** (CRITICAL)
+
+- Add-AzureADDirectoryRoleMember with Global Admin/Privileged roles
+- Set-AzureADUser with privileged account modifications
+- New-AzureADApplication with excessive permissions
+- Remove-AzureADUser bulk operations without confirmation
+- Set-AzureADPolicy bypassing security policies
+
+**Rule 39: AzureDataExfiltration** (CRITICAL)
+
+- Start-AzStorageBlobCopy to external accounts
+- Export-AzSqlDatabase to public storage
+- Get-AzKeyVaultSecret with bulk retrieval
+- Export-AzResourceGroup with sensitive resources
+- Backup-AzKeyVault to uncontrolled locations
+
+**Rule 40: AzureLoggingDisabled** (HIGH)
+
+- Set-AzDiagnosticSetting with disabled categories
+- Remove-AzLogProfile
+- Set-AzSecurityContact with disabled notifications
+- Disable-AzActivityLogAlert
+- Set-AzMonitorLogProfile with insufficient retention
+
+**Rule 41: AzureSubscriptionManagement** (HIGH)
+
+- Set-AzContext with production subscription switching
+- New-AzRoleDefinition with overly broad permissions
+- Remove-AzRoleAssignment bulk operations
+- Set-AzSubscription policy modifications
+- Move-AzResource cross-subscription without validation
+
+**Rule 42: AzureComputeSecurityViolations** (HIGH)
+
+- New-AzVm with public IP and RDP/SSH open
+- Set-AzVMExtension with custom script execution
+- Add-AzVMDataDisk without encryption
+- Set-AzVMOperatingSystem with disabled security features
+- New-AzContainerGroup with privileged containers
+
+**Rule 43: AzureDevOpsSecurityIssues** (MEDIUM)
+
+- Set-AzDevOpsVariable with secrets in plaintext
+- New-AzDevOpsPipeline with elevated permissions
+- Add-AzDevOpsServiceConnection with broad access
+- Set-AzDevOpsRepositoryPolicy disabling security checks
+- Grant-AzDevOpsPermission with excessive scope
+
+**Rule 44: AzureEncryptionBypass** (MEDIUM)
+
+- Set-AzStorageAccount with encryption disabled
+- New-AzDisk without encryption
+- Set-AzSqlDatabase with TDE disabled
+- New-AzVirtualMachine without disk encryption
+- Set-AzKeyVault without HSM protection in production
+
+**Rule 45: AzurePolicyAndCompliance** (MEDIUM)
+
+- Remove-AzPolicyAssignment
+- Set-AzPolicyDefinition with weakened controls
+- New-AzPolicyExemption without justification
+- Disable-AzSecurityContact
+- Set-AzSecurityPricing to free tier in production
+
 #### Medium-Priority Rules
 
-**Rule 38: JEAConfigurationVulnerabilities**
+**Rule 46: JEAConfigurationVulnerabilities**
+
 - Unsafe RoleCapabilities definitions
 - SessionConfiguration security gaps
 - JEA privilege escalation vectors
 
-**Rule 39: DSCSecurityIssues**
+**Rule 47: DSCSecurityIssues**
+
 - Unsafe Configuration data handling
 - MOF file credential exposure
 - DSC credential storage issues
 
-**Rule 40: DeprecatedCmdletUsage**
+**Rule 48: DeprecatedCmdletUsage**
+
 - ConvertTo-SecureString -AsPlainText without -Force warning
 - Legacy New-Object System.Net.WebClient usage
 - Deprecated authentication methods
@@ -327,12 +428,14 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 ---
 
 ### 6. Advanced PowerShell Attack Detection 🛡️
+
 **Target**: Detect advanced real-world attack patterns  
 **Impact**: HIGH - Modern threat protection  
 
 #### Advanced Attack Patterns (from newPSsuggestions.md)
 
 **PowerShell Obfuscation Detection**
+
 - Base64 encoded commands
 - String concatenation obfuscation
 - Character code conversion
@@ -340,35 +443,41 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 - Reversed strings
 
 **Download Cradle Detection**
+
 - `IEX (New-Object Net.WebClient).DownloadString(...)`
 - Memory-only execution patterns
 - BitsTransfer + execution chains
 
 **Persistence Mechanism Detection**
+
 - Registry Run keys
 - Scheduled task creation
 - WMI event subscriptions
 - PowerShell profile modifications
 
 **Credential Harvesting Detection**
+
 - Mimikatz patterns
 - LSASS dumping
 - Browser credential extraction
 - WiFi password dumping
 
 **Lateral Movement Detection**
+
 - WMI/CIM remote execution
 - Remote scheduled tasks
 - SMB share enumeration
 - Pass-the-Hash techniques
 
 **Data Exfiltration Detection**
+
 - DNS tunneling
 - HTTP POST with large data
 - Pastebin/GitHub Gist uploads
 - Cloud storage uploads
 
 **Deliverables**:
+
 - [ ] Implement 6 advanced attack pattern detection rules
 - [ ] Create realistic test scripts based on real malware
 - [ ] Map to MITRE ATT&CK framework
@@ -377,6 +486,7 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 ---
 
 ### 7. Pre-Commit Hook Integration 🪝
+
 **Current**: CI/CD only  
 **Target**: Local validation before commit  
 **Impact**: HIGH - Shift-left security  
@@ -384,6 +494,7 @@ $commands | ForEach-Object { Invoke-Expression $_ }
 #### Git Hook Features
 
 **Installation**:
+
 ```bash
 # Automatic setup
 psts install-hooks
@@ -393,6 +504,7 @@ cp .psts/hooks/pre-commit .git/hooks/
 ```
 
 **Capabilities**:
+
 - Run analysis on staged files only
 - Block commits with critical violations
 - Auto-fix on commit (opt-in)
@@ -400,6 +512,7 @@ cp .psts/hooks/pre-commit .git/hooks/
 - Configurable severity blocking
 
 **Deliverables**:
+
 - [ ] Create pre-commit hook script
 - [ ] Add hook installation command to CLI
 - [ ] Implement staged-file-only analysis
@@ -409,6 +522,7 @@ cp .psts/hooks/pre-commit .git/hooks/
 ---
 
 ### 8. Performance Optimization & Metrics 🚀
+
 **Current**: Single-threaded, no metrics  
 **Target**: Enterprise-scale performance  
 **Impact**: HIGH - Large codebase support  
@@ -416,16 +530,19 @@ cp .psts/hooks/pre-commit .git/hooks/
 #### Optimization Features
 
 **Parallel Processing**:
+
 - Multi-file parallel analysis
 - Rule parallelization per file
 - Configurable worker threads
 
 **Incremental Analysis**:
+
 - Only analyze changed files in CI/CD
 - Git-aware change detection
 - Smart caching of results
 
 **Performance Metrics**:
+
 ```yaml
 metrics:
   total_analysis_time: "12.3s"
@@ -436,6 +553,7 @@ metrics:
 ```
 
 **Deliverables**:
+
 - [ ] Implement parallel file analysis
 - [ ] Add incremental analysis mode
 - [ ] Create performance metrics tracking
@@ -445,6 +563,7 @@ metrics:
 ---
 
 ### 9. Enhanced SARIF Output 📊
+
 **Current**: Basic SARIF 2.1.0  
 **Target**: Full SARIF features with rich metadata  
 **Impact**: MEDIUM-HIGH - Better GitHub integration  
@@ -452,21 +571,25 @@ metrics:
 #### SARIF Enhancements
 
 **Rich Metadata**:
+
 - CWE/CVE mappings for all rules
 - MITRE ATT&CK technique IDs
 - OWASP category mappings
 - Remediation help URLs
 
 **Code Flows**:
+
 - Data flow visualization for complex vulnerabilities
 - Call chains for security issues
 
 **Fix Suggestions**:
+
 - Include fix suggestions in SARIF
 - Multiple fix alternatives
 - Fix explanation and impact
 
 **Deliverables**:
+
 - [ ] Add CWE mappings to all rules
 - [ ] Implement code flow tracking
 - [ ] Add fix suggestions to SARIF
@@ -476,6 +599,7 @@ metrics:
 ---
 
 ### 10. CLI Wrapper & Developer Experience 🛠️
+
 **Current**: Module-only interface  
 **Target**: Comprehensive CLI with developer tools  
 **Impact**: MEDIUM-HIGH - Improved usability  
@@ -507,6 +631,7 @@ psts version
 ```
 
 **Deliverables**:
+
 - [ ] Create psts.ps1 CLI wrapper
 - [ ] Implement all commands with help
 - [ ] Add output formatting options
@@ -518,10 +643,12 @@ psts version
 ## 📋 MEDIUM PRIORITY (Phase 1.6 - 2-3 Months)
 
 ### 11. CI/CD Platform Integrations 🔄
+
 **Current**: GitHub Actions only  
 **Target**: Multi-platform support  
 
 **Platforms**:
+
 - Azure DevOps Pipelines
 - GitLab CI/CD
 - Jenkins
@@ -529,6 +656,7 @@ psts version
 - TeamCity
 
 **Deliverables per platform**:
+
 - Native integration (plugin/extension/orb)
 - SARIF upload to platform security features
 - PR/MR comment integration
@@ -537,10 +665,12 @@ psts version
 ---
 
 ### 12. Rule Marketplace & Community Plugins 🎪
+
 **Target**: Extensible rule ecosystem  
 **Impact**: HIGH - Community growth  
 
 **Features**:
+
 - YAML-based custom rule definitions
 - Rule templates and generator
 - Community rule repository
@@ -548,6 +678,7 @@ psts version
 - Usage analytics
 
 **Rule Definition Format**:
+
 ```yaml
 rule:
   id: "CustomRule001"
@@ -572,10 +703,12 @@ rule:
 ---
 
 ### 13. Baseline & Diff Mode 📸
+
 **Target**: Track new violations only  
 **Impact**: MEDIUM-HIGH - Incremental improvement  
 
 **Features**:
+
 - Create baseline from current state
 - Compare against baseline
 - Report only NEW violations
@@ -585,10 +718,12 @@ rule:
 ---
 
 ### 14. Compliance Reporting 📜
+
 **Target**: Enterprise governance & compliance  
 **Impact**: MEDIUM - Enterprise adoption  
 
 **Compliance Frameworks**:
+
 - NIST Cybersecurity Framework
 - CIS PowerShell Security Benchmark
 - OWASP Top 10
@@ -597,6 +732,7 @@ rule:
 - HIPAA security rules
 
 **Reports**:
+
 - Compliance dashboard
 - Gap analysis reports
 - Audit evidence collection
@@ -605,10 +741,12 @@ rule:
 ---
 
 ### 15. Webhook Integrations 🔗
+
 **Target**: Real-time notifications  
 **Impact**: MEDIUM - Team collaboration  
 
 **Integration Targets**:
+
 - Slack (rich cards with severity indicators)
 - Microsoft Teams (adaptive cards)
 - Jira (automatic issue creation)
@@ -618,10 +756,12 @@ rule:
 ---
 
 ### 16. Historical Trending & Analytics 📈
+
 **Target**: Security posture over time  
 **Impact**: MEDIUM - Strategic insights  
 
 **Features**:
+
 - Violation trends over time
 - Security score evolution
 - Team comparison metrics
@@ -633,10 +773,12 @@ rule:
 ## 🎯 STRATEGIC PRIORITIES (Phase 2 Prep - 3-4 Months)
 
 ### 17. VS Code Extension Foundation 💻
+
 **Aligns with**: Phase 2 planning  
 **Impact**: HIGH - Developer adoption  
 
 **Phase 2 Prep Features**:
+
 - Export diagnostics JSON for Language Server
 - Real-time analysis API
 - Quick fix suggestion format
@@ -645,9 +787,11 @@ rule:
 ---
 
 ### 18. Multi-Format Output 📄
+
 **Target**: Support diverse tooling ecosystems  
 
 **Formats**:
+
 - JSON (current)
 - SARIF (current)
 - Markdown (current)
@@ -659,10 +803,12 @@ rule:
 ---
 
 ### 19. Advanced Secret Detection 🔐
+
 **Target**: Comprehensive credential detection  
 **Impact**: HIGH - Prevent credential leaks  
 
 **Detection Capabilities**:
+
 - AWS Access Keys (regex + entropy)
 - Azure Storage Keys
 - GitHub tokens
@@ -675,9 +821,11 @@ rule:
 ---
 
 ### 20. Performance Benchmarking & Testing 🔬
+
 **Target**: Enterprise-grade performance validation  
 
 **Benchmark Suite**:
+
 - Analysis speed (files/second)
 - Scalability tests (100s of files)
 - Memory usage profiling
@@ -689,6 +837,7 @@ rule:
 ## 🚀 FUTURE VISION (Phase 2+)
 
 ### Phase 2: VS Code Extension
+
 - Real-time analysis as you type
 - Inline security suggestions
 - Quick fix code actions
@@ -696,6 +845,7 @@ rule:
 - Team rule sharing
 
 ### Phase 3: Standalone Application
+
 - Electron desktop app
 - Docker sandbox isolation
 - Local AI integration (Ollama)
@@ -707,6 +857,7 @@ rule:
 ## 🎓 Community & Ecosystem
 
 ### Community Building
+
 - Open source rule contributions
 - Security researcher partnerships
 - Bug bounty program
@@ -714,6 +865,7 @@ rule:
 - Regular security webinars
 
 ### Documentation
+
 - Comprehensive rule documentation
 - Security best practices guide
 - Video tutorials
@@ -725,18 +877,21 @@ rule:
 ## 📊 Success Metrics
 
 ### Adoption Metrics
+
 - **GitHub Stars**: >1000 (current baseline)
 - **Weekly Active Users**: >500
 - **Enterprise Adoptions**: >10
 - **Community Contributors**: >50
 
 ### Quality Metrics
+
 - **False Positive Rate**: <5%
 - **Auto-Fix Success Rate**: >90%
 - **User Satisfaction**: >4.5/5
 - **Rule Coverage**: 95%+ of known PowerShell attacks
 
 ### Performance Metrics
+
 - **Analysis Speed**: >50 files/second
 - **CI Overhead**: <30 seconds
 - **Memory Usage**: <500MB
@@ -747,6 +902,7 @@ rule:
 ## 🔄 Implementation Workflow
 
 ### For Each Feature
+
 1. **Design**: Detailed technical design document
 2. **Test-First**: Create test scripts and expected outputs
 3. **Implementation**: Core functionality with error handling
@@ -755,6 +911,7 @@ rule:
 6. **Validation**: End-to-end testing and review
 
 ### Release Cadence
+
 - **Minor Releases**: Every 2-3 weeks (new rules, improvements)
 - **Major Releases**: Every 2-3 months (new capabilities)
 - **Patch Releases**: As needed (bug fixes, security updates)
@@ -764,21 +921,25 @@ rule:
 ## 🎯 Next Steps (Immediate Actions)
 
 ### Critical Foundation
+
 1. **Real AI Integration**: GitHub Models API implementation
 2. **Configuration System**: Basic .powershield.yml support
 3. **Suppression Comments**: Parser and basic functionality
 
 ### Advanced Rules
+
 4. **Phase 1.5C-B Rules**: Azure, Gallery, Certificate, AD rules
 5. **Test Coverage**: Comprehensive test scripts
 6. **Documentation**: Updated with new features
 
 ### Developer Experience
+
 7. **Pre-commit Hooks**: Local validation
 8. **CLI Wrapper**: Basic commands
 9. **Performance**: Incremental analysis
 
 ### Enterprise Features
+
 10. **Enhanced SARIF**: CWE mappings, code flows
 11. **Compliance**: Basic compliance reporting
 12. **Baseline Mode**: Track new violations only

@@ -2036,6 +2036,331 @@ class PowerShellSecurityAnalyzer {
                 return $violations
             }
         ))
+
+        # Phase 1.5C-B: Azure & Cloud Security Rules
+
+        # Rule 34: Azure PowerShell Credential Leaks
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzurePowerShellCredentialLeaks",
+            "Detects Azure PowerShell credential exposure and unsafe authentication patterns",
+            [SecuritySeverity]::Critical,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Connect-AzAccount with plaintext passwords
+                $azConnectCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Connect-AzAccount'
+                }, $true)
+                
+                foreach ($call in $azConnectCalls) {
+                    # Check for -Credential parameter with plaintext password construction
+                    $credentialFound = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'Credential') {
+                            $credentialFound = $true
+                            break
+                        }
+                    }
+                    
+                    if ($credentialFound) {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePowerShellCredentialLeaks",
+                            "Connect-AzAccount with credential parameter detected. Use Managed Identity or certificate-based auth instead.",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 2: Azure Storage Account keys in variables
+                $storageKeys = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst] -and 
+                    $args[0].Left.VariablePath.UserPath -match 'StorageAccountKey|AccountKey' -and
+                    $args[0].Right -is [StringConstantExpressionAst] -and
+                    $args[0].Right.Value -match '^[A-Za-z0-9+/]{88}==$'
+                }, $true)
+                
+                foreach ($key in $storageKeys) {
+                    $violations += [SecurityViolation]::new(
+                        "AzurePowerShellCredentialLeaks",
+                        "Azure Storage Account key hardcoded in variable: $($key.Left.VariablePath.UserPath)",
+                        [SecuritySeverity]::Critical,
+                        $key.Extent.StartLineNumber,
+                        $key.Extent.Text
+                    )
+                }
+                
+                # Pattern 3: Azure connection strings with embedded credentials
+                $connectionStrings = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and 
+                    ($args[0].Value -match 'AccountKey=.*' -or
+                     $args[0].Value -match 'Password=.*' -or
+                     $args[0].Value -match 'User ID=.*Password=')
+                }, $true)
+                
+                foreach ($connStr in $connectionStrings) {
+                    if ($connStr.Value -match 'DefaultEndpointsProtocol|database\.windows\.net') {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePowerShellCredentialLeaks",
+                            "Azure connection string with embedded credentials detected",
+                            [SecuritySeverity]::Critical,
+                            $connStr.Extent.StartLineNumber,
+                            $connStr.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Service Principal secrets in variables
+                $spSecrets = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst] -and 
+                    ($args[0].Left.VariablePath.UserPath -match 'ServicePrincipalKey|AppSecret|ClientSecret' -or
+                     $args[0].Left.VariablePath.UserPath -match 'servicePrincipalKey|appSecret|clientSecret') -and
+                    $args[0].Right -is [StringConstantExpressionAst]
+                }, $true)
+                
+                foreach ($secret in $spSecrets) {
+                    $violations += [SecurityViolation]::new(
+                        "AzurePowerShellCredentialLeaks",
+                        "Azure Service Principal secret hardcoded in variable: $($secret.Left.VariablePath.UserPath)",
+                        [SecuritySeverity]::Critical,
+                        $secret.Extent.StartLineNumber,
+                        $secret.Extent.Text
+                    )
+                }
+                
+                # Pattern 5: Azure DevOps Personal Access Tokens
+                $patTokens = $Ast.FindAll({
+                    $args[0] -is [AssignmentStatementAst] -and 
+                    ($args[0].Left.VariablePath.UserPath -match 'DevOpsToken|PAT|PersonalAccessToken' -or
+                     $args[0].Left.VariablePath.UserPath -match 'devOpsToken|pat|personalAccessToken') -and
+                    $args[0].Right -is [StringConstantExpressionAst] -and
+                    $args[0].Right.Value -match '^[a-z0-9]{52}$'
+                }, $true)
+                
+                foreach ($pat in $patTokens) {
+                    $violations += [SecurityViolation]::new(
+                        "AzurePowerShellCredentialLeaks",
+                        "Azure DevOps Personal Access Token hardcoded: $($pat.Left.VariablePath.UserPath)",
+                        [SecuritySeverity]::Critical,
+                        $pat.Extent.StartLineNumber,
+                        $pat.Extent.Text
+                    )
+                }
+                
+                # Pattern 6: Azure Function keys in URLs or variables
+                $functionKeys = $Ast.FindAll({
+                    $args[0] -is [StringConstantExpressionAst] -and 
+                    ($args[0].Value -match '[\?&]code=[A-Za-z0-9+/=]{20,}' -or
+                     $args[0].Value -match 'FunctionKeyValue.*=')
+                }, $true)
+                
+                foreach ($funcKey in $functionKeys) {
+                    if ($funcKey.Value -match 'azurewebsites\.net|functions\.azure\.com') {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePowerShellCredentialLeaks",
+                            "Azure Function key hardcoded in URL or variable",
+                            [SecuritySeverity]::High,
+                            $funcKey.Extent.StartLineNumber,
+                            $funcKey.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 7: Unsafe Azure Key Vault access (without proper authentication)
+                $kvCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -match 'Get-AzKeyVaultSecret|Set-AzKeyVaultSecret'
+                }, $true)
+                
+                foreach ($kv in $kvCalls) {
+                    # Check if used in a context where credentials are being retrieved unsafely
+                    $parent = $kv.Parent
+                    while ($parent -and -not ($parent -is [AssignmentStatementAst])) {
+                        $parent = $parent.Parent
+                    }
+                    
+                    if ($parent -and $parent -is [AssignmentStatementAst] -and 
+                        $parent.Left.VariablePath.UserPath -match 'password|secret|key|credential') {
+                        $violations += [SecurityViolation]::new(
+                            "AzurePowerShellCredentialLeaks",
+                            "Azure Key Vault secret retrieved into variable. Ensure proper access controls and avoid plaintext handling.",
+                            [SecuritySeverity]::Medium,
+                            $kv.Extent.StartLineNumber,
+                            $kv.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
+
+        # Rule 35: Azure Resource Exposure
+        $this.SecurityRules.Add([SecurityRule]::new(
+            "AzureResourceExposure",
+            "Detects unsafe Azure resource configurations that may expose data or services",
+            [SecuritySeverity]::High,
+            {
+                param($Ast, $FilePath)
+                $violations = @()
+                
+                # Pattern 1: Public blob containers
+                $blobCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    ($args[0].GetCommandName() -eq 'Set-AzStorageContainerAcl' -or
+                     $args[0].GetCommandName() -eq 'New-AzStorageContainer')
+                }, $true)
+                
+                foreach ($call in $blobCalls) {
+                    # Check for public access levels
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and $element.ParameterName -eq 'Permission') {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement -is [StringConstantExpressionAst] -and 
+                                $nextElement.Value -match 'Blob|Container') {
+                                $violations += [SecurityViolation]::new(
+                                    "AzureResourceExposure",
+                                    "Azure Storage Container set to public access: $($nextElement.Value)",
+                                    [SecuritySeverity]::High,
+                                    $call.Extent.StartLineNumber,
+                                    $call.Extent.Text
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                # Pattern 2: SQL Server firewall rules allowing all IPs
+                $sqlFirewallCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzSqlServerFirewallRule'
+                }, $true)
+                
+                foreach ($call in $sqlFirewallCalls) {
+                    $hasOpenRule = $false
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'StartIpAddress' -or $element.ParameterName -eq 'EndIpAddress')) {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement -is [StringConstantExpressionAst] -and 
+                                $nextElement.Value -match '^0\.0\.0\.0$') {
+                                $hasOpenRule = $true
+                            }
+                        }
+                    }
+                    
+                    if ($hasOpenRule) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureResourceExposure",
+                            "Azure SQL firewall rule allows access from all IPs (0.0.0.0)",
+                            [SecuritySeverity]::Critical,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 3: Network Security Group rules allowing broad access
+                $nsgCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Add-AzNetworkSecurityRuleConfig'
+                }, $true)
+                
+                foreach ($call in $nsgCalls) {
+                    $hasBroadSource = $false
+                    $hasInbound = $false
+                    
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst]) {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($element.ParameterName -eq 'SourceAddressPrefix' -and
+                                $nextElement -is [StringConstantExpressionAst] -and
+                                $nextElement.Value -match '^\*$|^0\.0\.0\.0/0$|^Internet$') {
+                                $hasBroadSource = $true
+                            }
+                            if ($element.ParameterName -eq 'Direction' -and
+                                $nextElement -is [StringConstantExpressionAst] -and
+                                $nextElement.Value -eq 'Inbound') {
+                                $hasInbound = $true
+                            }
+                        }
+                    }
+                    
+                    if ($hasBroadSource -and $hasInbound) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureResourceExposure",
+                            "NSG rule allows inbound traffic from any source (*)",
+                            [SecuritySeverity]::High,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 4: Public IP assignments without justification
+                $publicIpCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'New-AzPublicIpAddress'
+                }, $true)
+                
+                foreach ($call in $publicIpCalls) {
+                    # Check if it's for a production resource (basic heuristic)
+                    $callText = $call.Extent.Text.ToLower()
+                    if ($callText -match 'prod|production|public') {
+                        $violations += [SecurityViolation]::new(
+                            "AzureResourceExposure",
+                            "Public IP address creation detected. Ensure this is necessary and properly secured.",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                # Pattern 5: Key Vault with overly permissive access policies
+                $kvPolicyCalls = $Ast.FindAll({
+                    $args[0] -is [CommandAst] -and 
+                    $args[0].GetCommandName() -eq 'Set-AzKeyVaultAccessPolicy'
+                }, $true)
+                
+                foreach ($call in $kvPolicyCalls) {
+                    $hasAllPermissions = $false
+                    
+                    for ($i = 0; $i -lt $call.CommandElements.Count - 1; $i++) {
+                        $element = $call.CommandElements[$i]
+                        if ($element -is [CommandParameterAst] -and 
+                            ($element.ParameterName -eq 'PermissionsToSecrets' -or 
+                             $element.ParameterName -eq 'PermissionsToKeys')) {
+                            $nextElement = $call.CommandElements[$i + 1]
+                            if ($nextElement -is [ArrayExpressionAst] -or
+                                ($nextElement -is [StringConstantExpressionAst] -and 
+                                 $nextElement.Value -match 'all|\*')) {
+                                $hasAllPermissions = $true
+                            }
+                        }
+                    }
+                    
+                    if ($hasAllPermissions) {
+                        $violations += [SecurityViolation]::new(
+                            "AzureResourceExposure",
+                            "Key Vault access policy grants excessive permissions",
+                            [SecuritySeverity]::Medium,
+                            $call.Extent.StartLineNumber,
+                            $call.Extent.Text
+                        )
+                    }
+                }
+                
+                return $violations
+            }
+        ))
     }
 
     [PSCustomObject] AnalyzeScript([string]$ScriptPath) {

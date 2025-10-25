@@ -30161,6 +30161,54 @@ class TemplateProvider extends AIProvider {
                 ],
                 explanation: 'Removed certificate validation bypass',
                 confidence: 0.85
+            },
+            'AzurePowerShellCredentialLeaks': {
+                patterns: [
+                    {
+                        from: /Connect-AzAccount\s+.*-Credential/gi,
+                        to: '# SECURITY: Use Managed Identity or certificate-based authentication\nConnect-AzAccount -Identity  # For managed identity\n# Connect-AzAccount -ServicePrincipal -TenantId $tenantId -CertificateThumbprint $thumbprint -ApplicationId $appId  # For certificate auth'
+                    },
+                    {
+                        from: /\$.*(?:StorageAccountKey|AccountKey)\s*=\s*["'][^"']*["']/gi,
+                        to: '# SECURITY: Retrieve storage key from Key Vault or use managed identity\n$storageKey = Get-AzKeyVaultSecret -VaultName "YourKeyVault" -Name "StorageAccountKey" -AsPlainText'
+                    },
+                    {
+                        from: /\$.*(?:ServicePrincipalKey|AppSecret|ClientSecret)\s*=\s*["'][^"']*["']/gi,
+                        to: '# SECURITY: Use certificate-based authentication or retrieve secret from Key Vault\n$clientSecret = Get-AzKeyVaultSecret -VaultName "YourKeyVault" -Name "ClientSecret" -AsPlainText'
+                    },
+                    {
+                        from: /DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+/gi,
+                        to: '# SECURITY: Use managed identity or retrieve connection string from Key Vault\n$connectionString = Get-AzKeyVaultSecret -VaultName "YourKeyVault" -Name "StorageConnectionString" -AsPlainText'
+                    }
+                ],
+                explanation: 'Replaced hardcoded Azure credentials with secure alternatives',
+                confidence: 0.8
+            },
+            'AzureResourceExposure': {
+                patterns: [
+                    {
+                        from: /-Permission\s+(Blob|Container)/gi,
+                        to: '-Permission Off  # Use private access and configure specific access via SAS tokens or RBAC'
+                    },
+                    {
+                        from: /-StartIpAddress\s+"0\.0\.0\.0"/gi,
+                        to: '-StartIpAddress "YOUR_SPECIFIC_IP_RANGE"  # Replace with specific IP ranges only'
+                    },
+                    {
+                        from: /-SourceAddressPrefix\s+(\*|Internet|"0\.0\.0\.0\/0")/gi,
+                        to: '-SourceAddressPrefix "SPECIFIC_SUBNET"  # Replace with specific subnet or IP range'
+                    },
+                    {
+                        from: /-PermissionsToSecrets\s+(all|\*)/gi,
+                        to: '-PermissionsToSecrets @("Get", "List")  # Use least privilege principle'
+                    },
+                    {
+                        from: /-PermissionsToKeys\s+(all|\*)/gi,
+                        to: '-PermissionsToKeys @("Get", "Decrypt")  # Use least privilege principle'
+                    }
+                ],
+                explanation: 'Applied security best practices to Azure resource configurations',
+                confidence: 0.85
             }
         };
         const template = templates[request.ruleId];
@@ -30304,6 +30352,14 @@ exports.DEFAULT_CONFIG = {
         CertificateValidation: {
             enabled: true,
             severity: 'High'
+        },
+        AzurePowerShellCredentialLeaks: {
+            enabled: true,
+            severity: 'Critical'
+        },
+        AzureResourceExposure: {
+            enabled: true,
+            severity: 'High'
         }
     },
     autofix: {
@@ -30318,7 +30374,9 @@ exports.DEFAULT_CONFIG = {
             InsecureHashAlgorithms: true,
             CredentialExposure: true,
             CommandInjection: false,
-            CertificateValidation: false
+            CertificateValidation: false,
+            AzurePowerShellCredentialLeaks: true,
+            AzureResourceExposure: true
         }
     },
     suppressions: {

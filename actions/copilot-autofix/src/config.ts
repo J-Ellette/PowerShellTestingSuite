@@ -121,6 +121,14 @@ export const DEFAULT_CONFIG: PowerShieldConfig = {
         CertificateValidation: {
             enabled: true,
             severity: 'High'
+        },
+        AzurePowerShellCredentialLeaks: {
+            enabled: true,
+            severity: 'Critical'
+        },
+        AzureResourceExposure: {
+            enabled: true,
+            severity: 'High'
         }
     },
     autofix: {
@@ -135,7 +143,9 @@ export const DEFAULT_CONFIG: PowerShieldConfig = {
             InsecureHashAlgorithms: true,
             CredentialExposure: true,
             CommandInjection: false,
-            CertificateValidation: false
+            CertificateValidation: false,
+            AzurePowerShellCredentialLeaks: true,
+            AzureResourceExposure: true
         }
     },
     suppressions: {
