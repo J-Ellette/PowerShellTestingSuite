@@ -19,8 +19,8 @@
 
 [CmdletBinding()]
 param(
-    [Parameter(Position = 0, Mandatory = $true)]
-    [ValidateSet('analyze', 'config', 'baseline', 'fix', 'install-hooks', 'version', 'help')]
+    [Parameter(Position = 0, Mandatory = $false)]
+    [ValidateSet('analyze', 'config', 'baseline', 'fix', 'install-hooks', 'version', 'help', 'interactive')]
     [string]$Command,
     
     [Parameter(Position = 1, ValueFromRemainingArguments = $true)]
@@ -748,6 +748,167 @@ function Show-Version {
     Write-Host "Repository: https://github.com/J-Ellette/PowerShield" -ForegroundColor Gray
 }
 
+function Invoke-InteractiveMode {
+    <#
+    .SYNOPSIS
+        Run PowerShield in interactive mode
+    #>
+    
+    Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "PowerShield Interactive Mode" -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    Write-Host "`nWelcome to PowerShield! This interactive mode helps you get started." -ForegroundColor White
+    Write-Host "Type 'exit' or 'quit' at any time to leave interactive mode.`n" -ForegroundColor Gray
+    
+    while ($true) {
+        Write-Host "`nWhat would you like to do?" -ForegroundColor Cyan
+        Write-Host "  1. Analyze files for security issues" -ForegroundColor White
+        Write-Host "  2. Create or manage baseline" -ForegroundColor White
+        Write-Host "  3. Preview available fixes" -ForegroundColor White
+        Write-Host "  4. Configure PowerShield" -ForegroundColor White
+        Write-Host "  5. Install pre-commit hooks" -ForegroundColor White
+        Write-Host "  6. Show help" -ForegroundColor White
+        Write-Host "  7. Exit" -ForegroundColor White
+        
+        $choice = Read-Host "`nEnter your choice (1-7)"
+        
+        switch ($choice) {
+            '1' {
+                # Analyze
+                Write-Host "`n[Analyze Mode]" -ForegroundColor Cyan
+                $path = Read-Host "Enter path to analyze (default: current directory)"
+                if (-not $path) { $path = "." }
+                
+                $formatChoice = Read-Host "Output format? (1=text, 2=json, 3=sarif, 4=markdown) [default: text]"
+                $format = switch ($formatChoice) {
+                    '2' { 'json' }
+                    '3' { 'sarif' }
+                    '4' { 'markdown' }
+                    default { 'text' }
+                }
+                
+                $outputFile = $null
+                if ($format -ne 'text') {
+                    $outputFile = Read-Host "Output file path (optional, press Enter to skip)"
+                    if (-not $outputFile) { $outputFile = $null }
+                }
+                
+                Write-Host "`nRunning analysis..." -ForegroundColor Yellow
+                $params = @{ Path = $path; Format = $format }
+                if ($outputFile) { $params['Output'] = $outputFile }
+                
+                try {
+                    Invoke-Analyze @params
+                } catch {
+                    Write-Error "Analysis failed: $_"
+                }
+            }
+            '2' {
+                # Baseline
+                Write-Host "`n[Baseline Mode]" -ForegroundColor Cyan
+                Write-Host "  1. Create new baseline" -ForegroundColor White
+                Write-Host "  2. Compare with existing baseline" -ForegroundColor White
+                
+                $baselineChoice = Read-Host "Enter choice (1-2)"
+                
+                if ($baselineChoice -eq '1') {
+                    $path = Read-Host "Enter path to analyze (default: current directory)"
+                    if (-not $path) { $path = "." }
+                    
+                    Write-Host "`nCreating baseline..." -ForegroundColor Yellow
+                    try {
+                        Invoke-Baseline -SubCommand 'create' -Path $path
+                    } catch {
+                        Write-Error "Baseline creation failed: $_"
+                    }
+                } elseif ($baselineChoice -eq '2') {
+                    $path = Read-Host "Enter path to analyze (default: current directory)"
+                    if (-not $path) { $path = "." }
+                    
+                    Write-Host "`nComparing with baseline..." -ForegroundColor Yellow
+                    try {
+                        Invoke-Baseline -SubCommand 'compare' -Path $path
+                    } catch {
+                        Write-Error "Baseline comparison failed: $_"
+                    }
+                } else {
+                    Write-Warning "Invalid choice"
+                }
+            }
+            '3' {
+                # Fix preview
+                Write-Host "`n[Fix Preview Mode]" -ForegroundColor Cyan
+                $path = Read-Host "Enter path to analyze (default: current directory)"
+                if (-not $path) { $path = "." }
+                
+                $confidenceInput = Read-Host "Confidence threshold (0.0-1.0, default: 0.8)"
+                $confidence = if ($confidenceInput) { [double]$confidenceInput } else { 0.8 }
+                
+                Write-Host "`nPreviewing fixes..." -ForegroundColor Yellow
+                try {
+                    Invoke-Fix -SubCommand 'preview' -Path $path -Confidence $confidence
+                } catch {
+                    Write-Error "Fix preview failed: $_"
+                }
+            }
+            '4' {
+                # Configuration
+                Write-Host "`n[Configuration Mode]" -ForegroundColor Cyan
+                Write-Host "  1. Validate configuration" -ForegroundColor White
+                Write-Host "  2. Show configuration" -ForegroundColor White
+                Write-Host "  3. Initialize configuration" -ForegroundColor White
+                
+                $configChoice = Read-Host "Enter choice (1-3)"
+                
+                try {
+                    switch ($configChoice) {
+                        '1' { Invoke-Config -SubCommand 'validate' }
+                        '2' { Invoke-Config -SubCommand 'show' }
+                        '3' { Invoke-Config -SubCommand 'init' }
+                        default { Write-Warning "Invalid choice" }
+                    }
+                } catch {
+                    Write-Error "Configuration operation failed: $_"
+                }
+            }
+            '5' {
+                # Install hooks
+                Write-Host "`n[Install Hooks Mode]" -ForegroundColor Cyan
+                $confirm = Read-Host "Install pre-commit hooks? (y/N)"
+                
+                if ($confirm -eq 'y' -or $confirm -eq 'Y') {
+                    try {
+                        Install-Hooks
+                    } catch {
+                        Write-Error "Hook installation failed: $_"
+                    }
+                }
+            }
+            '6' {
+                # Help
+                Show-Help
+            }
+            '7' {
+                # Exit
+                Write-Host "`nExiting PowerShield interactive mode. Goodbye!" -ForegroundColor Cyan
+                return
+            }
+            'exit' {
+                Write-Host "`nExiting PowerShield interactive mode. Goodbye!" -ForegroundColor Cyan
+                return
+            }
+            'quit' {
+                Write-Host "`nExiting PowerShield interactive mode. Goodbye!" -ForegroundColor Cyan
+                return
+            }
+            default {
+                Write-Warning "Invalid choice. Please enter a number from 1-7."
+            }
+        }
+    }
+}
+
 function Show-Help {
     <#
     .SYNOPSIS
@@ -824,6 +985,8 @@ COMMANDS:
     
     version                       Display version information
     
+    interactive                   Run in interactive mode with guided prompts
+    
     help                          Display this help message
 
 CONFIGURATION:
@@ -855,6 +1018,9 @@ EXAMPLES:
     
     # Validate configuration
     psts config validate
+    
+    # Run in interactive mode
+    psts interactive
 
 DOCUMENTATION:
     https://github.com/J-Ellette/PowerShield
@@ -934,6 +1100,12 @@ for ($i = 0; $i -lt $Arguments.Count; $i++) {
 }
 
 # Execute command
+# If no command provided, start interactive mode
+if (-not $Command) {
+    Invoke-InteractiveMode
+    exit 0
+}
+
 switch ($Command) {
     'analyze' {
         if ($subCommand) {
@@ -973,6 +1145,10 @@ switch ($Command) {
     
     'install-hooks' {
         Install-Hooks @params
+    }
+    
+    'interactive' {
+        Invoke-InteractiveMode
     }
     
     'version' {

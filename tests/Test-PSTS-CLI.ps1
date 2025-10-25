@@ -370,6 +370,21 @@ try {
 
 #endregion
 
+#region Interactive Mode
+
+Write-Host "`n[Interactive Mode]" -ForegroundColor White
+
+# Test 20: Interactive mode starts
+try {
+    $output = & pwsh -NoProfile -Command "echo '7' | pwsh -NoProfile -File $(Join-Path $scriptRoot 'psts.ps1') interactive" 2>&1 | Out-String
+    $success = $output -match "PowerShield Interactive Mode" -and $output -match "What would you like to do"
+    Write-TestResult "interactive mode starts correctly" ([bool]$success)
+} catch {
+    Write-TestResult "interactive mode starts correctly" $false $_.Exception.Message
+}
+
+#endregion
+
 #region Summary
 
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
