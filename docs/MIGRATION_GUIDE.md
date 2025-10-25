@@ -1,5 +1,20 @@
 # PowerShield v1.1.0 Migration Guide
 
+## ⚠️ Important: Rebranding Notice
+
+**PSTS (PowerShell Testing Suite)** has been rebranded to **PowerShield - Comprehensive PowerShell Security Platform**.
+
+### Name Changes
+- **Product Name**: PSTS → PowerShield
+- **Config Files**: `.psts.yml` → `.powershield.yml`, `.pstsignore` → `.powershieldignore`
+- **Result Files**: `psts-results.json` → `powershield-results.json`
+- **Environment Variables**: `PSTS_VERSION` → `POWERSHIELD_VERSION`, `PSTS_IGNORE` → `POWERSHIELD_IGNORE`
+- **Suppression Comments**: `PSTS-SUPPRESS` → `POWERSHIELD-SUPPRESS`
+- **PowerShell Functions**: `Import-PSSTConfiguration` → `Import-PowerShieldConfiguration`
+
+### Backward Compatibility
+The rebranding includes updates to all file names, configuration references, and documentation. Update your workflows and configurations to use the new names. Legacy file names in `.gitignore` are maintained during the transition period.
+
 ## Overview
 
 PowerShield v1.1.0 introduces significant new features while maintaining backward compatibility. This guide helps you migrate from v1.0.0 to v1.1.0 and take advantage of the new capabilities.
