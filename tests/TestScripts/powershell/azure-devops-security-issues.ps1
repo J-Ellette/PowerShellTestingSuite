@@ -46,7 +46,7 @@ Set-AzDevOpsRepositoryPolicy -Project "WebApp" -RepositoryId $repoId -PolicyType
 Set-AzDevOpsRepositoryPolicy -Project "API" -Repository "main-repo" -PolicyType "BuildValidation" -Enabled:$false
 
 # Violation 14: Removing security checks
-Set-AzDevOpsRepositoryPolicy -Organization "Company" -Project "Backend" -RepositoryId $repoId -PolicyType "MinimumReviewers" -Enabled = $false
+Set-AzDevOpsRepositoryPolicy -Organization "Company" -Project "Backend" -RepositoryId $repoId -PolicyType "MinimumReviewers" -Enabled:$false
 
 # Violation 15: Granting all permissions
 Grant-AzDevOpsPermission -Project "MyProject" -User "user@company.com" -Permission "Allow All"

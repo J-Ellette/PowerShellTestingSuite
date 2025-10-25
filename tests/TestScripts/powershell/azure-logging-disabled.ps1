@@ -13,7 +13,7 @@ Set-AzDiagnosticSetting -ResourceId "/subscriptions/sub-id/resourceGroups/rg/pro
 Set-AzDiagnosticSetting -ResourceId "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/storage1" -Enabled:$false -WorkspaceId $workspaceId
 
 # Violation 3: Disabling logging explicitly
-Set-AzDiagnosticSetting -Name "DiagSetting" -ResourceId $resourceId -Enabled = $false
+Set-AzDiagnosticSetting -Name "DiagSetting" -ResourceId $resourceId -Enabled:$false
 
 # Violation 4: Removing log profile
 Remove-AzLogProfile -Name "default"
