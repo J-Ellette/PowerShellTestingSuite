@@ -761,6 +761,9 @@ function Invoke-InteractiveMode {
     Write-Host "`nWelcome to PowerShield! This interactive mode helps you get started." -ForegroundColor White
     Write-Host "Type 'exit' or 'quit' at any time to leave interactive mode.`n" -ForegroundColor Gray
     
+    # Menu options
+    $maxMenuOption = 7
+    
     while ($true) {
         Write-Host "`nWhat would you like to do?" -ForegroundColor Cyan
         Write-Host "  1. Analyze files for security issues" -ForegroundColor White
@@ -771,7 +774,7 @@ function Invoke-InteractiveMode {
         Write-Host "  6. Show help" -ForegroundColor White
         Write-Host "  7. Exit" -ForegroundColor White
         
-        $choice = Read-Host "`nEnter your choice (1-7)"
+        $choice = Read-Host "`nEnter your choice (1-$maxMenuOption)"
         
         switch ($choice) {
             '1' {
@@ -843,7 +846,19 @@ function Invoke-InteractiveMode {
                 if (-not $path) { $path = "." }
                 
                 $confidenceInput = Read-Host "Confidence threshold (0.0-1.0, default: 0.8)"
-                $confidence = if ($confidenceInput) { [double]$confidenceInput } else { 0.8 }
+                $confidence = 0.8
+                if ($confidenceInput) {
+                    try {
+                        $parsedConfidence = [double]$confidenceInput
+                        if ($parsedConfidence -ge 0.0 -and $parsedConfidence -le 1.0) {
+                            $confidence = $parsedConfidence
+                        } else {
+                            Write-Warning "Invalid confidence value. Using default: 0.8"
+                        }
+                    } catch {
+                        Write-Warning "Invalid confidence value. Using default: 0.8"
+                    }
+                }
                 
                 Write-Host "`nPreviewing fixes..." -ForegroundColor Yellow
                 try {
@@ -903,7 +918,7 @@ function Invoke-InteractiveMode {
                 return
             }
             default {
-                Write-Warning "Invalid choice. Please enter a number from 1-7."
+                Write-Warning "Invalid choice. Please enter a number from 1-$maxMenuOption."
             }
         }
     }
