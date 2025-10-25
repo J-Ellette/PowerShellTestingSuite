@@ -13,7 +13,7 @@
 # Check if powershell-yaml module is available
 $yamlAvailable = $null -ne (Get-Module -ListAvailable -Name 'powershell-yaml')
 
-class PSSTConfiguration {
+class PowerShieldConfiguration {
     [string]$Version
     [hashtable]$Analysis
     [hashtable]$Rules
@@ -24,7 +24,7 @@ class PSSTConfiguration {
     [array]$Webhooks
     [hashtable]$Enterprise
 
-    PSSTConfiguration() {
+    PowerShieldConfiguration() {
         $this.Version = '1.0'
         $this.Analysis = @{
             severity_threshold = 'Medium'
@@ -129,14 +129,14 @@ class PSSTConfiguration {
     }
 }
 
-function Import-PSSTConfiguration {
+function Import-PowerShieldConfiguration {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false)]
         [string]$WorkspacePath = '.'
     )
 
-    $config = [PSSTConfiguration]::new()
+    $config = [PowerShieldConfiguration]::new()
 
     # 1. Look for global config
     $homeDir = if ($IsWindows) { $env:USERPROFILE } else { $env:HOME }
@@ -275,11 +275,11 @@ function Read-SimpleYaml {
     return $config
 }
 
-function Export-PSSTConfiguration {
+function Export-PowerShieldConfiguration {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [PSSTConfiguration]$Configuration,
+        [PowerShieldConfiguration]$Configuration,
 
         [Parameter(Mandatory=$true)]
         [string]$Path
@@ -305,11 +305,11 @@ function Export-PSSTConfiguration {
     Write-Host "Configuration saved to: $jsonPath (as JSON, install powershell-yaml for YAML support)"
 }
 
-function Test-PSSTConfiguration {
+function Test-PowerShieldConfiguration {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [PSSTConfiguration]$Configuration
+        [PowerShieldConfiguration]$Configuration
     )
 
     $errors = @()
@@ -356,4 +356,4 @@ function Test-PSSTConfiguration {
     }
 }
 
-Export-ModuleMember -Function Import-PSSTConfiguration, Export-PSSTConfiguration, Test-PSSTConfiguration
+Export-ModuleMember -Function Import-PowerShieldConfiguration, Export-PowerShieldConfiguration, Test-PowerShieldConfiguration

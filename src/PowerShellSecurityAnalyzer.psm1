@@ -76,7 +76,7 @@ class PowerShellSecurityAnalyzer {
     [List[SecurityRule]]$SecurityRules
     [List[SecurityRule]]$CodingRules
     [hashtable]$Configuration
-    [object]$PSSTConfig  # PSSTConfiguration object
+    [object]$PowerShieldConfig  # PowerShieldConfiguration object
     [object]$SuppressionParser  # SuppressionParser object
 
     PowerShellSecurityAnalyzer() {
@@ -88,7 +88,7 @@ class PowerShellSecurityAnalyzer {
             TimeoutSeconds = 30
             ExcludedPaths = @('tests/TestScripts', '*/TestScripts', 'test/*', 'tests/*', 'src/*', 'scripts/*')
         }
-        $this.PSSTConfig = $null
+        $this.PowerShieldConfig = $null
         $this.SuppressionParser = $null
         $this.InitializeDefaultRules()
     }
@@ -96,7 +96,7 @@ class PowerShellSecurityAnalyzer {
     PowerShellSecurityAnalyzer([object]$pstsConfig) {
         $this.SecurityRules = [List[SecurityRule]]::new()
         $this.CodingRules = [List[SecurityRule]]::new()
-        $this.PSSTConfig = $pstsConfig
+        $this.PowerShieldConfig = $pstsConfig
         
         # Merge PowerShield config into legacy Configuration
         $this.Configuration = @{
@@ -132,13 +132,13 @@ class PowerShellSecurityAnalyzer {
             $modulePath = Join-Path $PSScriptRoot 'ConfigLoader.psm1'
             if (Test-Path $modulePath) {
                 Import-Module $modulePath -Force -ErrorAction Stop
-                $this.PSSTConfig = Import-PSSTConfiguration -WorkspacePath $workspacePath
+                $this.PowerShieldConfig = Import-PowerShieldConfiguration -WorkspacePath $workspacePath
                 
                 # Update Configuration
-                $this.Configuration.EnableParallelAnalysis = $this.PSSTConfig.Analysis.parallel_analysis
-                $this.Configuration.MaxFileSize = $this.PSSTConfig.Analysis.max_file_size
-                $this.Configuration.TimeoutSeconds = $this.PSSTConfig.Analysis.timeout_seconds
-                $this.Configuration.ExcludedPaths = $this.PSSTConfig.Analysis.exclude_paths
+                $this.Configuration.EnableParallelAnalysis = $this.PowerShieldConfig.Analysis.parallel_analysis
+                $this.Configuration.MaxFileSize = $this.PowerShieldConfig.Analysis.max_file_size
+                $this.Configuration.TimeoutSeconds = $this.PowerShieldConfig.Analysis.timeout_seconds
+                $this.Configuration.ExcludedPaths = $this.PowerShieldConfig.Analysis.exclude_paths
                 
                 Write-Verbose "Loaded PowerShield configuration from $workspacePath"
             }
@@ -2073,8 +2073,8 @@ class PowerShellSecurityAnalyzer {
             $rules = $this.SecurityRules + $this.CodingRules
             foreach ($rule in $rules) {
                 # Check if rule is disabled in configuration
-                if ($this.PSSTConfig -and $this.PSSTConfig.Rules.ContainsKey($rule.Name)) {
-                    $ruleConfig = $this.PSSTConfig.Rules[$rule.Name]
+                if ($this.PowerShieldConfig -and $this.PowerShieldConfig.Rules.ContainsKey($rule.Name)) {
+                    $ruleConfig = $this.PowerShieldConfig.Rules[$rule.Name]
                     if ($ruleConfig.enabled -eq $false) {
                         Write-Verbose "Rule $($rule.Name) is disabled in configuration"
                         continue
@@ -2283,15 +2283,15 @@ function New-SecurityAnalyzer {
     }
     
     # Initialize suppression parser if requested
-    if ($EnableSuppressions -and $analyzer.PSSTConfig) {
+    if ($EnableSuppressions -and $analyzer.PowerShieldConfig) {
         try {
             $modulePath = Join-Path $PSScriptRoot 'SuppressionParser.psm1'
             if (Test-Path $modulePath) {
                 Import-Module $modulePath -Force -ErrorAction Stop
                 $analyzer.SuppressionParser = New-SuppressionParser `
-                    -RequireJustification $analyzer.PSSTConfig.Suppressions.require_justification `
-                    -MaxDurationDays $analyzer.PSSTConfig.Suppressions.max_duration_days `
-                    -AllowPermanent $analyzer.PSSTConfig.Suppressions.allow_permanent
+                    -RequireJustification $analyzer.PowerShieldConfig.Suppressions.require_justification `
+                    -MaxDurationDays $analyzer.PowerShieldConfig.Suppressions.max_duration_days `
+                    -AllowPermanent $analyzer.PowerShieldConfig.Suppressions.allow_permanent
             }
         } catch {
             Write-Warning "Failed to initialize suppression parser: $_"

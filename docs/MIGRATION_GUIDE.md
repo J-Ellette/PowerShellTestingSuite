@@ -305,8 +305,8 @@ suppressions:
 
 ```powershell
 Import-Module ./src/ConfigLoader.psm1
-$config = Import-PSSTConfiguration -WorkspacePath "."
-Test-PSSTConfiguration -Configuration $config
+$config = Import-PowerShieldConfiguration -WorkspacePath "."
+Test-PowerShieldConfiguration -Configuration $config
 ```
 
 ### 2. Test Analysis with New Features

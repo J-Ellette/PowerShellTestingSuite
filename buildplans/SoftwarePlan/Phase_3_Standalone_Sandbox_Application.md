@@ -14,7 +14,7 @@ import { ConfigurationManager } from './config/configurationManager';
 import { UpdateManager } from './updates/updateManager';
 import { TelemetryManager } from './telemetry/telemetryManager';
 
-class PSSTApplication {
+class PowerShieldApplication {
     private mainWindow: BrowserWindow | null = null;
     private sandboxManager: SandboxManager;
     private aiManager: LocalAIManager;
@@ -510,7 +510,7 @@ class PSSTApplication {
 }
 
 // Start the application
-new PSSTApplication();
+new PowerShieldApplication();
 
 ## 3.2 Sandbox Manager with Docker Isolation
 

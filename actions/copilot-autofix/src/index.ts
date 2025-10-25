@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ConfigLoader, PSSTConfig } from './config';
+import { ConfigLoader, PowerShieldConfig } from './config';
 import { AIProviderFactory, AIProvider, FixRequest } from './ai-providers';
 
 interface PSViolation {
@@ -25,11 +25,11 @@ interface FixSuggestion {
 }
 
 class AutoFixer {
-    private config: PSSTConfig;
+    private config: PowerShieldConfig;
     private aiProvider: AIProvider;
     private templateProvider: AIProvider;
 
-    constructor(config: PSSTConfig, githubToken?: string) {
+    constructor(config: PowerShieldConfig, githubToken?: string) {
         this.config = config;
         
         // Create primary AI provider
